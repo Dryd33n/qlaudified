@@ -52,6 +52,8 @@ Dropping `dataclasses` (~25 ms of `inspect` import) is the next lever if Sprint 
 
 ## Not done / carried forward
 
-- macOS has only been checked in CI (the `ci` and `spike` workflows), not in a live session.
+- macOS has only been checked in CI, not in a live session. CI run 37842885515 (commit `e39d9a7`)
+  is green on Windows and macOS with Python 3.11 and 3.13: ruff, mypy, all free test layers and
+  the install test.
 - `MessageDisplay` isn't registered yet: it would start Python for every streamed paragraph with
   nothing to do until Sprint 2's markers.
