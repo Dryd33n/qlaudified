@@ -1,0 +1,28 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "14435626-b1eb-4e49-8acf-db5a07692559",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Grep",
+  "tool_input": {
+    "pattern": "SYNC_INTERVAL_S",
+    "path": "<SANDBOX>",
+    "output_mode": "content",
+    "-n": true
+  },
+  "tool_response": {
+    "mode": "content",
+    "numFiles": 0,
+    "filenames": [],
+    "content": "ledger\\config.py:6:SYNC_INTERVAL_S = 900\nledger\\sync.py:1:from .config import SYNC_INTERVAL_S\nledger\\sync.py:5:    \"\"\"Return the next sync time. Usually last_ts + SYNC_INTERVAL_S; retries may run sooner.\"\"\"\nledger\\sync.py:6:    return last_ts + SYNC_INTERVAL_S\n.qlaudified-probe\\<SESSION_0>\\events.jsonl:2:[Omitted long matching line]",
+    "numLines": 5,
+    "totalLines": 5
+  },
+  "tool_use_id": "toolu_01GyS3eT5QTUaGttg1Fy4pCQ",
+  "duration_ms": 193
+}

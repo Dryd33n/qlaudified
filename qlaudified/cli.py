@@ -1,7 +1,74 @@
-"""Backs the ``/qlaudified`` command: ``mode``, ``report [--deep]``, ``csv [--path]``."""
+"""Backs the ``/qlaudified`` command: ``mode``, ``report [--deep]``, ``csv [--path]``.
+
+Run from the project folder. The current session comes from ``CLAUDE_CODE_SESSION_ID``, which
+Claude Code sets for the commands it runs.
+"""
 
 import argparse
+import os
+import subprocess
 import sys
+from pathlib import Path
+
+from qlaudified import config, paths
+from qlaudified.store import Store
+
+
+def _session_id() -> str | None:
+    return os.environ.get("CLAUDE_CODE_SESSION_ID") or None
+
+
+def _latest_session_dir(project: Path) -> Path | None:
+    """This session's folder if it has a store, else the most recently used one."""
+    sessions = paths.store_root({"cwd": str(project)}) / "sessions"
+    sid = _session_id()
+    if sid and (sessions / paths.safe_name(sid) / "index.sqlite").exists():
+        return sessions / paths.safe_name(sid)
+    stores = sorted(sessions.glob("*/index.sqlite"), key=lambda p: p.stat().st_mtime)
+    return stores[-1].parent if stores else None
+
+
+def cmd_mode(project: Path, value: str | None, session_only: bool) -> int:
+    sid = _session_id()
+    if value is None:
+        cfg = config.load(project, sid)
+        where = {"session": "this session only", "config": "project default",
+                 "default": "built-in default"}[cfg.mode_source]
+        print(f"qlaudified mode: {cfg.mode} ({where})")
+        for problem in cfg.problems:
+            print(f"config problem: {problem}")
+        return 0
+    mode = config.Mode(value)
+    if session_only:
+        if not sid:
+            print("No session ID available; set the project default instead (drop --session).")
+            return 1
+        config.set_session_mode(project, sid, mode)
+        print(f"qlaudified mode: {mode} for this session only; the project default is unchanged.")
+    else:
+        config.save_mode(project, mode)
+        if sid:
+            config.set_session_mode(project, sid, None)
+        print(f"qlaudified mode: {mode} (saved as the project default in {config.config_path(project)})")
+    return 0
+
+
+def cmd_csv(project: Path, path_only: bool) -> int:
+    folder = _latest_session_dir(project)
+    if folder is None:
+        print("No provenance recorded in this project yet.")
+        return 1
+    csv_path = Store(folder).export_csv()
+    if path_only:
+        print(csv_path)
+        return 0
+    print(f"Opening {csv_path}")
+    if sys.platform == "win32":
+        os.startfile(csv_path)  # type: ignore[attr-defined]
+    else:
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.run([opener, str(csv_path)], check=False)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -19,7 +86,12 @@ def main(argv: list[str] | None = None) -> int:
     csv.add_argument("--path", action="store_true", help="print the path instead")
 
     args = parser.parse_args(argv)
-    print(f"qlaudified {args.command}: not implemented yet", file=sys.stderr)
+    project = paths.project_dir()
+    if args.command == "mode":
+        return cmd_mode(project, args.value, args.session)
+    if args.command == "csv":
+        return cmd_csv(project, args.path)
+    print("qlaudified report: arrives in Sprint 2 (claim verification).")
     return 1
 
 

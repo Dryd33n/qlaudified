@@ -1,0 +1,26 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "0cf1f606-519e-40d5-a74c-9e4b61ffcba6",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "ToolSearch",
+  "tool_input": {
+    "query": "select:WebFetch,WebSearch",
+    "max_results": 2
+  },
+  "tool_response": {
+    "matches": [
+      "WebFetch",
+      "WebSearch"
+    ],
+    "query": "select:WebFetch,WebSearch",
+    "total_deferred_tools": 22
+  },
+  "tool_use_id": "toolu_0182tkVLhiZh4dpCBTtUK5jN",
+  "duration_ms": 2
+}

@@ -1,4 +1,39 @@
 {
-  "description": "qlaudified hooks. Empty until Sprint 1; the event list and command form are decided by the Sprint 0 findings (docs/findings/sprint-0.md).",
-  "hooks": {}
+  "description": "qlaudified hooks. One shell-form line per hook: py -3 if present, else python3 (docs/design.md, Hook command). MessageDisplay is added in Sprint 2.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" SessionStart || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" SessionStart",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Grep|Bash|PowerShell|WebFetch|WebSearch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" PostToolUse || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" PostToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
 }

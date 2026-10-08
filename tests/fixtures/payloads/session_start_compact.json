@@ -1,0 +1,10 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>.jsonl",
+  "cwd": "<HOME>\\Documents\\GitHub\\qlaudified",
+  "scratchpad_dir": "<HOME>\\AppData\\Local\\Temp\\claude\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\scratchpad",
+  "prompt_id": "a2face88-9c5a-4fd5-a1aa-fa77ac28c7bc",
+  "hook_event_name": "SessionStart",
+  "source": "compact",
+  "model": "claude-haiku-5-5"
+}

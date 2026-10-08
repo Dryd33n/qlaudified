@@ -1,0 +1,4 @@
+{"ts": "2026-10-08T13:40:20", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_read", "runs": 30, "p50_ms": 287.6, "p95_ms": 323.8, "max_ms": 325.3}
+{"ts": "2026-10-08T13:40:29", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_grep_content", "runs": 30, "p50_ms": 281.9, "p95_ms": 322.0, "max_ms": 328.2}
+{"ts": "2026-10-08T13:41:21", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_read", "runs": 30, "p50_ms": 238.3, "p95_ms": 250.7, "max_ms": 269.5}
+{"ts": "2026-10-08T13:44:22", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_read", "runs": 30, "p50_ms": 238.0, "p95_ms": 257.9, "max_ms": 263.7}

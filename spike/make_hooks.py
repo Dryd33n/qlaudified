@@ -27,11 +27,38 @@ def main():
     parser.add_argument("--no-message-display", action="store_true")
     parser.add_argument("--async-post", action="store_true")
     parser.add_argument("--exec", action="store_true", help="write exec-form hooks (command + args)")
+    parser.add_argument("--dual", action="store_true",
+                        help="Sprint 1 prep, option (a): one exec hook each for py -3, python3 and a "
+                             "missing command, to see how both OSes behave with one hooks.json")
+    parser.add_argument("--fallback", action="store_true",
+                        help="Sprint 1 prep, option (b): one shell-form hook that runs py -3 if "
+                             "it exists, else python3; records $BASH_VERSION to show the shell")
     args = parser.parse_args()
 
     hooks = {}
     for event in EVENTS:
         if event == "MessageDisplay" and args.no_message_display:
+            continue
+        if args.fallback:
+            probe = '"${CLAUDE_PLUGIN_ROOT}/probe.py" %s' % event
+            cmd = ('command -v py >/dev/null 2>&1 && exec py -3 %s via=sh-py "bash=$BASH_VERSION"'
+                   ' || exec python3 %s via=sh-python3 "bash=$BASH_VERSION"' % (probe, probe))
+            timeout = 150 if event == "Stop" else (10 if event == "MessageDisplay" else 30)
+            entry = {"hooks": [{"type": "command", "command": cmd, "timeout": timeout}]}
+            if event == "PostToolUse":
+                entry["matcher"] = "*"
+            hooks[event] = [entry]
+            continue
+        if args.dual:
+            timeout = 150 if event == "Stop" else (10 if event == "MessageDisplay" else 30)
+            launchers = [("py", ["-3"]), ("python3", []), ("qlaudified-missing-exe", [])]
+            entry = {"hooks": [{"type": "command", "command": exe, "timeout": timeout,
+                                "args": pre + ["${CLAUDE_PLUGIN_ROOT}/probe.py", event,
+                                               "via=" + exe]}
+                               for exe, pre in launchers]}
+            if event == "PostToolUse":
+                entry["matcher"] = "*"
+            hooks[event] = [entry]
             continue
         if args.exec:
             exe, *pre = args.python.split()
@@ -58,7 +85,10 @@ def main():
                   indent=2)
         f.write("\n")
     print("wrote %s (python: %s, form: %s, events: %s)"
-          % (out, args.python, "exec" if args.exec else "shell", ", ".join(hooks)))
+          % (out, args.python,
+             "fallback" if args.fallback else "dual" if args.dual else
+             ("exec" if args.exec else "shell"),
+             ", ".join(hooks)))
 
 
 if __name__ == "__main__":

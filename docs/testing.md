@@ -132,7 +132,8 @@ Spec: docs/design.md · Sprints: docs/sprint-plan.md · Testing: docs/testing.md
 - Never load this working copy as a plugin in the current session.
 - Core code is standard library only; extras go behind [web] / [nli].
 - Hooks must never raise: catch, log to .claude/.qlaudified/errors.log, exit 0.
-- Use exec-form hooks (`python` + args). Normalize paths; Windows sends backslashes.
+- Hooks are one shell-form line: `py -3` if present, else `python3` (design.md, Hook command).
+  Normalize paths: Windows sends backslashes and 8.3 short names.
 - Injected context is plain facts, never instructions.
 - Tag commits and issues with requirement IDs (CAP-1, VER-4, ...).
 ```
@@ -146,5 +147,5 @@ Spec: docs/design.md · Sprints: docs/sprint-plan.md · Testing: docs/testing.md
 GitHub Actions runs the free layers on every push, on `windows-latest` and `macos-latest`, across two Python versions; live tests stay local.
 
 - **Every push and PR:** lint, type check, `pytest -m "not live"`, plus an install test of `pip install .` and `pip install .[nli]` on both OSes.
-- **Hook smoke without Claude Code:** pipe each recorded payload through the real hook entry points as Claude Code would (exec form, `python` + script path), catching Windows path and quoting bugs.
+- **Hook smoke without Claude Code:** pipe each recorded payload through the real hook entry points as Claude Code would (the `py -3` / `python3` command from hooks.json), catching Windows path and quoting bugs.
 - **Live tests in CI (optional, later):** possible with a token from `claude setup-token` stored as a secret, on a weekly schedule only, since every run draws on your plan.

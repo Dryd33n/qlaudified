@@ -14,7 +14,8 @@ Spec: docs/design.md · Sprints: docs/sprint-plan.md · Testing: docs/testing.md
 - Never load this working copy as a plugin in the current session.
 - Core code is standard library only; extras go behind [web] / [nli].
 - Hooks must never raise: catch, log to .claude/.qlaudified/errors.log, exit 0.
-- Use exec-form hooks (`python` + args). Normalize paths; Windows sends backslashes.
+- Hooks are one shell-form line: `py -3 -S` if present, else `python3 -S` (design.md, Hook command).
+  Normalize paths: Windows sends backslashes and 8.3 short names.
 - Injected context is plain facts, never instructions.
 - Tag commits and issues with requirement IDs (CAP-1, VER-4, ...).
 - spike/ is throwaway Sprint 0 code; don't import it from the package.

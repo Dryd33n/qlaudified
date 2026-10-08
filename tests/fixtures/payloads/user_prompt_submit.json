@@ -1,0 +1,9 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "89032862-6541-4878-9a1a-753b0a1addc6",
+  "permission_mode": "default",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "Read q3-update.md and launch-memo.md in this folder, then tell me Q3 revenue and the launch date in two sentences."
+}

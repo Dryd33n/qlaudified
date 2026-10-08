@@ -1,0 +1,26 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>.jsonl",
+  "cwd": "<HOME>\\Documents\\GitHub\\qlaudified",
+  "scratchpad_dir": "<HOME>\\AppData\\Local\\Temp\\claude\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\scratchpad",
+  "prompt_id": "e3117aba-3df2-4300-bb9f-1cb59285d34b",
+  "permission_mode": "auto",
+  "agent_id": "a43f6aeb4f7a460ed",
+  "agent_type": "Explore",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "SubagentStop",
+  "stop_hook_active": false,
+  "agent_transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\subagents\\agent-a43f6aeb4f7a460ed.jsonl",
+  "background_tasks": [
+    {
+      "id": "a43f6aeb4f7a460ed",
+      "type": "subagent",
+      "status": "running",
+      "description": "Read launch memo for launch date",
+      "agent_type": "Explore"
+    }
+  ],
+  "session_crons": []
+}

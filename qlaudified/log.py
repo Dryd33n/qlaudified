@@ -1,10 +1,10 @@
-"""Error and timing log. Never raises (NFR-7)."""
+"""Error and timing logs. Never raises (NFR-7)."""
 
 import json
 import time
 import traceback
 
-from qlaudified.paths import store_root
+from qlaudified.paths import session_dir, store_root
 
 
 def log_error(event: str, payload: dict | None, elapsed_ms: float) -> None:
@@ -18,4 +18,18 @@ def log_error(event: str, payload: dict | None, elapsed_ms: float) -> None:
         "traceback": traceback.format_exc(),
     }
     with open(root / "errors.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
+
+
+def log_timing(event: str, payload: dict | None, elapsed_ms: float, **extra) -> None:
+    """One line per hook call in the session's timings.jsonl (NFR-3 evidence)."""
+    session_id = (payload or {}).get("session_id")
+    if not session_id:
+        return
+    folder = session_dir(session_id, payload)
+    if not folder.is_dir():
+        return  # only sessions the store already knows about
+    record = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "event": event,
+              "tool": (payload or {}).get("tool_name"), "elapsed_ms": round(elapsed_ms, 1), **extra}
+    with open(folder / "timings.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")

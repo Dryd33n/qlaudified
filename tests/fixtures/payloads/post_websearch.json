@@ -1,0 +1,71 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "0cf1f606-519e-40d5-a74c-9e4b61ffcba6",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "WebSearch",
+  "tool_input": {
+    "query": "sqlite3 check_same_thread python connection shared across threads",
+    "mode": "standard"
+  },
+  "tool_response": {
+    "query": "sqlite3 check_same_thread python connection shared across threads",
+    "results": [
+      {
+        "tool_use_id": "srvtoolu_01G59YM5GLcYNumurzStCiyP",
+        "content": [
+          {
+            "title": "remotebranch.eu",
+            "url": "https://remotebranch.eu/Stowage/cpython/commit/c2c970fc26e6de5b9e338413eac71d46aea5ca5e"
+          },
+          {
+            "title": "Docs: improve accuracy of sqlite3 `check_same_thread` parameter (GH-101351)",
+            "url": "https://android.googlesource.com/platform/external/python/cpython3/+/f8abe755e8%5E%21"
+          },
+          {
+            "title": "[Python-Dev] Building thread-safe sqlite3 with Python 2.6.5rc1",
+            "url": "https://www.python.org/pipermail/python-dev/2010-March/098324.html"
+          },
+          {
+            "title": "[Python-Dev] Building thread-safe sqlite3 with Python 2.6.5rc1",
+            "url": "https://www.python.org/pipermail/python-dev/2010-March/098326.html"
+          },
+          {
+            "title": "Задать вопрос",
+            "url": "https://qna.habr.com/q/1119838"
+          },
+          {
+            "title": "github.com",
+            "url": "https://github.com/python/cpython/issues/128697"
+          },
+          {
+            "title": "bugs.python.org",
+            "url": "https://bugs.python.org/msg73125"
+          },
+          {
+            "title": "qna.habr.com",
+            "url": "https://qna.habr.com/user/sergey-gornostaev/answers?page=55"
+          },
+          {
+            "title": "python.org",
+            "url": "https://bugs.python.org/msg223305"
+          },
+          {
+            "title": "[storm] Threading question",
+            "url": "https://lists.snapcraft.io/archives/storm/2008-January/000460.html"
+          }
+        ]
+      },
+      "The `check_same_thread` flag controls whether Python's sqlite3 module enforces single-thread use of a connection.\n\n- **Default (`True`):** ProgrammingError will be raised if the database connection is used by a thread other than the one that created it. Passing `False` turns off that check, and the connection can then be used from several threads.\n- **What you take on with `False`:** The module doesn't lock anything for you. Your code has to prevent concurrent use. The current docs say write operations may need to be serialized by the user to avoid data corruption.\n- **Caveat from the maintainers:** A 2008 bug tracker comment said the option was unsupported and while it's undocumented in sqlite3, the old pysqlite docs say that when you use it, you have to make sure the connections/cursors are protected otherwise (via your own mutexes). The docs now cover it, but the advice is the same: you need your own locking.\n- **Common practical advice:** A Russian Q&A answer makes the same point: a single connection can be shared across threads only if access is strictly synchronized, for example with a mutex. sqlite3 is not thread-safe, so if you access the database from several threads at once, it can corrupt the database.\n\n**Practical options:**\n1. Open one connection per thread (the usual choice). This keeps the default `True` check in place.\n2. If you must share one connection, pass `check_same_thread=False` and wrap every use of the connection and its cursors in a single lock.\n3. Use a dedicated writer thread or queue so only one thread touches the connection.\n\nThe 2008 mailing-list discussion also noted that SQLite can be unsafe across threads in some file-locking situations, so the safest default is still one connection per thread."
+    ],
+    "durationSeconds": 6.517947100000001,
+    "searchCount": 1
+  },
+  "tool_use_id": "toolu_01KTVm4tGp1GZwsGRFnriJqa",
+  "duration_ms": 6519
+}

@@ -1,0 +1,15 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "14435626-b1eb-4e49-8acf-db5a07692559",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "Stop",
+  "stop_hook_active": false,
+  "last_assistant_message": "Ledger syncs every 900 seconds, which is 15 minutes. The code defines `SYNC_INTERVAL_S = 900` in `ledger/config.py:6`, and `ledger/sync.py` uses it as `last_ts + SYNC_INTERVAL_S` to schedule the next sync. The config's comment says the value is roughly 15 minutes and may be lowered for paid plans, and `sync.py`'s docstring notes that retries may run sooner than that.",
+  "background_tasks": [],
+  "session_crons": []
+}

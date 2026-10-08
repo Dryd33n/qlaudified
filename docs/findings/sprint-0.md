@@ -118,7 +118,8 @@ Other events:
 
 ## Decisions out of this spike
 
-- Hook command form: **exec form** (`command` + `args`), no shell.
+- Hook command form: ~~exec form~~ → **shell form with a `py -3` / `python3` fallback** (Sprint 1
+  prep, Oct 8: one hooks.json must serve both OSes; see above).
 - Python command default: **Windows `py` with `-3`** (accepted Oct 8, #6); macOS `python3`
   (CI run OK, 3.12.10).
   Hooks check `sys.version_info >= (3, 10)` and log a clear error instead of failing silently.
@@ -135,6 +136,43 @@ Other events:
 - [x] #4 `/compact`
 - [x] Compaction and subagent recording (`interactive-windows`)
 - [x] #7: push and run the `spike` workflow for macOS
+
+## Sprint 1 prep: one hooks.json for both OSes (Oct 8)
+
+The hooks docs have no per-OS field. Option (a) was tested with `make_hooks.py --dual`: each event
+registered three exec hooks (`py -3`, `python3`, and a missing command standing in for `py` on a Mac).
+
+- **Both real launchers ran in parallel**, within the same second: `py -3` on 3.12.4 and `python3`
+  on the Store's 3.9.13. Every event ran twice, so (a) needs a version check (exit quietly below
+  3.10) **and** a dedupe (e.g. an `O_EXCL` marker file per `tool_use_id`/event), or injected
+  context would be doubled on machines where both launchers are 3.10+.
+- **A missing command gives a non-blocking error on every event:** `hook_non_blocking_error`,
+  "Executable not found in $PATH", exit code 1. The session carries on, but the error is written to
+  the transcript, and the Stop summary lists all 3 hooks. On a Mac that would be one error per
+  event for `py`, and the same on Windows machines with the Store aliases turned off.
+- **The interactive UI shows them** (Claude Code 2.1.295): "SessionStart:startup hook error",
+  "UserPromptSubmit hook error", "PostToolUse:Glob hook error" and "Stop hook error", each with
+  "Executable not found in $PATH". That's one visible error per event, so **(a) is rejected**.
+
+Option (b) was tested with `make_hooks.py --fallback`, a single shell-form hook:
+`command -v py >/dev/null 2>&1 && exec py -3 <probe> || exec python3 <probe>`.
+The test cost nothing: an empty config dir that isn't logged in still fires SessionStart,
+UserPromptSubmit, MessageDisplay and SessionEnd.
+
+- **With Git Bash: works.** The debug log shows `Using bash path: "C:\Program Files\Git\bin\bash.exe"`.
+  The hook ran in bash 4.4.23, picked `py`, and started Python 3.12.4. There was one process per
+  event and no errors. On macOS the same line falls through to `python3` (not run there yet).
+- **Without Git Bash: untestable on this machine.** A bogus `CLAUDE_CODE_GIT_BASH_PATH`, even with
+  Git removed from PATH, falls back to auto-detecting `C:\Program Files\Git`. The setup docs say Git
+  for Windows is optional, and without it Claude Code uses PowerShell for shell commands. Bash
+  syntax would then fail, most likely with one visible error per event, as in (a).
+- The hooks docs offer `"shell": "powershell"` per hook, but not per OS, so it can't fix this.
+
+**Decision (Oct 8): option (b).** Every hook is one shell-form command:
+`command -v py >/dev/null 2>&1 && exec py -3 "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event> || exec python3 "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event>`.
+Git for Windows is a stated requirement on Windows. `run.py` logs a clear one-time message when it
+starts on Python < 3.10 (Apple's `python3` may be 3.9). Option (c), a `/qlaudified setup` step,
+stays in reserve for users without Git Bash. This replaces the earlier "exec form" decision below.
 
 ## Before Sprint 1
 

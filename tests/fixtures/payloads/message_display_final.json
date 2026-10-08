@@ -1,0 +1,13 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>.jsonl",
+  "cwd": "<HOME>\\Documents\\GitHub\\qlaudified",
+  "scratchpad_dir": "<HOME>\\AppData\\Local\\Temp\\claude\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\scratchpad",
+  "prompt_id": "97411e75-4599-485b-bc42-2d1f83a981c3",
+  "hook_event_name": "MessageDisplay",
+  "turn_id": "2680cba4-d970-4d2e-9f23-016ceee063fe",
+  "message_id": "432e1e17-fa2a-44ee-8211-023d5be1376e",
+  "index": 0,
+  "final": true,
+  "delta": "done"
+}

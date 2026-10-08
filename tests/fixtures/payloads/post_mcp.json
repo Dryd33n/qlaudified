@@ -1,0 +1,25 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "00000000-0000-0000-0000-000000000000",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "mcp__claude_ai_Claude_Docs__guide",
+  "tool_input": {
+    "items": [
+      "topic.index"
+    ]
+  },
+  "tool_response": [
+    {
+      "type": "text",
+      "text": "# topic.index\n\nDocs are living documents: a doc holds tabs, each tab holds prose, tables, charts and chips."
+    }
+  ],
+  "tool_use_id": "toolu_00000000000000000000mcp",
+  "duration_ms": 412
+}

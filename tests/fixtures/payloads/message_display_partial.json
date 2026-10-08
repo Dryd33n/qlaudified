@@ -1,0 +1,13 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>.jsonl",
+  "cwd": "<HOME>\\Documents\\GitHub\\qlaudified",
+  "scratchpad_dir": "<HOME>\\AppData\\Local\\Temp\\claude\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\scratchpad",
+  "prompt_id": "47c5f4ba-3714-4e8a-8809-8fd9e1c62966",
+  "hook_event_name": "MessageDisplay",
+  "turn_id": "af1fa496-929d-4786-bd1a-7fd22b746eed",
+  "message_id": "922ab7c3-bbfb-412a-b101-a509aa30c13d",
+  "index": 0,
+  "final": false,
+  "delta": "I couldn't list your docs. The Claude Docs `query` tool only reads comment history for a specific doc or tab, and it needs that doc's container ID. It has no way to list docs by recency.\n\n"
+}

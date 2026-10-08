@@ -1,0 +1,19 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>.jsonl",
+  "cwd": "<HOME>\\Documents\\GitHub\\qlaudified",
+  "scratchpad_dir": "<HOME>\\AppData\\Local\\Temp\\claude\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\scratchpad",
+  "prompt_id": "97411e75-4599-485b-bc42-2d1f83a981c3",
+  "permission_mode": "auto",
+  "agent_id": "a9e2afab547bdf8b6",
+  "agent_type": "",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "SubagentStop",
+  "stop_hook_active": false,
+  "agent_transcript_path": "<HOME>\\.claude\\projects\\<HOME>-Documents-GitHub-qlaudified\\<SESSION_0>\\subagents\\agent-a9e2afab547bdf8b6.jsonl",
+  "last_assistant_message": "summarize what's in those two files",
+  "background_tasks": [],
+  "session_crons": []
+}

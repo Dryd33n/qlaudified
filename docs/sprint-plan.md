@@ -36,13 +36,13 @@ Goal: confirm the four hooks give us what the design depends on, before writing 
 
 Goal: a plugin that installs cleanly, remembers its mode, and records every local retrieval as spans. Nothing is injected or verified yet.
 
-- [ ] Repo, `pyproject.toml`, plugin manifest, `hooks.json` in exec form, MIT license
-- [ ] `config.toml` loading with defaults; `/qlaudified mode` with a session override (MOD-1 to MOD-3)
-- [ ] Session store: SQLite schema for spans and claims, CSV export, auto-created `.gitignore`
-- [ ] Capture hook for `Read`, `Grep` and Bash output: source, locator, hash, agent ID (CAP-1, CAP-6)
-- [ ] Span indexer: number, date and unit normalization; hedge lexicon v0 (CAP-2)
-- [ ] Error handling: every hook catches, logs, and exits cleanly (NFR-7)
-- [ ] Unit tests for normalization and the lexicon; CI on Windows and macOS (NFR-6)
+- [x] Repo, `pyproject.toml`, plugin manifest, `hooks.json` with the shell-form `py -3` / `python3` fallback (design.md, Hook command), MIT license
+- [x] `config.toml` loading with defaults; `/qlaudified mode` with a session override (MOD-1 to MOD-3)
+- [x] Session store: SQLite schema for spans and claims, CSV export, auto-created `.gitignore`
+- [x] Capture hook for `Read`, `Grep` and Bash output: source, locator, hash, agent ID (CAP-1, CAP-6)
+- [x] Span indexer: number, date and unit normalization; hedge lexicon v0 (CAP-2)
+- [x] Error handling: every hook catches, logs, and exits cleanly (NFR-7)
+- [x] Unit tests for normalization and the lexicon; CI on Windows and macOS (NFR-6)
 
 **Done when:** a real session on a notes folder and a repo produces a correct `provenance.csv`, and capture adds under 300 ms per call.
 

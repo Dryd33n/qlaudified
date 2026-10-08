@@ -1,0 +1,27 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "e37d7513-cce0-4255-99da-ee2c03ec6ace",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Glob",
+  "tool_input": {
+    "pattern": "**/q3-update.md"
+  },
+  "tool_response": {
+    "filenames": [
+      "q3-update.md"
+    ],
+    "durationMs": 55,
+    "numFiles": 1,
+    "truncated": false,
+    "totalMatches": 1,
+    "countIsComplete": true
+  },
+  "tool_use_id": "toolu_01SHMMyqNbhqiXUVGARrtrKM",
+  "duration_ms": 55
+}

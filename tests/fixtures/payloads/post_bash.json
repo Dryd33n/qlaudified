@@ -1,0 +1,25 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "14435626-b1eb-4e49-8acf-db5a07692559",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "cat ledger/config.py",
+    "description": "Print contents of ledger/config.py"
+  },
+  "tool_response": {
+    "stdout": "\"\"\"Fernwick Ledger settings. Values are provisional until the beta ends.\"\"\"\n\n# Seat price in USD per month; expected, not final.\nSEAT_PRICE_USD = 12\n# Sync interval in seconds. Roughly 15 minutes; may be lowered for paid plans.\nSYNC_INTERVAL_S = 900",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false,
+    "noOutputExpected": false
+  },
+  "tool_use_id": "toolu_01NDmJvaXuCWWNyA1PF2cqXe",
+  "duration_ms": 1472
+}

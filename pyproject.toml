@@ -8,13 +8,13 @@ version = "0.0.0"
 description = "Claude Code plugin that tracks where each claim came from and whether its qualifiers survived."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = []  # core is standard library only
 
 [project.optional-dependencies]
 web = []  # main-text extraction for shadow re-fetch; chosen in Sprint 3 (CAP-3)
 nli = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy"]  # tier 2 verifier (VER-3)
-dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+dev = ["pytest>=8", "ruff>=0.16,<0.17", "mypy>=1.10"]  # ruff capped: new minors change default rules
 
 [project.scripts]
 qlaudified-sim = "qlaudified.testing.sim:main"
@@ -29,10 +29,14 @@ addopts = "-ra"
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 extend-exclude = ["spike"]
 
+[tool.ruff.lint.per-file-ignores]
+# Entry points run on whatever Python the hook finds, so they keep old syntax and a version check.
+"hooks/*.py" = ["UP031", "UP036"]
+
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 packages = ["qlaudified"]
 ignore_missing_imports = true

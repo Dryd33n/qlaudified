@@ -8,7 +8,6 @@ nor the dev session leaks in. Each run's cost is appended to eval/ledger.jsonl, 
 to start once today's spend reaches --daily-cap.
 
 Sprint 0 uses --plugin-dir spike/probe to record sessions. Assertions on the store arrive in Sprint 1.
-Kept Python 3.7 compatible until the dev machine has 3.10+.
 """
 
 import argparse
@@ -62,13 +61,13 @@ def main():
     src = os.path.join(REPO, "tests", "sandbox", args.task)
     prompt_file = os.path.join(src, "prompt.txt")
     if not os.path.exists(prompt_file):
-        raise SystemExit("no task at %s (needs prompt.txt)" % src)
+        raise SystemExit(f"no task at {src} (needs prompt.txt)")
     with open(prompt_file, encoding="utf-8") as f:
         prompt = f.read().strip()
 
     spent = spent_today()
     if spent >= args.daily_cap:
-        raise SystemExit("daily cap reached: $%.2f of $%.2f" % (spent, args.daily_cap))
+        raise SystemExit(f"daily cap reached: ${spent:.2f} of ${args.daily_cap:.2f}")
 
 
     cmd = ["claude", "-p", prompt,
@@ -93,7 +92,7 @@ def main():
 
     start = time.time()
     proc = subprocess.run(cmd, cwd=sandbox, env=env, stdin=subprocess.DEVNULL,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=(os.name == "nt"))
+                          capture_output=True, check=False, shell=(os.name == "nt"))
     out = proc.stdout.decode("utf-8", "replace")
     try:
         data = json.loads(out)
@@ -112,7 +111,7 @@ def main():
     print(json.dumps(record, indent=2))
     if proc.returncode != 0:
         sys.stderr.write(proc.stderr.decode("utf-8", "replace")[-2000:])
-    print("sandbox kept for inspection at %s (delete when done)" % sandbox)
+    print(f"sandbox kept for inspection at {sandbox} (delete when done)")
     return proc.returncode
 
 

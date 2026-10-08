@@ -1,0 +1,26 @@
+{
+  "session_id": "<SESSION_0>",
+  "transcript_path": "<HOME>\\.claude-qlaudified-test\\projects\\<SANDBOX>\\<SESSION_0>.jsonl",
+  "cwd": "<SANDBOX>",
+  "prompt_id": "0cf1f606-519e-40d5-a74c-9e4b61ffcba6",
+  "permission_mode": "default",
+  "effort": {
+    "level": "medium"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "WebFetch",
+  "tool_input": {
+    "url": "https://docs.python.org/3/library/sqlite3.html",
+    "prompt": "Quote the exact text describing the check_same_thread parameter of sqlite3.connect() and whether a connection may be shared across threads. Quote sentences verbatim."
+  },
+  "tool_response": {
+    "bytes": 314970,
+    "code": 200,
+    "codeText": "OK",
+    "result": "The `check_same_thread` parameter is described in the `sqlite3.connect()` section:\n\n> If `True` (default), [`ProgrammingError`] will be raised if the database connection is used by a thread other than the one that created it. If `False`, the connection may be accessed in multiple threads; write operations may need to be serialized by the user to avoid data corruption. See [`threadsafety`] for more information.\n\nSo a connection may be shared across threads only when `check_same_thread=False`. The default `True` prevents this, and using the connection from another thread raises `ProgrammingError`.\n\nThe `threadsafety` section explains the underlying levels. The \"multi-thread\" level is described as \"Threads may share the module, but not connections,\" and the \"serialized\" level as \"Threads may share the module, connections and cursors.\"\n\n[WebFetch note: this page's text is 108931 characters long and the answer above covers only characters 0 to 100000; the final 8931 were not read — to read on, call WebFetch again with the same url and offset: 100000.]",
+    "durationMs": 3266,
+    "url": "https://docs.python.org/3/library/sqlite3.html"
+  },
+  "tool_use_id": "toolu_01QETKDKcpFit62zp1qhhymK",
+  "duration_ms": 3266
+}

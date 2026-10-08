@@ -79,7 +79,7 @@ Requirements are grouped by component and numbered so issues and tests can refer
 
 - CAP-1: After every retrieval tool call (`Read`, `Grep`, `WebFetch`, `WebSearch`, configured MCP tools, and Bash output per the decisions table), store each returned passage with source ID, location (path + line range, or URL + paragraph), timestamp and a content hash.
 - CAP-2: Tag each stored span with detected numbers, dates, units, named entities and hedge words.
-- CAP-3: For `WebFetch`, download the same URL separately, extract the main text, and store it as the raw source; store the WebFetch summary as a derived span linked to it.
+- CAP-3: For `WebFetch`, download the same URL separately, extract the main text, and store it as the raw source; store the WebFetch summary as a derived span linked to it. (Sprint 0: the WebFetch payload carries only the summary, so the re-fetch is the only raw source.)
 - CAP-4: When the raw re-fetch fails (paywall, JS-only page, timeout), mark the source `summarized-only` rather than failing the hook.
 - CAP-5: Store `WebSearch` results as `search-snippet` origin, weaker than a fetched page.
 - CAP-6: Spans from subagents carry the subagent ID so multi-agent runs stay traceable.
@@ -157,8 +157,9 @@ Hooks stay thin and call into the core, so the same logic can later back an Agen
 ```
 qlaudified/
   .claude-plugin/plugin.json
-  hooks/hooks.json          PostToolUse, SessionStart, Stop, MessageDisplay
-  commands/qlaudified.md    /qlaudified mode | report | csv
+  hooks/hooks.json          PostToolUse, SessionStart, Stop (MessageDisplay from Sprint 2)
+  hooks/run.py, cli.py      entry points; launch.sh picks py -3 or python3
+  skills/qlaudified/        /qlaudified mode | report | csv
   qlaudified/               Python package
     capture.py  refetch.py  sidecar.py  verify/  store.py  backends/
   eval/                     corpus, tasks, runner
@@ -198,7 +199,7 @@ Everything lives under `.claude/.qlaudified/` in the project, one folder per ses
 | Field | Example | Notes |
 | --- | --- | --- |
 | `span_id` | `S14` | Short ID used in markers and injections |
-| `origin` | `local-doc` | `local-doc`, `code`, `command-output`, `web-raw`, `web-summary`, `search-snippet`, `user-prompt` |
+| `origin` | `local-doc` | `local-doc`, `code`, `command-output`, `web-raw`, `web-summary`, `search-snippet`, `mcp`, `user-prompt` |
 | `source` | `notes/q3.md` or a URL | |
 | `locator` | `L22-L24` or `p7` | Line range, or paragraph index for web |
 | `text` | verbatim passage | Capped length; full text in `raw/` |
@@ -282,21 +283,26 @@ These close gaps that would otherwise surface mid-sprint. All are settled as of 
 | Area | Decision | Why it eases development |
 | --- | --- | --- |
 | Runtime dependencies | Core is standard library only (`json`, `sqlite3`, `re`, `urllib`, `html.parser`); `[web]` and `[nli]` are pip extras | Hooks run on plain system Python with no virtualenv to locate, and start fast |
-| Python | 3.10+; the Python command is configurable (`python` or `py -3`) | On Windows, `python` can be the Microsoft Store stub; Sprint 0 checks it |
+| Python | 3.11+ (raised from 3.10 on Oct 8 so config can use the standard library's `tomllib`); `run.py` logs a clear one-time message and exits 0 on older interpreters | Sprint 0: bare `python` on Windows hit the Store's 3.9; Apple's `python3` may be 3.9 too |
+| Hook command | One shell-form line per hook: `command -v py >/dev/null 2>&1 && exec py -3 -S "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event> \|\| exec python3 -S "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event>`; Git for Windows is required on Windows. `-S` skips `site` (the core is stdlib-only), which saved ~50 ms per call in Sprint 1 | hooks.json has no per-OS field. Two exec hooks per event showed a visible error per event (Sprint 0 findings, option a); a `/qlaudified setup` step is the fallback if Git-less Windows matters |
 | Hook entry point | One `run.py <event>` dispatcher with lazy imports | One place for error handling, logging and timing; keeps NFR-3 reachable |
 | Turn identity | `session_id` names the session folder; `prompt_id` keys each turn | Both come from Claude Code, so there are no counters to keep in sync |
 | Concurrency | SQLite in WAL mode with a busy timeout | Parallel tool calls fire several hooks at once |
 | Store | SQLite is the source of truth; `provenance.csv` is an export | Fast lookups for the verifier, readable CSV for people |
-| What counts as retrieval | `Read`, `Grep`, `WebFetch`, `WebSearch`, MCP tools, and all Bash output as `command-output` spans; simple file reads (`cat`, `type`, `Get-Content`, `head`, `tail`, `sed -n`) are upgraded to file spans with line ranges; huge or install-style output is skipped | Claims backed by scripts and tests stay sourced instead of showing as unsupported |
-| `Read` output | Strip line-number prefixes; keep the numbers as the locator | Spans must hold the file's real text |
-| Subagents | Capture inside subagents; their injections land in their own context; a subagent's reply becomes a span derived from its sources | Explore-style agents do much of the reading |
+| What counts as retrieval | `Read`, `Grep`, `WebFetch`, `WebSearch`, MCP tools, and all `Bash` **and `PowerShell`** tool output as `command-output` spans; simple file reads (`cat`, `type`, `Get-Content`, `head`, `tail`, `sed -n`) are upgraded to file spans with line ranges; huge or install-style output is skipped. Everything else (`Glob`, `ToolSearch`, `Agent`, ...) is ignored by tool name | Claims backed by scripts and tests stay sourced instead of showing as unsupported. Windows without Git Bash runs commands through the PowerShell tool |
+| Payload shapes | Read: `tool_response.file.{content, startLine, numLines}`; Grep: `rel\path:line:text` lines; Bash: `stdout`/`stderr` only; WebFetch: summary in `result`, page size in `bytes`; WebSearch: `{title, url}` results; MCP: `tool_name` `mcp__<server>__<tool>`, response is a **list** of `{type, text}` blocks | Mapped in Sprint 0 (findings, payload map); capture must accept dict and list responses |
+| `Read` output | Already arrives without line-number prefixes; the locator comes from `startLine` and `numLines` | Spans must hold the file's real text |
+| Paths | Normalize every path: expand Windows 8.3 short names (`DRYDEN~1`) to long names, unify separators (env vars use `/`, payloads `\`), then store relative to the project | Sprint 0: `%TEMP%` paths arrived in 8.3 form; matching on raw strings would split one file into several sources |
+| Self-capture | Never capture paths under `.claude/.qlaudified/` | Sprint 0: Grep matched the probe's own log folder; hidden folders aren't skipped |
+| Subagents | Capture inside subagents (their PostToolUse payloads carry `agent_id` and `agent_type`); their injections land in their own context; a subagent's reply becomes a span derived from its sources. A passage is one span per agent (unique on source, locator, hash and agent), so a subagent re-reading a file gets its own span. Act on `SubagentStop` only when `agent_type` is set | Explore-style agents do much of the reading. `SubagentStop` also fires every turn for internal helpers with an empty `agent_type` |
+| Final answer text | `Stop` reads `last_assistant_message` from its payload | No transcript parsing for VER-1 |
 | Claim parsing | Claims come from prose, list items and table cells; code blocks are skipped | Code isn't a factual claim about a source |
 | Web re-fetch | Runs as an `async` hook | Never blocks the loop, with no threading code of our own |
 | Low mode | Capture only: no injection or verification; report on request | Costs zero tokens and still leaves a trail |
-| Commands | One `/qlaudified` command: `mode`, `report`, `report --deep`, `csv` | One file to maintain, one name to learn |
+| Commands | One `/qlaudified` plugin skill: `mode`, `report`, `report --deep`, `csv`. Its `` !`...` `` line runs the CLI before Claude sees anything, so a command costs no model turn | One file to maintain, one name to learn. A skill, not `commands/`, because `${CLAUDE_PLUGIN_ROOT}` is only substituted in plugin skills |
 | LLM tier in Medium | On request only: `/qlaudified report --deep` runs it for that turn; automatic in High | Medium stays free on a Pro plan; you pay only for answers you check |
 | Retention | Prune sessions after 30 days; cap the raw cache at 200 MB; auto `.gitignore` | Raw copies can hold secrets and grow quickly |
-| Compatibility | Pin a minimum Claude Code version; `SessionStart` warns when older | Hook fields change between versions |
+| Compatibility | Minimum Claude Code version 2.1.294 (the version Sprint 0 tested); `SessionStart` warns when older | Hook fields change between versions |
 | Eval primary model | Sonnet class | Closest to real use; the run count is capped by the cost ledger |
 | Name | Keep qlaudified, defined in one place; check Anthropic's brand guidelines before publishing, since it echoes "Claude" | A later rename is one edit, not a search |
 
@@ -308,13 +314,13 @@ The biggest technical risk is inline markers: the display hook runs while the an
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Markers need verdicts that don't exist yet while streaming | Inline markers show nothing useful | Markers from fast deterministic span matching during display; full verdicts in a summary line at Stop and in the report |
-| `claude -p` startup takes seconds and uses plan limits | Slow Stop in High, eval runs throttled | One batched call per turn; keep it to tier 3 only; Ollama as a local fallback |
-| Windows hook quirks (paths with backslashes, PowerShell vs Git Bash) | Hooks fail silently | Exec form with `python` + script path; normalize paths; CI on both OSes |
-| Re-fetched page differs from what WebFetch saw | False "qualifier dropped" flags | Store a content hash; label mismatched pages `summarized-only` |
-| Stored spans carry injected instructions | Re-injection relays an attack | Inject only extracted facts and qualifiers in a fixed format, never raw text |
+| Markers need verdicts that don't exist yet while streaming | Inline markers show nothing useful | **Confirmed in Sprint 0:** answers stream one paragraph per `MessageDisplay` delta, and Stop can fire before the last one. Markers come from fast deterministic span matching per delta, rewritten via `displayContent`; full verdicts go in a summary line at Stop and in the report |
+| `claude -p` startup takes seconds and uses plan limits | Slow Stop in High, eval runs throttled | **Confirmed:** ~1.7 s fixed overhead, ~2.6 s per haiku call. One batched call per turn; tier 3 only; haiku by default; Ollama as a local fallback |
+| Windows hook quirks (paths with backslashes, PowerShell vs Git Bash) | Hooks fail silently | **Changed:** shell-form hook with a `py -3` / `python3` fallback (see the Hook command decision); Git for Windows required; normalize 8.3 short paths and separators; CI on both OSes |
+| Re-fetched page differs from what WebFetch saw | False "qualifier dropped" flags | **Changed:** WebFetch's payload has no raw text, only the summary and `bytes`. Compare the re-fetched page's size to `bytes`; label large mismatches `summarized-only` |
+| Stored spans carry injected instructions | Re-injection relays an attack | Inject only extracted facts and qualifiers in a fixed format, never raw text; never capture the store itself. Sprint 0: Claude treats injected lines as labelled hook output and cross-checks them, so paths in them must be right |
 | Rule-based claim splitting misses compound claims | Lower attribution recall | Measure it in the eval; let the tier-3 LLM split leftovers |
-| Stop retry loops or annoys | Worse UX in High | Hard cap of one retry per turn; easy to disable |
+| Stop retry loops or annoys | Worse UX in High | Hard cap of one retry per turn, guarded by the Stop payload's `stop_hook_active`; easy to disable |
 
 **Open questions**
 
