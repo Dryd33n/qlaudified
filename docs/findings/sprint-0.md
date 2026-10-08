@@ -2,7 +2,7 @@
 
 Results of the hook spike. Runbook: `spike/README.md`. Raw data: `docs/findings/data/`.
 
-Environment: Claude Code 2.1.294 · Windows 11 Pro · macOS: _todo_
+Environment: Claude Code 2.1.294 · Windows 11 Pro · macOS: CI only (`spike` workflow, no Mac available)
 
 ## Already found during setup (Oct 8)
 
@@ -14,11 +14,30 @@ Environment: Claude Code 2.1.294 · Windows 11 Pro · macOS: _todo_
 - **The plugin root path contains a space** (`C:\Users\Dryden Bryson\...`), so hook commands must
   quote `${CLAUDE_PLUGIN_ROOT}`. The probe does; check it works.
 - **No local example of exec-form hooks.** All installed plugins use a shell string (`sh "..."`).
-  Confirm the exec-form syntax this Claude Code version supports, or fall back to a quoted string.
+  The hooks docs settle the syntax: `"command": "py", "args": ["-3", "${CLAUDE_PLUGIN_ROOT}/x.py"]`.
+  With `args` present there is no shell, and placeholders are substituted per arg, so no quoting
+  is needed. On Windows, `command` must be a real `.exe`. `make_hooks.py --exec` writes this form.
+  It still needs a live check on 2.1.294.
+- **The docs say `MessageDisplay` can rewrite what's shown.** `hookSpecificOutput.displayContent`
+  replaces the on-screen text. It's display-only (the transcript and Claude keep the original), and
+  the default timeout is 10 s. That makes display-only inline markers plausible; probe 3 confirms
+  the batching and latency.
 - **`--max-turns` is not listed in `claude --help`** (2.1.294); `--safe-mode`, `--plugin-dir` and
   `--permission-prompts none` are. Confirm `--max-turns` still works for `scripts/live.py`.
 - **`--bare`** also exists ("skip hooks ... LSP, plugin sync"); compare with `--safe-mode` for the
   nested sidecar call.
+
+## First live run (Oct 8, `notes`, shell-form hooks)
+
+- Failed in 2.2 s at $0: the isolated config dir isn't logged in ("Not logged in · Please run
+  /login"). Fix: run `CLAUDE_CONFIG_DIR=~/.claude-qlaudified-test claude` once and `/login`.
+- Still useful: the plugin loaded via `--plugin-dir`, and the shell-form hook with a quoted,
+  space-containing `${CLAUDE_PLUGIN_ROOT}` ran. The events were SessionStart (`source: startup`),
+  UserPromptSubmit, MessageDisplay and SessionEnd (`reason: other`), each under 2 ms in the probe.
+- MessageDisplay payload fields: `prompt_id`, `turn_id`, `message_id`, `index`, `final`, `delta`.
+  Non-ASCII arrives as valid UTF-8 on stdin.
+- After `/login` in the isolated config dir, the rerun passed: 3 turns, 5.3 s, $0.0048 on haiku.
+  So `--max-turns` is still accepted on 2.1.294, even though `--help` doesn't list it.
 
 ## Checklist
 
@@ -30,7 +49,7 @@ Environment: Claude Code 2.1.294 · Windows 11 Pro · macOS: _todo_
 | 4 | SessionStart `compact` after manual `/compact` | | |
 | 5 | Nested `claude -p --safe-mode` from a hook, Pro login, startup time | | default small model: |
 | 6 | Windows: command form, `python` vs `py -3`, backslash paths | | |
-| 7 | macOS: same probes | | |
+| 7 | macOS: same probes | changed | CI only (`spike` workflow): startup timing + payload smoke; no interactive recordings |
 | 8 | Name on GitHub and PyPI | | |
 | 9 | Python hook startup time on Windows | | |
 | 10 | Separate `CLAUDE_CONFIG_DIR` keeps its login | | |
@@ -58,3 +77,8 @@ Mark each **confirmed**, **changed** or **retired**, with the evidence.
 - Minimum Claude Code version:
 - Inline markers approach (REP-1):
 - Name:
+
+## Before Sprint 1
+
+- [ ] Install Python 3.12+ (python.org installer, with `py` launcher); `py -0p` shows only 3.7 today
+- [ ] `pytest -q -m "not live"` runs on the new interpreter

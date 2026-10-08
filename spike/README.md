@@ -9,11 +9,30 @@ whatever `py -3` / `python3` resolves to). Use `py -3` on Windows, `python3` on 
 **Never** load `spike/probe` in the session you're developing in. Use a separate terminal, and
 preferably the isolated config dir: `CLAUDE_CONFIG_DIR=~/.claude-qlaudified-test`.
 
+## Pre-flight (before Oct 9)
+
+```sh
+CLAUDE_CONFIG_DIR=~/.claude-qlaudified-test claude         # once: /login, then /exit
+claude --version                                            # record in findings
+claude --help | grep -E "max-turns|safe-mode|bare|plugin-dir"
+py -3 scripts/live.py notes --plugin-dir spike/probe --dry-run
+py -3 scripts/live.py notes --plugin-dir spike/probe       # one real run: --max-turns accepted?
+```
+
+The real run also checks that `${CLAUDE_PLUGIN_ROOT}` resolves under a path with a space: events
+should land in `<sandbox>/.qlaudified-probe/<session_id>/events.jsonl`. If `--max-turns` is rejected,
+drop it from `scripts/live.py` and note it in the findings.
+
 ## 0. Setup
 
 ```sh
-py -3 spike/make_hooks.py                 # writes spike/probe/hooks/hooks.json
+py -3 spike/make_hooks.py                 # shell form (quoted string); writes spike/probe/hooks/hooks.json
+py -3 spike/make_hooks.py --exec          # exec form: "command": "py", "args": ["-3", ".../probe.py", Event]
 ```
+
+Run probe 1 once with each form and compare (probe 6). Per the hooks docs, exec form spawns
+`command` directly from PATH with no shell, and on Windows it must be a real `.exe`. Try
+`--exec --python python` too: the Microsoft Store `python` alias may not spawn.
 
 If Claude Code complains about the `MessageDisplay` key, rerun with `--no-message-display` and record
 that in the findings. To test the bare `python` command, use `--python python`.
@@ -89,4 +108,8 @@ py -3 spike/collect.py <sandbox>/.qlaudified-probe/<session_id> notes --sandbox 
 
 Scenarios from `docs/testing.md`: summarize a notes folder, grep this repo, WebFetch a docs page, a
 long task forced through `/compact` (interactive), a task that spawns a subagent (interactive;
-`-p` disables built-in agents). Record the path-heavy ones on both Windows and macOS.
+`-p` disables built-in agents). Headless tasks: `notes`, `repo` (Grep), `web` (WebFetch + WebSearch).
+
+**macOS:** no Mac is available, so record on Windows only. Run the `spike` workflow (Actions → spike →
+Run workflow) for macOS startup timing and a payload smoke test. macOS recordings come later from
+CI live runs, or from a borrowed Mac.

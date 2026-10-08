@@ -5,6 +5,12 @@
     py -3 spike/make_hooks.py --python python      # test the bare `python` command
     py -3 spike/make_hooks.py --no-message-display # if Claude Code rejects the MessageDisplay key
     py -3 spike/make_hooks.py --async-post         # PostToolUse as an async hook (web re-fetch path)
+    py -3 spike/make_hooks.py --exec               # exec form: "command" + "args", no shell
+
+Exec form (hooks docs): when "args" is present, "command" is resolved as an executable on PATH and
+spawned directly; ${CLAUDE_PLUGIN_ROOT} is substituted into each arg as a plain string, so a space
+in the path needs no quoting. On Windows "command" must be a real .exe (py.exe works; check whether
+the Store `python` alias does).
 """
 
 import argparse
@@ -20,16 +26,22 @@ def main():
     parser.add_argument("--python", default="py -3" if os.name == "nt" else "python3")
     parser.add_argument("--no-message-display", action="store_true")
     parser.add_argument("--async-post", action="store_true")
+    parser.add_argument("--exec", action="store_true", help="write exec-form hooks (command + args)")
     args = parser.parse_args()
 
     hooks = {}
     for event in EVENTS:
         if event == "MessageDisplay" and args.no_message_display:
             continue
-        # Quoted plugin root: this machine's paths contain spaces ("Dryden Bryson").
-        hook = {"type": "command",
-                "command": '%s "${CLAUDE_PLUGIN_ROOT}/probe.py" %s' % (args.python, event),
-                "timeout": 150 if event == "Stop" else 30}
+        if args.exec:
+            exe, *pre = args.python.split()
+            hook = {"type": "command", "command": exe,
+                    "args": pre + ["${CLAUDE_PLUGIN_ROOT}/probe.py", event]}
+        else:
+            # Quoted plugin root: this machine's paths contain spaces ("Dryden Bryson").
+            hook = {"type": "command",
+                    "command": '%s "${CLAUDE_PLUGIN_ROOT}/probe.py" %s' % (args.python, event)}
+        hook["timeout"] = 150 if event == "Stop" else (10 if event == "MessageDisplay" else 30)
         if event == "PostToolUse" and args.async_post:
             hook["async"] = True
         entry = {"hooks": [hook]}
@@ -45,7 +57,8 @@ def main():
         json.dump({"description": "Sprint 0 probe: log every hook payload", "hooks": hooks}, f,
                   indent=2)
         f.write("\n")
-    print("wrote %s (python: %s, events: %s)" % (out, args.python, ", ".join(hooks)))
+    print("wrote %s (python: %s, form: %s, events: %s)"
+          % (out, args.python, "exec" if args.exec else "shell", ", ".join(hooks)))
 
 
 if __name__ == "__main__":

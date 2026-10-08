@@ -85,7 +85,7 @@
           {
             "type": "command",
             "command": "py -3 \"${CLAUDE_PLUGIN_ROOT}/probe.py\" MessageDisplay",
-            "timeout": 30
+            "timeout": 10
           }
         ]
       }

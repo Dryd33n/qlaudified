@@ -1,0 +1,38 @@
+name: spike
+
+# Sprint 0 probes that need no Claude login, run on demand. Stands in for the macOS pass
+# (no Mac available), with Windows alongside for comparison. Throwaway with spike/.
+on:
+  workflow_dispatch:
+
+jobs:
+  probes:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python startup timing
+        run: python spike/time_startup.py --runs 20
+      - name: Probe accepts a payload (path with a space, backslashes)
+        run: |
+          dir="$RUNNER_TEMP/probe dir"
+          python -c "import json; print(json.dumps({'session_id': 'ci', 'tool_name': 'Read', 'tool_input': {'file_path': r'C:\Users\x\notes\q3.md'}}))" \
+            | QLAUDIFIED_RECORD_DIR="$dir" QLAUDIFIED_PROBE_INJECT=1 python spike/probe/probe.py PostToolUse
+          python -c "import json, sys; r = json.loads(open(sys.argv[1] + '/events.jsonl').readline()); assert r['payload']['tool_input']['file_path'].endswith('q3.md'), r; print(r['python'], r['elapsed_ms'], 'ms')" "$dir"
+      - name: Both hook forms generate
+        run: |
+          python spike/make_hooks.py --python python3
+          python spike/make_hooks.py --python python3 --exec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: startup-${{ matrix.os }}
+          path: docs/findings/data/startup.jsonl

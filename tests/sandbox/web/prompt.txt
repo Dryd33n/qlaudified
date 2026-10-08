@@ -1,0 +1,1 @@
+WebFetch https://docs.python.org/3/library/sqlite3.html and WebSearch for sqlite3 check_same_thread, then tell me in two sentences whether a sqlite3 connection can be shared across threads, quoting one sentence exactly.
