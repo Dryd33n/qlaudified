@@ -1,0 +1,4 @@
+{"cmd": "python", "version": "3.12.4", "error": null, "runs": 20, "p50_ms": 74.4, "p95_ms": 127.6, "os": "Windows-11-10.0.26220-SP0", "ts": "2026-10-08T12:31:21"}
+{"cmd": "py -3", "version": "3.12.4", "error": null, "runs": 20, "p50_ms": 101.5, "p95_ms": 112.8, "os": "Windows-11-10.0.26220-SP0", "ts": "2026-10-08T12:31:23"}
+{"cmd": "python3", "version": "3.9.13", "error": null, "runs": 20, "p50_ms": 298.8, "p95_ms": 1163.9, "os": "Windows-11-10.0.26220-SP0", "ts": "2026-10-08T12:31:30"}
+{"cmd": "\"<HOME>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe\"", "version": "3.12.4", "error": null, "runs": 20, "p50_ms": 78.7, "p95_ms": 105.3, "os": "Windows-11-10.0.26220-SP0", "ts": "2026-10-08T12:31:31"}

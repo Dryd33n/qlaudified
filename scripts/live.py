@@ -55,6 +55,8 @@ def main():
     parser.add_argument("--max-turns", type=int, default=6)
     parser.add_argument("--daily-cap", type=float, default=2.0, help="USD estimate per day")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--record", action="store_true",
+                        help="keep the session transcript (for tests/sessions recordings)")
     args = parser.parse_args()
 
     src = os.path.join(REPO, "tests", "sandbox", args.task)
@@ -77,9 +79,13 @@ def main():
            "--permission-prompts", "none",
            "--output-format", "json"]
     env = dict(os.environ)
-    env.update(TEST_ENV)
+    test_env = dict(TEST_ENV)
+    if args.record:
+        # Sprint 0: with this set, -p sessions wrote no transcript under projects/.
+        del test_env["CLAUDE_CODE_SKIP_PROMPT_HISTORY"]
+    env.update(test_env)
     if args.dry_run:
-        print(json.dumps({"sandbox": src, "cmd": cmd, "env": TEST_ENV}, indent=2))
+        print(json.dumps({"sandbox": src, "cmd": cmd, "env": test_env}, indent=2))
         return 0
 
     sandbox = os.path.join(tempfile.mkdtemp(prefix="qlaudified-"), args.task)

@@ -102,7 +102,7 @@ py -3 spike/check_name.py qlaudified
 Headless recordings use the isolated runner with the probe as the plugin:
 
 ```sh
-py -3 scripts/live.py notes --plugin-dir spike/probe
+py -3 scripts/live.py notes --plugin-dir spike/probe --record   # --record keeps the transcript
 py -3 spike/collect.py <sandbox>/.qlaudified-probe/<session_id> notes --sandbox <sandbox>
 ```
 

@@ -1,1 +1,1 @@
-Grep this folder for SYNC_INTERVAL_S, then tell me in two sentences how often Ledger syncs and what the code says about that value.
+Grep this folder for SYNC_INTERVAL_S, then run cat ledger/config.py with Bash, then tell me in two sentences how often Ledger syncs and what the code says about that value.
