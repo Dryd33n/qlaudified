@@ -2,6 +2,12 @@
 
 Three lines per sprint, written at the Sunday demo.
 
+## Sprint 2 · Medium mode end to end (Oct 19–25, 2026; done Oct 8)
+
+- Medium works end to end with no model calls: delta injection, a post-compaction digest, inline `[S3]` markers, and Stop verification with reports.
+- Medium's measured cost overhead is within noise (−0.1% across 5 seed tasks); hooks stay under 300 ms p95.
+- Live, plugin-off answers dropped "pending" and the verifier flagged it; plugin-on answers kept their qualifiers.
+
 ## Sprint 1 · Foundations and capture (Oct 12–18, 2026; done Oct 8)
 
 - Capture works end to end: live sessions on notes and a repo fill `provenance.csv` with one span per fact, normalized numbers and dates, and hedge words; `/qlaudified mode` saves and overrides modes.

@@ -2,3 +2,7 @@
 {"ts": "2026-10-08T13:40:29", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_grep_content", "runs": 30, "p50_ms": 281.9, "p95_ms": 322.0, "max_ms": 328.2}
 {"ts": "2026-10-08T13:41:21", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_read", "runs": 30, "p50_ms": 238.3, "p95_ms": 250.7, "max_ms": 269.5}
 {"ts": "2026-10-08T13:44:22", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "fixture": "post_read", "runs": 30, "p50_ms": 238.0, "p95_ms": 257.9, "max_ms": 263.7}
+{"ts": "2026-10-08T13:59:48", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "event": "MessageDisplay", "fixture": "message_display_partial", "runs": 30, "p50_ms": 189.3, "p95_ms": 223.3, "max_ms": 234.0}
+{"ts": "2026-10-08T14:25:31", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "event": "PostToolUse", "fixture": "post_read", "prime": null, "text_chars": 0, "runs": 30, "p50_ms": 240.1, "p95_ms": 269.8, "max_ms": 274.2}
+{"ts": "2026-10-08T14:25:46", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "event": "MessageDisplay", "fixture": "message_display_partial", "prime": "post_read", "text_chars": 235, "runs": 30, "p50_ms": 231.7, "p95_ms": 254.5, "max_ms": 257.9}
+{"ts": "2026-10-08T14:25:51", "os": "Windows-11-10.0.26220-SP0", "python": "3.12.4", "event": "Stop", "fixture": "stop", "prime": "post_read", "text_chars": 329, "runs": 20, "p50_ms": 248.7, "p95_ms": 267.2, "max_ms": 267.2}

@@ -71,6 +71,30 @@ def cmd_csv(project: Path, path_only: bool) -> int:
     return 0
 
 
+def cmd_report(project: Path) -> int:
+    """Print the last turn's report (REP-2). A turn recorded in Low mode is verified now."""
+    folder = _latest_session_dir(project)
+    turn = Store(folder).last_turn() if folder is not None else None
+    if folder is None or turn is None:
+        print("No answers recorded in this project yet.")
+        return 1
+    md = folder / "reports" / f"turn-{turn.n}.md"
+    if not md.exists():
+        from qlaudified import report
+        from qlaudified.verify import verify_turn
+
+        cfg = config.load(project, _session_id())
+        if cfg.mode == config.Mode.HIGH:
+            cfg.mode = config.Mode.MEDIUM  # on request, check what Medium would
+        store = Store(folder)
+        result = verify_turn(store, turn, cfg)
+        md = report.write_turn_report(folder, turn.n, turn.prompt_id, result.claims, result.spans,
+                                      result.skipped, f"{cfg.mode} (on request)")
+        store.export_csv()
+    print(md.read_text(encoding="utf-8"), end="")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="qlaudified")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -91,8 +115,10 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_mode(project, args.value, args.session)
     if args.command == "csv":
         return cmd_csv(project, args.path)
-    print("qlaudified report: arrives in Sprint 2 (claim verification).")
-    return 1
+    if args.deep:
+        print("qlaudified report --deep: arrives in Sprint 3 with the LLM tier.")
+        return 1
+    return cmd_report(project)
 
 
 if __name__ == "__main__":

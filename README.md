@@ -3,14 +3,14 @@
 A Claude Code plugin that tracks where each claim in Claude's answer came from, and whether the source's
 qualifiers ("estimated", "may", "tentative") survived the trip.
 
-**Status:** pre-alpha. Sprints 0 and 1 are done: the plugin records every local retrieval as
-spans in `provenance.csv`, but doesn't inject or verify anything yet. Sprint 2 (Medium mode end to
-end, Oct 19–25) is next.
+**Status:** pre-alpha. Sprints 0–2 are done: Medium mode records each retrieval, feeds new
+facts and their qualifiers back to Claude, marks the displayed answer with source IDs, and verifies
+each answer at Stop with rules only (no model calls). Sprint 3 (web sources, model tiers) is next.
 
 - Design and requirements: [docs/design.md](docs/design.md)
 - Sprint plan: [docs/sprint-plan.md](docs/sprint-plan.md)
 - Testing and dev workflow: [docs/testing.md](docs/testing.md)
-- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · spike runbook: [spike/README.md](spike/README.md)
+- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · spike runbook: [spike/README.md](spike/README.md)
 
 ## Try it
 
@@ -24,6 +24,7 @@ claude --plugin-dir /path/to/qlaudified
 Then:
 - `/qlaudified mode` shows the mode; `/qlaudified mode high` saves it for the project, and
   `/qlaudified mode low --session` changes it for this session only.
+- `/qlaudified report` prints the last answer's claim-by-claim report.
 - `/qlaudified csv` opens this session's `provenance.csv`; `--path` prints its location.
 - Everything is stored under `.claude/.qlaudified/` in the project, which ignores itself in git.
 
@@ -33,8 +34,8 @@ Then:
 | --- | --- | --- |
 | 0 · Oct 9–11 | Prove the hooks behave as the design assumes | Done: [findings](docs/findings/sprint-0.md) |
 | 1 · Oct 12–18 | Plugin skeleton, mode command, capture into the store | Done: [results](docs/findings/sprint-1.md) |
-| 2 · Oct 19–25 | Medium mode end to end | Next |
-| 3 · Oct 26–Nov 1 | Web sources, NLI and LLM tiers | |
+| 2 · Oct 19–25 | Medium mode end to end | Done: [results](docs/findings/sprint-2.md) |
+| 3 · Oct 26–Nov 1 | Web sources, NLI and LLM tiers | Next |
 | 4 · Nov 2–8 | High mode and the eval harness | |
 | 5 · Nov 9–15 | Ablation results, README, v1 tag | |
 

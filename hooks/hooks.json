@@ -1,5 +1,5 @@
 {
-  "description": "qlaudified hooks. One shell-form line per hook: py -3 if present, else python3 (docs/design.md, Hook command). MessageDisplay is added in Sprint 2.",
+  "description": "qlaudified hooks. One shell-form line per hook: py -3 if present, else python3 (docs/design.md, Hook command).",
   "hooks": {
     "SessionStart": [
       {
@@ -31,6 +31,17 @@
             "type": "command",
             "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop",
             "timeout": 60
+          }
+        ]
+      }
+    ],
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" MessageDisplay || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" MessageDisplay",
+            "timeout": 10
           }
         ]
       }

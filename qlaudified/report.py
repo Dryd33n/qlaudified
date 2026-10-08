@@ -1,9 +1,81 @@
-"""Per-turn reports: summary line, claim-by-claim markdown and JSON (REP-2, REP-4). Sprint 2."""
+"""Per-turn reports: summary line, claim-by-claim markdown and JSON (REP-2, REP-4).
+
+Saved as ``reports/turn-<n>.md`` and ``.json`` in the session folder. The summary line is what
+Stop shows the user; ``/qlaudified report`` prints the markdown.
+"""
+
+import json
+from dataclasses import asdict
+from pathlib import Path
+
+from qlaudified.store import Claim, Span
+
+# Problems first in the summary; supported last.
+ORDER = ["contradicted", "qualifier-dropped", "unsupported", "unresolved", "partial", "inference",
+         "supported"]
+LABELS = {
+    "contradicted": "contradicted", "qualifier-dropped": "qualifier dropped",
+    "unsupported": "unsupported", "unresolved": "unresolved", "partial": "partly supported",
+    "inference": "inference", "supported": "supported",
+}
+PROBLEMS = {"contradicted", "qualifier-dropped", "unsupported"}
 
 
-def summary_line(claims) -> str:
-    raise NotImplementedError("Sprint 2: REP-2")
+def summary_line(claims: list[Claim], skipped: int = 0) -> str:
+    counts = {v: sum(c.verdict == v for c in claims) for v in ORDER}
+    parts = []
+    for verdict in ORDER:
+        if not counts[verdict]:
+            continue
+        part = f"{counts[verdict]} {LABELS[verdict]}"
+        if verdict == "qualifier-dropped":
+            words = list(dict.fromkeys(w for c in claims if c.verdict == verdict
+                                       for w in c.dropped_qualifiers[:1]))
+            part += f" ({', '.join(words[:3])})"
+        parts.append(part)
+    noun = "claim" if len(claims) == 1 else "claims"
+    head = f"qlaudified: {len(claims)} {noun} checked"
+    if skipped:
+        head += f" ({skipped} non-critical skipped)"
+    tail = " · /qlaudified report" if any(c.verdict in PROBLEMS for c in claims) else ""
+    return " · ".join([head, *parts]) + tail
 
 
-def write_turn_report(store, turn: str) -> None:
-    raise NotImplementedError("Sprint 2: REP-4")
+def render_markdown(n: int, claims: list[Claim], spans: dict[str, Span], skipped: int = 0) -> str:
+    out = [f"# qlaudified report · turn {n}", "", summary_line(claims, skipped), ""]
+    for i, claim in enumerate(claims, 1):
+        out.append(f"{i}. **{LABELS.get(claim.verdict, claim.verdict)}:** {claim.text}")
+        if claim.dropped_qualifiers:
+            out.append(f"   - dropped: {', '.join(claim.dropped_qualifiers)}")
+        unresolved = claim.verdict == "unresolved"
+        for span_id in claim.span_ids[:1] if unresolved else claim.span_ids:
+            span = spans.get(span_id)
+            if span is None:
+                continue
+            quote = " ".join(span.text.split())
+            quote = quote if len(quote) <= 160 else quote[:159] + "…"
+            closest = "closest: " if unresolved else ""
+            out.append(f"   - {closest}[{span_id}] {span.source} {span.locator}: \"{quote}\"")
+        if not claim.span_ids and claim.verdict == "unsupported":
+            out.append("   - no source in this session states this")
+    if not claims:
+        out.append("No critical claims in this answer.")
+    return "\n".join(out) + "\n"
+
+
+def write_turn_report(session_dir: Path, n: int, prompt_id: str, claims: list[Claim],
+                      spans: dict[str, Span], skipped: int = 0, mode: str = "") -> Path:
+    """Write reports/turn-<n>.md and .json; returns the markdown path."""
+    folder = Path(session_dir) / "reports"
+    folder.mkdir(exist_ok=True)
+    md = folder / f"turn-{n}.md"
+    md.write_text(render_markdown(n, claims, spans, skipped), encoding="utf-8")
+    data = {
+        "turn": n, "prompt_id": prompt_id, "mode": mode, "skipped": skipped,
+        "summary": summary_line(claims, skipped),
+        "claims": [asdict(c) for c in claims],
+        "spans": {k: {"source": s.source, "locator": s.locator, "text": s.text,
+                      "qualifiers": s.qualifiers} for k, s in spans.items()},
+    }
+    (folder / f"turn-{n}.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+    return md

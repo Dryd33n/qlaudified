@@ -1,0 +1,23 @@
+# Seed task 4: compaction stress. prompt.txt has three steps separated by "---" lines
+# (read, /compact, ask); scripts/live.py runs them in one session with --resume.
+id = "seed-compaction"
+type = "compaction"
+sandbox = "tests/sandbox/seed-compaction"
+
+[[facts]]
+id = "seat-price"
+source = "pricing.md"
+locator = "L3"
+value = "12 USD"
+qualifiers = ["expected to", "subject to change"]
+kept = "Pricing is expected to start at $12 per seat per month, subject to change."
+dropped = "The seat price is $12 per month."
+
+[[facts]]
+id = "lisbon-opening"
+source = "offices.md"
+locator = "L3"
+value = "2027"
+qualifiers = ["may", "pending"]
+kept = "The Lisbon office may open in early 2027, pending the lease review."
+dropped = "The Lisbon office opens in early 2027."

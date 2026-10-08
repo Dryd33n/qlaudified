@@ -25,7 +25,8 @@ class Config:
     mode: Mode = Mode.MEDIUM
     backend: str = "claude-cli"  # claude-cli | ollama | none | fake (tests only)
     backend_model: str = "haiku"  # Sprint 0: ~2.6 s per call, 15x cheaper than sonnet
-    inject_budget_chars: int = 600  # INJ-2
+    inject_budget_chars: int = 600  # INJ-2, per PostToolUse call
+    digest_budget_chars: int = 1200  # INJ-3, once after each compaction
     critical_threshold: float = 0.5  # CFG-2, tuned in Sprint 2
     extra_hedges: dict[str, list[str]] = field(default_factory=dict)
     retention_days: int = 30
@@ -43,6 +44,7 @@ mode = "medium"            # low | medium | high
 backend = "claude-cli"     # claude-cli | ollama | none
 backend_model = "haiku"
 inject_budget_chars = 600
+digest_budget_chars = 1200
 critical_threshold = 0.5
 retention_days = 30
 raw_cache_mb = 200
@@ -52,7 +54,7 @@ raw_cache_mb = 200
 """
 
 _TYPES: dict[str, type | tuple[type, ...]] = {
-    "backend": str, "backend_model": str, "inject_budget_chars": int,
+    "backend": str, "backend_model": str, "inject_budget_chars": int, "digest_budget_chars": int,
     "critical_threshold": (int, float), "retention_days": int, "raw_cache_mb": int,
 }
 

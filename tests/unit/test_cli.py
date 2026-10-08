@@ -35,3 +35,19 @@ def test_csv_path_exports_this_session(project, capsys):
     assert cli.main(["csv", "--path"]) == 0
     out = capsys.readouterr().out.strip()
     assert out.endswith("provenance.csv") and (folder / "provenance.csv").exists()
+
+
+def test_report_prints_the_last_turn_and_verifies_low_mode_turns_on_request(project, capsys):
+    assert cli.main(["report"]) == 1
+    folder = project / ".claude" / ".qlaudified" / "sessions" / "s1"
+    store = Store(folder)
+    store.add_span(Span("", "local-doc", "q3.md", "L3", "Q3 revenue is estimated at $4.2M.",
+                        "4200000 USD", "estimated", hash="h"))
+    store.start_turn("p1", "Q3 revenue was $4.2M.")  # as Stop records it in Low mode
+    capsys.readouterr()
+    assert cli.main(["report"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("# qlaudified report · turn 1")
+    assert "**qualifier dropped:** Q3 revenue was $4.2M." in out
+    assert (folder / "reports" / "turn-1.json").exists()
+    assert cli.main(["report", "--deep"]) == 1

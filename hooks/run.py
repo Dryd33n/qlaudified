@@ -67,6 +67,10 @@ def main() -> int:
         response = module.handle(payload)
         if response:
             sys.stdout.write(json.dumps(response))
+        if os.environ.get("QLAUDIFIED_RECORD_DIR"):
+            from qlaudified.log import record_event
+
+            record_event(event, payload, response)
         from qlaudified.log import log_timing
 
         log_timing(event, payload, elapsed_ms=(time.perf_counter() - start) * 1000)

@@ -2,7 +2,8 @@
 
 Numbers are normalized so different spellings compare equal in Tier 1: ``$4.2M`` and
 ``4.2 million USD`` both become ``4200000 USD``; durations become seconds, so ``15 minutes`` and
-``900 seconds`` both become ``900 s``. Dates become ISO (``2026-09-30``, ``2027-01``, ``2027``).
+``900 seconds`` both become ``900 s``. Dates become ISO (``2026-09-30``, ``2027-01``, ``2027``,
+and ``--11-18`` for a month and day with no year).
 """
 
 import re
@@ -23,6 +24,9 @@ _DATE_PATTERNS = [
     re.compile(_MONTH + r"\s+(?P<d>\d{1,2})(?:st|nd|rd|th)?,?\s+(?P<y>\d{4})\b"),
     re.compile(r"\b(?P<d>\d{1,2})(?:st|nd|rd|th)?\s+" + _MONTH + r",?\s+(?P<y>\d{4})\b"),
     re.compile(r"\b" + _MONTH + r",?\s+(?P<y>\d{4})\b"),
+    # Month and day with no year: "--11-18", ISO 8601's yearless form.
+    re.compile(_MONTH + r"\s+(?P<d>\d{1,2})(?:st|nd|rd|th)?\b(?!,?\s+\d{4})"),
+    re.compile(r"\b(?P<d>\d{1,2})(?:st|nd|rd|th)?\s+" + _MONTH + r"\b(?!,?\s+\d{4})"),
 ]
 
 MAGNITUDES = {
@@ -72,7 +76,7 @@ def _date_spans(text: str) -> list[tuple[int, int, str]]:
             else:
                 mon = groups["mon"].lower()
                 month = MONTHS["sept" if mon.startswith("sept") else mon[:3]]
-            iso = f"{groups['y']}-{month:02d}"
+            iso = f"{groups['y']}-{month:02d}" if groups.get("y") else f"--{month:02d}"
             if groups.get("d"):
                 iso += f"-{int(groups['d']):02d}"
             found.append((m.start(), m.end(), iso))

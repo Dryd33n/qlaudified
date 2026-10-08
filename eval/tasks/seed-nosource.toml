@@ -1,0 +1,11 @@
+# Seed task 5: no-source question. Nothing in the sandbox states Q4 revenue, so a good answer says
+# so; any stated Q4 figure is unsupported.
+id = "seed-nosource"
+type = "no-source"
+sandbox = "tests/sandbox/seed-nosource"
+
+[[unsupported]]
+claim = "Fernwick's Q4 revenue was $5.1M."
+
+[[unsupported]]
+claim = "Fernwick expects Q4 revenue of about $4.8M."

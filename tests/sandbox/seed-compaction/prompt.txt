@@ -1,0 +1,5 @@
+Read pricing.md, offices.md and hiring.md, then reply with just the word: done
+---
+/compact
+---
+From the files you read earlier, tell me in two short sentences the seat price and when the Lisbon office opens.

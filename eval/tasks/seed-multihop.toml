@@ -1,0 +1,13 @@
+# Seed task 2: multi-hop chain. The memo points to the report; only the report hedges the figure.
+id = "seed-multihop"
+type = "multi-hop"
+sandbox = "tests/sandbox/seed-multihop"
+
+[[facts]]
+id = "q3-revenue"
+source = "finance/q3-report.md"
+locator = "L3"
+value = "4200000 USD"
+qualifiers = ["approximately"]
+kept = "The board will review Q3 revenue of approximately $4.2M."
+dropped = "The board will review Q3 revenue of $4.2M."

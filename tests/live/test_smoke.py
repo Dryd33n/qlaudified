@@ -54,3 +54,15 @@ def test_capture_fills_provenance_csv(task, expected):
 def test_mode_skill_saves_the_project_default():
     record = run_live("mode")
     assert 'mode = "high"' in (store(record) / "config.toml").read_text(encoding="utf-8")
+
+
+def test_medium_injects_marks_and_reports():
+    """Sprint 2: the delta reaches Claude, the answer is verified and the turn report is saved."""
+    record = run_live("seed-hedged")
+    [folder] = (store(record) / "sessions").glob("*")
+    claims = [r for r in provenance(record) if r["kind"] == "claim"]
+    assert claims and all(r["verdict"] in ("supported", "qualifier-dropped") for r in claims)
+    assert (folder / "reports" / "turn-1.md").exists() and (folder / "reports" / "turn-1.json").exists()
+    timings = [json.loads(line) for line in (folder / "timings.jsonl").read_text().splitlines()]
+    assert {t["event"] for t in timings} >= {"PostToolUse", "MessageDisplay", "Stop"}
+    assert not (store(record) / "errors.log").exists()

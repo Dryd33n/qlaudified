@@ -4,7 +4,7 @@ Synthetic "Fernwick Co." corpus plus a mode ablation (design.md, "Evaluation pla
 
 ```
 corpus/      docs, code repo and saved web pages with planted, hedged facts   (Sprint 2 seed, Sprint 4 full)
-tasks/       one YAML per task: prompt, expected facts, source spans, qualifiers
+tasks/       one TOML per task: prompt, expected facts, source spans, qualifiers
 run.py       tasks x {off, medium, high} x 2 repeats via claude -p; resumable (Sprint 4)
 score.py     qualifier preservation, attribution P/R, verifier accuracy, cost, latency (Sprint 4)
 ledger.jsonl per-run cost log shared with scripts/live.py (git-ignored)

@@ -1,13 +1,14 @@
 """Run one live task in an isolated `claude -p` session with a plugin under test (testing.md).
 
-    python scripts/live.py <task> [--plugin-dir DIR] [--model haiku] [--max-turns 6] [--dry-run]
+    python scripts/live.py <task> [--plugin-dir DIR | --no-plugin] [--model haiku] [--max-turns 6] [--dry-run]
 
 <task> names tests/sandbox/<task>/, which holds the sandbox files and a prompt.txt. The sandbox is
 copied to a temp folder; Claude runs there with its own config dir, so neither your personal setup
 nor the dev session leaks in. Each run's cost is appended to eval/ledger.jsonl, and the script refuses
 to start once today's spend reaches --daily-cap.
 
-Sprint 0 uses --plugin-dir spike/probe to record sessions. Assertions on the store arrive in Sprint 1.
+--record keeps the transcript and has the plugin log every hook event; --collect NAME scrubs that
+recording into tests/sessions/NAME-<os>/ for replay tests (spike/collect.py).
 """
 
 import argparse
@@ -50,12 +51,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("task")
     parser.add_argument("--plugin-dir", default=REPO)
+    parser.add_argument("--no-plugin", action="store_true",
+                        help="baseline run without any plugin (NFR-1 cost comparison)")
     parser.add_argument("--model", default="haiku")
     parser.add_argument("--max-turns", type=int, default=6)
     parser.add_argument("--daily-cap", type=float, default=2.0, help="USD estimate per day")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--record", action="store_true",
-                        help="keep the session transcript (for tests/sessions recordings)")
+                        help="keep the transcript and record our hook events (QLAUDIFIED_RECORD_DIR)")
+    parser.add_argument("--collect", metavar="NAME",
+                        help="with --record: scrub the recording into tests/sessions/NAME-<os>/")
     args = parser.parse_args()
 
     src = os.path.join(REPO, "tests", "sandbox", args.task)
@@ -63,56 +68,77 @@ def main():
     if not os.path.exists(prompt_file):
         raise SystemExit(f"no task at {src} (needs prompt.txt)")
     with open(prompt_file, encoding="utf-8") as f:
-        prompt = f.read().strip()
+        # Steps separated by "---" lines run in one session, each resuming the last (compaction).
+        steps = [s.strip() for s in f.read().split("\n---\n") if s.strip()]
 
     spent = spent_today()
     if spent >= args.daily_cap:
         raise SystemExit(f"daily cap reached: ${spent:.2f} of ${args.daily_cap:.2f}")
 
-
-    cmd = ["claude", "-p", prompt,
-           "--plugin-dir", os.path.abspath(args.plugin_dir),
-           "--model", args.model,
-           "--max-turns", str(args.max_turns),
-           "--allowedTools", "Read,Grep,Glob,Bash,WebFetch,WebSearch",
-           "--permission-prompts", "none",
-           "--output-format", "json"]
+    plugin = [] if args.no_plugin else ["--plugin-dir", os.path.abspath(args.plugin_dir)]
+    base = [*plugin,
+            "--model", args.model,
+            "--max-turns", str(args.max_turns),
+            "--allowedTools", "Read,Grep,Glob,Bash,WebFetch,WebSearch",
+            "--permission-prompts", "none",
+            "--output-format", "json"]
     env = dict(os.environ)
     test_env = dict(TEST_ENV)
-    if args.record:
-        # Sprint 0: with this set, -p sessions wrote no transcript under projects/.
+    workdir = tempfile.mkdtemp(prefix="qlaudified-")
+    sandbox = os.path.join(workdir, args.task)
+    record_dir = os.path.join(workdir, "record")
+    if args.record or len(steps) > 1:
+        # Sprint 0: with this set, -p sessions wrote no transcript under projects/, and --resume
+        # needs that transcript.
         del test_env["CLAUDE_CODE_SKIP_PROMPT_HISTORY"]
+    if args.record:
+        test_env["QLAUDIFIED_RECORD_DIR"] = record_dir
     env.update(test_env)
     if args.dry_run:
-        print(json.dumps({"sandbox": src, "cmd": cmd, "env": test_env}, indent=2))
+        print(json.dumps({"sandbox": src, "steps": steps, "cmd": ["claude", "-p", steps[0], *base],
+                          "env": test_env}, indent=2))
+        shutil.rmtree(workdir, ignore_errors=True)
         return 0
 
-    sandbox = os.path.join(tempfile.mkdtemp(prefix="qlaudified-"), args.task)
     shutil.copytree(src, sandbox, ignore=shutil.ignore_patterns("prompt.txt"))
 
     start = time.time()
-    proc = subprocess.run(cmd, cwd=sandbox, env=env, stdin=subprocess.DEVNULL,
-                          capture_output=True, check=False, shell=(os.name == "nt"))
-    out = proc.stdout.decode("utf-8", "replace")
-    try:
-        data = json.loads(out)
-    except ValueError:
-        data = {}
+    cost, turns, session_id, returncode, stderr = 0.0, 0, None, 0, b""
+    for step in steps:
+        resume = ["--resume", session_id] if session_id else []
+        proc = subprocess.run(["claude", "-p", step, *resume, *base], cwd=sandbox, env=env,
+                              stdin=subprocess.DEVNULL, capture_output=True, check=False,
+                              shell=(os.name == "nt"))
+        try:
+            data = json.loads(proc.stdout.decode("utf-8", "replace"))
+        except ValueError:
+            data = {}
+        cost += data.get("total_cost_usd") or 0.0
+        turns += data.get("num_turns") or 0
+        session_id = data.get("session_id") or session_id
+        returncode, stderr = proc.returncode, proc.stderr
+        if proc.returncode != 0 or not session_id:
+            break
     record = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "task": args.task, "model": args.model,
-              "plugin_dir": args.plugin_dir, "returncode": proc.returncode,
+              "plugin_dir": None if args.no_plugin else args.plugin_dir,
+              "returncode": returncode,
               "wall_s": round(time.time() - start, 1),
-              "total_cost_usd": data.get("total_cost_usd"), "num_turns": data.get("num_turns"),
-              "session_id": data.get("session_id"), "sandbox": sandbox}
+              "total_cost_usd": round(cost, 6), "num_turns": turns, "steps": len(steps),
+              "session_id": session_id, "sandbox": sandbox,
+              "result": (data.get("result") or "")[:500]}
     if not os.path.isdir(os.path.dirname(LEDGER)):
         os.makedirs(os.path.dirname(LEDGER))
     with open(LEDGER, "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
 
     print(json.dumps(record, indent=2))
-    if proc.returncode != 0:
-        sys.stderr.write(proc.stderr.decode("utf-8", "replace")[-2000:])
+    if returncode != 0:
+        sys.stderr.write(stderr.decode("utf-8", "replace")[-2000:])
+    if args.collect and os.path.exists(os.path.join(record_dir, "events.jsonl")):
+        subprocess.run([sys.executable, os.path.join(REPO, "spike", "collect.py"), record_dir,
+                        args.collect, "--sandbox", sandbox], check=False)
     print(f"sandbox kept for inspection at {sandbox} (delete when done)")
-    return proc.returncode
+    return returncode
 
 
 if __name__ == "__main__":

@@ -105,7 +105,7 @@ Requirements are grouped by component and numbered so issues and tests can refer
 
 **Reporting (REP)**
 
-- REP-1: Rewrite the displayed answer with inline markers such as `[S3]`, `[S3, qualifier: estimated]` or `[unsupported]`; the stored transcript is unchanged.
+- REP-1: Rewrite the displayed answer with inline markers such as `[S3]`, `[S3, qualifier: estimated]` or `[unsupported]`; the stored transcript is unchanged. Claude Code holds each streamed batch until the `MessageDisplay` hook returns, so the marker path must stay fast; in `claude -p` the hook runs once per message with the full text.
 - REP-2: `/qlaudified report` prints a claim-by-claim report for the last turn, with a summary line on top; adding `--deep` runs the LLM tier for that turn.
 - REP-3: `/qlaudified csv` opens `provenance.csv` in the default app; `--path` prints its location.
 - REP-4: Each turn's report is also saved as markdown and JSON under the session folder.
@@ -187,7 +187,7 @@ Everything lives under `.claude/.qlaudified/` in the project, one folder per ses
   .gitignore             ignores everything below by default
   sessions/<session_id>/
     index.sqlite         spans, claims, links (source of truth)
-    provenance.csv       flat export of spans + claim verdicts
+    provenance.csv       flat export: span rows, then claim rows (`kind` column)
     raw/<hash>.txt       verbatim source text (re-fetched pages, file snapshots)
     reports/turn-<n>.md  human report per turn
     reports/turn-<n>.json
@@ -211,7 +211,7 @@ Everything lives under `.claude/.qlaudified/` in the project, one folder per ses
 
 **Claim record** (one per atomic claim in a final answer): `claim_id`, `turn`, `text`, `span_ids`, `verdict`, `dropped_qualifiers`, `decided_by` (`deterministic`, `nli` or `llm`), `confidence`, `critical`.
 
-**Injection line format** (what Claude sees mid-run): `[S14 notes/q3.md L22] Q3 revenue 4.2M USD; source says: estimated, preliminary`. Plain facts, no instructions, so it doesn't trip prompt-injection defenses.
+**Injection line format** (what Claude sees mid-run): `[S14 notes/q3.md L22] Q3 revenue 4.2M USD; source says: estimated, preliminary`. Plain facts, no instructions, so it doesn't trip prompt-injection defenses. Only spans with a number, date or qualifier are injected, qualified ones first, and search-result titles never are: Claude has just read the rest (Sprint 2). The per-call delta is the spans that call added for that agent, so parallel calls never inject a row twice.
 
 ## Verification pipeline
 
@@ -247,7 +247,7 @@ The headline question: does re-injecting provenance during a run preserve qualif
 | Compaction stress | Provenance survives `/compact` | Long task with a forced compaction midway |
 | No-source question | Unsupported claims flagged | Asks something no file contains |
 
-Ground truth is a YAML file per task listing the expected facts, their source spans and qualifiers, so scoring is automatic.
+Ground truth is a TOML file per task (read with the standard library's `tomllib`) listing the expected facts, their source spans and qualifiers, so scoring is automatic.
 
 **Ablation conditions**
 
@@ -296,7 +296,10 @@ These close gaps that would otherwise surface mid-sprint. All are settled as of 
 | Self-capture | Never capture paths under `.claude/.qlaudified/` | Sprint 0: Grep matched the probe's own log folder; hidden folders aren't skipped |
 | Subagents | Capture inside subagents (their PostToolUse payloads carry `agent_id` and `agent_type`); their injections land in their own context; a subagent's reply becomes a span derived from its sources. A passage is one span per agent (unique on source, locator, hash and agent), so a subagent re-reading a file gets its own span. Act on `SubagentStop` only when `agent_type` is set | Explore-style agents do much of the reading. `SubagentStop` also fires every turn for internal helpers with an empty `agent_type` |
 | Final answer text | `Stop` reads `last_assistant_message` from its payload | No transcript parsing for VER-1 |
-| Claim parsing | Claims come from prose, list items and table cells; code blocks are skipped | Code isn't a factual claim about a source |
+| Claim parsing | Claims come from prose, list items and table rows; code blocks, headings, bare links and short lead-ins are skipped. Sentences split at clause joints (`;`, `, which`, `, but`, ...), but hedges count across the whole sentence. The assistant talking about itself or to the user is never critical | Code isn't a factual claim about a source; Sprint 2 live runs showed a split clause losing its hedge |
+| Tier 1 matching | Spans are compared sentence by sentence, so a hedge belongs to the number next to it; numbers match on value (0.5%) with units equal or one side unitless; a yearless date (`--11-18`) matches the same day | `SYNC_INTERVAL_S = 900` stays unhedged when the comment above says "roughly" |
+| Turns | Stop records each answer in a `turns` table keyed by `prompt_id`; reports are `turn-<n>`; Low records the answer so `/qlaudified report` can verify it on request | Report on request in Low needs the answer text |
+| Recording | With `QLAUDIFIED_RECORD_DIR` set, `run.py` appends each event and our response to `events.jsonl` there (`live.py --record`) | Every live run becomes a replay fixture with the plugin's own responses |
 | Web re-fetch | Runs as an `async` hook | Never blocks the loop, with no threading code of our own |
 | Low mode | Capture only: no injection or verification; report on request | Costs zero tokens and still leaves a trail |
 | Commands | One `/qlaudified` plugin skill: `mode`, `report`, `report --deep`, `csv`. Its `` !`...` `` line runs the CLI before Claude sees anything, so a command costs no model turn | One file to maintain, one name to learn. A skill, not `commands/`, because `${CLAUDE_PLUGIN_ROOT}` is only substituted in plugin skills |

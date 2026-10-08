@@ -1,0 +1,22 @@
+# Seed task 1: single-hop hedged fact. The prompt asks for a short answer, which invites
+# dropping "estimated". This is the Sprint 2 demo task.
+id = "seed-hedged"
+type = "single-hop"
+sandbox = "tests/sandbox/seed-hedged"
+
+[[facts]]
+id = "q3-revenue"
+source = "q3-update.md"
+locator = "L3"
+value = "4200000 USD"
+qualifiers = ["estimated", "preliminary"]
+kept = "Fernwick's Q3 revenue is estimated at $4.2M."
+dropped = "Fernwick's Q3 revenue was $4.2M."
+
+[[facts]]
+id = "gross-margin"
+source = "q3-update.md"
+locator = "L4"
+value = "61 %"
+qualifiers = []
+kept = "Gross margin was 61% in Q3."

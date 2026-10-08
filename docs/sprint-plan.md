@@ -50,15 +50,15 @@ Goal: a plugin that installs cleanly, remembers its mode, and records every loca
 
 Goal: the core loop works with zero model calls: inject deltas, verify with rules, show the result. This is the sprint where qlaudified becomes useful.
 
-- [ ] Delta re-injection with the per-call character budget (INJ-1, INJ-2)
-- [ ] Compaction digest via `SessionStart` `compact` (INJ-3)
-- [ ] Claim extraction and critical-claim tagging (VER-1)
-- [ ] BM25 candidate retrieval over stored spans
-- [ ] Tier-1 deterministic verifier: number/date/unit match, hedge diff, fuzzy overlap (VER-2, VER-3)
-- [ ] Reports: per-turn markdown and JSON, summary line, `/qlaudified report`, `report --deep`, `csv` (REP-2 to REP-4)
-- [ ] Inline markers, using whichever approach Sprint 0 confirmed (REP-1)
-- [ ] Seed corpus: 5 Fernwick tasks with ground truth, used as integration-test fixtures
-- [ ] Start dogfooding Medium on your own work
+- [x] Delta re-injection with the per-call character budget (INJ-1, INJ-2)
+- [x] Compaction digest via `SessionStart` `compact` (INJ-3)
+- [x] Claim extraction and critical-claim tagging (VER-1)
+- [x] BM25 candidate retrieval over stored spans
+- [x] Tier-1 deterministic verifier: number/date/unit match, hedge diff, fuzzy overlap (VER-2, VER-3)
+- [x] Reports: per-turn markdown and JSON, summary line, `/qlaudified report`, `csv` (REP-2 to REP-4); `report --deep` moved to Sprint 3 with the LLM tier
+- [x] Inline markers, using whichever approach Sprint 0 confirmed (REP-1)
+- [x] Seed corpus: 5 Fernwick tasks with ground-truth TOML, used as integration-test fixtures
+- [ ] Start dogfooding Medium on your own work: at the sprint's end, set up a stable copy (testing.md)
 
 **Done when:** on a seed task where a source says "estimated", qlaudified flags the dropped qualifier in the report, and Medium's measured overhead is under 10%.
 
@@ -71,7 +71,7 @@ Goal: cover web sources and add the two smarter verifier tiers, both optional an
 - [ ] WebSearch results stored as `search-snippet` (CAP-5)
 - [ ] Local web server for saved Fernwick pages, so web tests are reproducible
 - [ ] Tier 2: NLI as the `[nli]` extra, ONNX Runtime on CPU, borderline thresholds
-- [ ] Tier 3: one batched call with a JSON schema; `claude-cli`, `ollama` and `none` backends (CFG-1)
+- [ ] Tier 3: one batched call with a JSON schema; `claude-cli`, `ollama` and `none` backends (CFG-1); `/qlaudified report --deep` (REP-2, moved from Sprint 2)
 - [ ] Recursion guard for nested `claude -p` (SID-3); `usage.jsonl` cost logging
 
 **Done when:** a WebFetch on a seed page records both the raw text and the summary, a qualifier dropped by WebFetch itself is flagged, and each tier's decisions are labelled in the report.
@@ -83,7 +83,7 @@ Goal: finish High mode and get the evaluation ready to run, so Sprint 5 is only 
 - [ ] In-loop sidecar on flagged sentences only (SID-1, SID-2)
 - [ ] Stop retry, capped at once per turn, with a factual issue list (VER-4)
 - [ ] Code-claim levels: behavior claims in Medium; doc facts, numbers and config values in High
-- [ ] Expand the corpus to about 20 tasks, four of each task type, with ground-truth YAML
+- [ ] Expand the corpus to about 20 tasks, four of each task type, with ground-truth TOML
 - [ ] Eval runner: tasks × 3 live conditions × 2 repeats, post-hoc scored offline, via `claude -p --output-format json`, resumable after interruptions
 - [ ] Scoring: qualifier preservation, attribution precision and recall, verifier accuracy, cost, latency
 - [ ] Dry run of 5 tasks under all conditions to shake out the harness

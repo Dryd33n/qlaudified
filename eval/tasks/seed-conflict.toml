@@ -1,0 +1,23 @@
+# Seed task 3: conflicting sources. v2 replaces v1, and each hedges its own date.
+id = "seed-conflict"
+type = "conflict"
+sandbox = "tests/sandbox/seed-conflict"
+
+[[facts]]
+id = "launch-date"
+source = "launch-plan-v2.md"
+locator = "L3"
+value = "2026-12-02"
+qualifiers = ["pending"]
+kept = "The Ledger launch moved to December 2, 2026, pending QA sign-off."
+dropped = "The Ledger launch is on December 2, 2026."
+
+[[facts]]
+id = "superseded-launch-date"
+source = "launch-plan-v1.md"
+locator = "L3"
+value = "2026-11-18"
+qualifiers = ["tentatively"]
+superseded = true
+kept = "Launch plan v1 tentatively set the Ledger launch for November 18, 2026."
+dropped = "Launch plan v1 set the Ledger launch for November 18, 2026."

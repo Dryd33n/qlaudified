@@ -76,3 +76,11 @@ def test_strength_order_and_merge():
     assert "ballpark" in merged["estimate"] and merged["custom"] == ["iffy"]
     assert "ballpark" not in lexicon.HEDGES["estimate"]
     assert find_hedges("a ballpark figure", merged) == {"estimate": ["ballpark"]}
+
+
+def test_month_and_day_without_a_year():
+    from qlaudified.text import number_match
+
+    assert extract_dates("It replaces the earlier November 18 date.") == ["--11-18"]
+    assert extract_dates("Due 14 Nov, then November 18, 2026.") == ["--11-14", "2026-11-18"]
+    assert number_match("--11-18", "2026-11-18") and not number_match("--11-18", "2026-11")
