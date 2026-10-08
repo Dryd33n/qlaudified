@@ -98,7 +98,7 @@ Other events:
 | 4 | SessionStart `compact` after manual `/compact` | **confirmed** | `PreCompact` (manual) then `SessionStart source: compact` |
 | 5 | Nested `claude -p --safe-mode` from a hook, Pro login, startup time | **confirmed** | Haiku 2.6–2.8 s wall after the first call (~0.9 s API, $0.00025); sonnet 3.1–4.2 s, $0.004. Fixed CLI overhead ~1.7 s. Default small model: **haiku** |
 | 6 | Windows: command form, `python` vs `py -3`, backslash paths | **confirmed** | Exec form works; bare `python` hits the Store 3.9 alias; 8.3 short paths; mixed separators |
-| 7 | macOS: same probes | changed | CI only (`spike` workflow): startup timing and a payload smoke test; needs a push to run |
+| 7 | macOS: same probes | **changed** (CI only) | `spike` run 37835882466 on macos-latest, Python 3.12.10: `python3` p50 46 ms / p95 111 ms; payload smoke OK (0.2 ms); both hook forms generate. No interactive macOS sessions. Caveat: CI's `python3` comes from setup-python; on a real Mac it may be Apple's older `/usr/bin/python3`, so the version check matters there too |
 | 8 | Name on GitHub and PyPI | **free** | Free on PyPI and as a GitHub user/org; the only repo with the name is ours |
 | 9 | Python hook startup time on Windows | done | `py -3` p50 102 ms / p95 113 ms; python.exe called directly p50 79 ms. The probe's own work is under 2 ms. (The `python` row in `startup.jsonl` is misleading: a child of 3.12 finds 3.12 first) |
 | 10 | Separate `CLAUDE_CONFIG_DIR` keeps its login | **confirmed** | After one `/login`; timing run rc 0 |
@@ -113,14 +113,14 @@ Other events:
 | Windows hook quirks (backslash paths, PowerShell vs Git Bash) | **changed** | The shell question goes away with exec form. New: bare `python` resolves to the Store alias (3.9); `%TEMP%` paths arrive in 8.3 form; env paths use `/` and payloads `\`. Normalize with long-path expansion, not just separators |
 | Re-fetched page differs from what WebFetch saw | **changed** | WebFetch's payload has no raw text, only the summary and `bytes`. The shadow re-fetch (CAP-3) is the only raw source; compare its size to `bytes` instead of a hash |
 | Stored spans carry injected instructions | **confirmed** | New variant: Grep matched the probe's own log folder (hidden folders aren't skipped), so the store can capture itself. Exclude `.claude/.qlaudified/` from capture |
-| Rule-based claim splitting misses compound claims | noted | `repo` answer: "syncs every 900 seconds, which is 15 minutes" drops "roughly" inside a compound sentence. A good seed case |
-| Stop retry loops or annoys | deferred | High mode, Sprint 4. `stop_hook_active` in the Stop payload gives the loop guard |
+| Rule-based claim splitting misses compound claims | **confirmed** | `repo` answer: "syncs every 900 seconds, which is 15 minutes" drops "roughly" inside a compound sentence. A good seed case |
+| Stop retry loops or annoys | **changed** | Can't be exercised before High mode (Sprint 4). The Stop payload's `stop_hook_active` gives the loop guard, so the one-retry cap needs no state of its own |
 
 ## Decisions out of this spike
 
 - Hook command form: **exec form** (`command` + `args`), no shell.
 - Python command default: **Windows `py` with `-3`** (accepted Oct 8, #6); macOS `python3`
-  (confirm in the CI run).
+  (CI run OK, 3.12.10).
   Hooks check `sys.version_info >= (3, 10)` and log a clear error instead of failing silently.
 - Default sidecar model: **haiku**.
 - Minimum Claude Code version: **2.1.294** (the only version tested).
@@ -134,7 +134,7 @@ Other events:
 - [x] #3 MessageDisplay streaming
 - [x] #4 `/compact`
 - [x] Compaction and subagent recording (`interactive-windows`)
-- [ ] #7: push and run the `spike` workflow for macOS
+- [x] #7: push and run the `spike` workflow for macOS
 
 ## Before Sprint 1
 

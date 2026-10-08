@@ -21,14 +21,14 @@ Medium mode is usable daily by the end of Sprint 2; everything after adds depth,
 
 Goal: confirm the four hooks give us what the design depends on, before writing real code. Throwaway scripts that log stdin to a file are enough.
 
-- [ ] Log raw `PostToolUse` payloads for `Read`, `Grep`, `Bash`, `WebFetch`, `WebSearch` and one MCP tool; note where text, paths and line numbers appear
-- [ ] Confirm `additionalContext` from `PostToolUse` reaches Claude, and check how a factual provenance line is treated
-- [ ] Test `MessageDisplay`: batch sizes, latency, and whether markers can be added from span matching alone
-- [ ] Test `SessionStart` with the `compact` matcher after a manual `/compact`
-- [ ] Run a nested `claude -p` from a hook with `--safe-mode`, check it uses the Pro login; measure startup time and pick the default small model
-- [ ] Run every probe on Windows (exec form, `python`, backslash paths) and on macOS
-- [ ] Check the name qlaudified on GitHub and PyPI
-- [ ] Time Python hook startup on Windows (`python` vs `py -3`) and confirm a separate `CLAUDE_CONFIG_DIR` keeps its login
+- [x] Log raw `PostToolUse` payloads for `Read`, `Grep`, `Bash`, `WebFetch`, `WebSearch` and one MCP tool; note where text, paths and line numbers appear
+- [x] Confirm `additionalContext` from `PostToolUse` reaches Claude, and check how a factual provenance line is treated
+- [x] Test `MessageDisplay`: batch sizes, latency, and whether markers can be added from span matching alone
+- [x] Test `SessionStart` with the `compact` matcher after a manual `/compact`
+- [x] Run a nested `claude -p` from a hook with `--safe-mode`, check it uses the Pro login; measure startup time and pick the default small model
+- [x] Run every probe on Windows (exec form, `python`, backslash paths) and on macOS
+- [x] Check the name qlaudified on GitHub and PyPI
+- [x] Time Python hook startup on Windows (`python` vs `py -3`) and confirm a separate `CLAUDE_CONFIG_DIR` keeps its login
 
 **Done when:** a short findings note and 4–6 recorded real sessions for the simulator are in the repo, and each risk in the design doc is marked confirmed, changed or retired.
 
