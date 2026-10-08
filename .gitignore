@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# qlaudified runtime data (never commit: may hold copies of private sources)
+.claude/.qlaudified/
+.qlaudified-probe/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Eval outputs
+eval/ledger.jsonl
+eval/runs/

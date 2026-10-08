@@ -1,0 +1,7 @@
+{
+  "name": "qlaudified",
+  "version": "0.0.0",
+  "description": "Tracks where each claim in Claude's answer came from, and whether the source's qualifiers survived.",
+  "author": { "name": "Dryden Bryson" },
+  "license": "MIT"
+}

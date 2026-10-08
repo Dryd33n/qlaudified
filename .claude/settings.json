@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest *)",
+      "Bash(python -m pytest *)",
+      "Bash(python scripts/live.py *)",
+      "Bash(python -m qlaudified.testing *)"
+    ],
+    "ask": [
+      "Bash(python eval/run.py *)"
+    ]
+  }
+}

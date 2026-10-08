@@ -1,0 +1,5 @@
+{
+  "name": "qlaudified-probe",
+  "version": "0.0.0",
+  "description": "Sprint 0 spike: logs raw hook payloads. Throwaway."
+}

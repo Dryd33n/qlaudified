@@ -1,0 +1,1 @@
+Read q3-update.md and launch-memo.md in this folder, then tell me Q3 revenue and the launch date in two sentences.
