@@ -1,0 +1,9 @@
+Read hb204-update.md and tell me in one line that you have read it.
+---
+Read appendix-a.md and appendix-b.md and give me a two-line summary of each.
+---
+Read minutes-c.md and minutes-d.md and give me a two-line summary of each.
+---
+/compact
+---
+From what you read earlier, write a short update for the board on Halden's HB-204 trial: enrolment, sites and spending.

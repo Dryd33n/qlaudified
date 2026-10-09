@@ -141,3 +141,43 @@ hedged facts under natural and format prompts, the tasks are made harder (longer
 compaction, more competing figures) before the freeze, and the antihedge style is analysed as its
 own question.
 
+## Difficulty probe (Oct 9, haiku, off only, 21 runs)
+
+To find tasks hard enough to show an effect, seven manipulations were run **without the plugin
+only**, so making tasks harder never looked at the plugin's results. Each was applied to three
+families (trial spending, fuel and delivery, ARR and churn); build: `eval/v2/probe.py`, long
+documents: `eval/v2/bigdocs.py`.
+
+| Manipulation | Distance (measured) | Hedged figures |
+| --- | --- | --- |
+| control: far task, natural question | 4–8k tokens | all kept |
+| `/compact` before the question | ~5k, then compacted | all kept |
+| notes first, answer from the notes | 5–7k | all kept, in the notes and in the answer |
+| derived figures (a change computed from an estimate) | 4–8k | kept, and the derived change was hedged too |
+| upbeat audience (press release, investor note, LinkedIn post) | 5–6k | kept, or the hedged figure left out on purpose ("I left out the Q3 ARR figure because it's unaudited") |
+| bigread: four generated documents, ~58k tokens, full of same-type competing figures | **118–129k** | all kept |
+| bigread, then `/compact` | ~125k compacted to ~25k context | all kept |
+
+**Haiku did not drop a single hedge in 21 runs.** Under persuasive framing it omitted uncertain
+figures rather than state them as certain. Long reads with competing figures didn't confuse it;
+it named the other programmes and set their figures aside. The compaction summary kept every
+qualifier.
+
+What this means for the study: with current models, in single-session tasks of this shape, hedge
+loss is rare enough that a refeed has nothing to fix. The ceiling gate (protocol-v2.md) is not
+passed. Remaining places to look before any confirmatory study: weaker models (Ollama), subagent
+summaries, work spread over several sessions, and real documents whose hedges are far subtler
+than these. Alternatively the plugin's case rests on its record (Low mode's ledger was accurate in
+every run) rather than on changing answers.
+
+Cost note: long reads aren't free. A bigread run cost $0.18 and a bigread-plus-compact run $0.33
+(each call re-reads ~140k tokens, cached), so a resumed pre-built history (one call per run) is
+the cheaper way to test long sessions if this continues.
+
+Tooling fixes found by the probe: sandbox paths are resolved from Windows 8.3 short names (Claude
+Code denied writing notes.md inside the sandbox otherwise), v2 and probe runs allow Write and Edit
+with `acceptEdits`, and the scorer cuts after the left figure when a sentence has no clause break.
+Rule-scorer false positives seen in these answers ("Here's a draft:" read as a hedge heading,
+"Both should reduce fuel use" read as a caveat on every figure, a singular "this figure" caveat
+spread to the whole sentence) are open and are what the human labels are for.
+

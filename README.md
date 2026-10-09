@@ -31,9 +31,15 @@ also fed back into Claude's loop, so qualifiers survive long tasks.
 > **First look at the redesigned tasks (Oct 9, 14 runs, haiku):** without being told to drop
 > hedges, Claude kept every one, **with or without the plugin**, even ~8,000 tokens after reading
 > the source. It never over-hedged a firm figure either. So far the plugin's measurable effect is
-> confined to prompts that ask for no hedging. Whether it helps in ordinary work is open, and the
-> next tasks are being made harder to find out. Medium also made a long task about 7× slower
+> confined to prompts that ask for no hedging. Medium also made a long task about 7× slower
 > (224 s vs 32 s).
+>
+> **Then a difficulty probe (21 runs, no plugin) tried to make Claude lose hedges on its own:**
+> `/compact`, answering from its own notes, computing changes from estimates, upbeat press
+> releases, and **reading ~120k tokens of competing figures before answering**. Haiku kept every
+> hedge in every run; under persuasive framing it left uncertain figures out rather than overstate
+> them. For current models, in single-session tasks like these, there was no loss for the plugin to
+> prevent. [Details](docs/findings/sprint-6.md).
 
 **Qualifiers kept in the final answer** (hedged facts stated with the source's hedge):
 

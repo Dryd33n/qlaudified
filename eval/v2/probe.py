@@ -23,6 +23,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import bigdocs
 import build
 
 OUT = HERE / "probe"
@@ -62,7 +63,8 @@ FAMILIES = {
         "audience": "draft a short, upbeat LinkedIn post celebrating Brightwater's revenue growth",
     },
 }
-MANIPULATIONS = ("control", "compact", "notes", "derived", "audience")
+MANIPULATIONS = ("control", "compact", "notes", "derived", "audience", "bigread", "bigread-compact")
+BIG = ["appendix-a.md", "appendix-b.md", "minutes-c.md", "minutes-d.md"]
 
 
 def steps(fam: dict, spec: dict, manipulation: str) -> list[str]:
@@ -79,6 +81,10 @@ def steps(fam: dict, spec: dict, manipulation: str) -> list[str]:
         return [*base, f"From what you read earlier, {spec['derived']}?"]
     if manipulation == "audience":
         return [*base, f"From what you read earlier, {spec['audience']}."]
+    if manipulation.startswith("bigread"):
+        reads = [f"Read {a} and {b} and give me a two-line summary of each."
+                 for a, b in zip(BIG[::2], BIG[1::2], strict=True)]
+        return [base[0], *reads, *(["/compact"] if manipulation.endswith("compact") else []), ask]
     return [*base, ask]
 
 
@@ -89,24 +95,30 @@ def main() -> int:
     count = 0
     for fid, spec in FAMILIES.items():
         fam = families[fid]
-        _, order, tokens = build.prompts(fam, far=True)
+        _, order, _ = build.prompts(fam, far=True)
         for manipulation in MANIPULATIONS:
             task = f"probe-{manipulation}-{fid}"
             folder = OUT / "sandbox" / task
             folder.mkdir(parents=True)
             for name, text in fam["docs"].items():
                 (folder / name).write_text(text.lstrip("\n"), encoding="utf-8", newline="\n")
-            for name in order:
-                (folder / name).write_text(fam["distractors"][name].lstrip("\n"), encoding="utf-8",
-                                           newline="\n")
+            if manipulation.startswith("bigread"):
+                avoid = [f for other in families.values() if other["org"] == fam["org"]
+                         for f in other["facts"]]
+                extra = bigdocs.documents(fam["org"], avoid)
+            else:
+                extra = {name: fam["distractors"][name].lstrip("\n") for name in order}
+            for name, text in extra.items():
+                (folder / name).write_text(text, encoding="utf-8", newline="\n")
             (folder / "prompt-natural.txt").write_text(
                 "\n---\n".join(steps(fam, spec, manipulation)) + "\n", encoding="utf-8", newline="\n")
             facts = fam["facts"] + (spec["derived_facts"] if manipulation == "derived" else [])
             meta = {"id": task, "family": fid, "org": fam["org"], "scope": fam["scope"],
-                    "format": fam["format"], "distance": "far", "distance_tokens": tokens,
+                    "format": fam["format"], "distance": "far",
+                    "distance_tokens": sum(len(t) for t in extra.values()) // 4,
                     "manipulation": manipulation, "sources": list(fam["docs"]),
                     "read": fam["read"],
-                    "distractors": order, "facts": facts}
+                    "distractors": list(extra), "facts": facts}
             (OUT / "tasks").mkdir(parents=True, exist_ok=True)
             (OUT / "tasks" / f"{task}.json").write_text(json.dumps(meta, indent=2) + "\n",
                                                         encoding="utf-8", newline="\n")

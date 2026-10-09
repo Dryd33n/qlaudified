@@ -1,0 +1,61 @@
+{
+  "id": "probe-bigread-compact-corran-fuel",
+  "family": "corran-fuel",
+  "org": "Corran Logistics",
+  "scope": "sentence",
+  "format": "slide",
+  "distance": "far",
+  "distance_tokens": 57061,
+  "manipulation": "bigread-compact",
+  "sources": [
+    "ops-review.md"
+  ],
+  "read": [
+    "ops-review.md"
+  ],
+  "distractors": [
+    "appendix-a.md",
+    "appendix-b.md",
+    "minutes-c.md",
+    "minutes-d.md"
+  ],
+  "facts": [
+    {
+      "id": "q3-fuel",
+      "label": "Q3 fuel spend",
+      "value": 3100000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "q4-fuel",
+      "label": "Q4 fuel spend",
+      "value": 3400000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "forecast, about, if diesel prices stay where they are"
+    },
+    {
+      "id": "on-time",
+      "label": "Q3 on-time delivery rate",
+      "value": 93.5,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "q3-delivery-hours",
+      "label": "Q3 average delivery time (hours)",
+      "value": 26.4,
+      "unit": "hours",
+      "hedged": false
+    },
+    {
+      "id": "q4-delivery-hours",
+      "label": "Q4 average delivery time (hours)",
+      "value": 24,
+      "unit": "hours",
+      "hedged": true,
+      "cue": "early data suggest, could, not modelled in detail"
+    }
+  ]
+}

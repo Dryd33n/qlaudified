@@ -219,7 +219,7 @@ def test_difficulty_probe_tasks(tmp_path, monkeypatch):
     monkeypatch.setattr(probe, "OUT", tmp_path)
     assert probe.main() == 0
     tasks = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (tmp_path / "tasks").glob("*.json")}
-    assert len(tasks) == 15
+    assert len(tasks) == 21  # 7 manipulations x 3 families
     steps = (tmp_path / "sandbox" / "probe-compact-halden-trial" / "prompt-natural.txt").read_text(
         encoding="utf-8").split("\n---\n")
     assert steps[-2] == "/compact"

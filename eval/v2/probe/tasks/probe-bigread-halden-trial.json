@@ -1,0 +1,61 @@
+{
+  "id": "probe-bigread-halden-trial",
+  "family": "halden-trial",
+  "org": "Halden Biotech",
+  "scope": "sentence",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 58500,
+  "manipulation": "bigread",
+  "sources": [
+    "hb204-update.md"
+  ],
+  "read": [
+    "hb204-update.md"
+  ],
+  "distractors": [
+    "appendix-a.md",
+    "appendix-b.md",
+    "minutes-c.md",
+    "minutes-d.md"
+  ],
+  "facts": [
+    {
+      "id": "enrolment",
+      "label": "patients enrolled by September 30",
+      "value": 386,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "sites",
+      "label": "active trial sites",
+      "value": 31,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "q3-spend",
+      "label": "Q3 trial spending",
+      "value": 2700000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "estimated, subject to the finance team's quarter-end review"
+    },
+    {
+      "id": "q2-spend",
+      "label": "Q2 trial spending",
+      "value": 2300000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "lock-date",
+      "label": "database lock date",
+      "value": "2027-06-12",
+      "unit": "date",
+      "hedged": true,
+      "cue": "provisionally, depending on enrolment pace"
+    }
+  ]
+}
