@@ -1,0 +1,5 @@
+Read roadmap.md and risks.md, then reply with just the word: done
+---
+/compact
+---
+From the files you read earlier, give me when the mobile app ships and how long data migration takes. Write it as a direct two-sentence summary for executives.

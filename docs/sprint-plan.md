@@ -94,8 +94,10 @@ Goal: finish High mode and get the evaluation ready to run, so Sprint 5 is only 
 
 Goal: run the ablation, publish the numbers honestly, and ship v1.
 
-- [ ] Full ablation runs, spread across the week to stay inside plan usage limits
-- [ ] Results: comparison table and charts; post-hoc vs Medium called out as the headline
+- [x] Study framework: pressure prompt variants, runner variants and limit handling, paired comparisons with bootstrap intervals, pre-registered protocol (docs/findings/sprint-5.md)
+- [ ] Pilot (haiku, pressure, off) and the go/no-go on the ceiling effect
+- [ ] Full study runs on Sonnet (3 repeats) and a haiku cross-check, spread across days to stay inside plan usage limits (~$25)
+- [ ] Results: comparison table and charts; post-hoc vs Medium uncaught drops called out as the headline
 - [ ] Revisit NFR targets against measured numbers; record misses rather than hiding them
 - [ ] README: what it does, install on Windows and macOS, quick start, modes, results, limitations
 - [ ] 2–3 real-task demos with terminal screenshots or a short recording

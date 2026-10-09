@@ -6,11 +6,11 @@ A qualifier counts as dropped when the span's strongest hedge class is missing f
 HEDGES: dict[str, list[str]] = {
     "modal": ["may", "might", "could", "possibly", "perhaps"],
     "estimate": [
-        "estimated", "estimate", "estimates", "approximately", "approx", "about", "around",
+        "estimated", "estimate", "estimates", "est.", "approximately", "approx", "about", "around",
         "roughly", "preliminary", "projected",
     ],
     "attribution": ["reportedly", "allegedly", "according to", "claimed"],
-    "likelihood": ["likely", "unlikely", "probably", "expected to", "usually", "typically"],
+    "likelihood": ["likely", "unlikely", "probably", "expected to", "expected", "usually", "typically"],
     "tentative": [
         "tentative", "tentatively", "provisional", "provisionally", "draft", "unconfirmed",
         "subject to change", "pending", "to be confirmed", "not yet confirmed", "not confirmed",

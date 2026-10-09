@@ -92,3 +92,10 @@ def test_may_before_a_number_is_the_month():
     assert find_hedges("It may open in 2027.") == {"modal": ["may"]}
     assert find_hedges("May open in 2027, pending review.")["modal"] == ["may"]
     assert find_hedges("The mayor said so.") == {}
+
+
+def test_short_form_hedges():
+    assert find_hedges("Team plan (expected): $15") == {"likelihood": ["expected"]}
+    assert find_hedges("It is expected to cost $15.") == {"likelihood": ["expected to"]}
+    assert find_hedges("Revenue (est.) $4.2M") == {"estimate": ["est."]}
+    assert find_hedges("The test passed.") == {}

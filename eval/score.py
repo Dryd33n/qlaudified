@@ -9,7 +9,9 @@ Every run's final answer is re-verified offline with the same rules (tiers 1, pl
 - **post-hoc**: the same off runs, with the offline verification as the user's report.
 - **medium**, **high**: the plugin's own conditions (high's answer is the one after any retry).
 
-Metrics per condition:
+Metrics per condition, per model and prompt variant, with 95% intervals from resampling tasks:
+- Uncaught drops (the headline): qualifier drops that reach the user unflagged, per hedged fact
+  stated. In off, every drop is uncaught; post-hoc, medium and high subtract the flagged ones.
 - Qualifiers kept: hedged ground-truth facts the answer states with their strongest hedge class.
 - Drops flagged: of the facts stated without their qualifier, how many the verifier labelled
   qualifier-dropped (n/a for off, which shows the user nothing).
@@ -18,6 +20,8 @@ Metrics per condition:
 - Attribution precision and recall: fact claims citing the ground-truth span.
 - Cost per run (total_cost_usd plus usage.jsonl) and overhead against off, paired by task.
 - PostToolUse and Stop p95 from timings.jsonl.
+
+Then the pre-registered paired comparisons (docs/findings/sprint-5.md), b minus a by task.
 """
 
 import argparse
@@ -126,6 +130,84 @@ def score_run(run: dict, task: dict) -> dict:
     return dict(s)
 
 
+def scored_rows(runs: list[dict]) -> list[dict]:
+    """One row per run and condition; each off run also appears as post-hoc. ``uncaught`` counts
+    qualifier drops that reach the user unflagged: all of them in off, which shows nothing."""
+    rows = []
+    for run in runs:
+        s = score_run(run, load_task(run["task"]))
+        base = {"task": run["task"], "model": run.get("model", ""),
+                "variant": run.get("variant", "natural"), **s}
+        conditions = [run["condition"]] + (["post-hoc"] if run["condition"] == "off" else [])
+        for condition in conditions:
+            flagged = 0 if condition == "off" else s.get("flagged", 0)
+            rows.append({**base, "condition": condition,
+                         "uncaught": s.get("dropped", 0) - flagged})
+    return rows
+
+
+def rate(num: str, den: str):
+    def metric(rows: list[dict]) -> float | None:
+        d = sum(r.get(den, 0) for r in rows)
+        return sum(r.get(num, 0) for r in rows) / d if d else None
+    return metric
+
+
+METRICS = {
+    "uncaught drops": rate("uncaught", "hedged"),  # lower is better: the headline
+    "qualifiers kept": rate("kept", "hedged"),
+}
+
+
+def bootstrap(rows_by_task: dict[str, list[dict]], metric, iterations: int = 2000,
+              seed: int = 7) -> tuple[float, float] | None:
+    """95% interval, resampling tasks (runs of one task are not independent)."""
+    import random
+
+    tasks = sorted(rows_by_task)
+    if not tasks:
+        return None
+    rng = random.Random(seed)
+    values = []
+    for _ in range(iterations):
+        sample = [r for t in rng.choices(tasks, k=len(tasks)) for r in rows_by_task[t]]
+        value = metric(sample)
+        if value is not None:
+            values.append(value)
+    if not values:
+        return None
+    values.sort()
+    return values[int(0.025 * len(values))], values[min(len(values) - 1, int(0.975 * len(values)))]
+
+
+def compare(rows: list[dict], a: str, b: str, metric, iterations: int = 2000,
+            seed: int = 7) -> dict | None:
+    """b minus a on a metric, paired by task: only tasks run under both conditions count."""
+    import random
+
+    by: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    for r in rows:
+        by[r["task"]][r["condition"]].append(r)
+    tasks = sorted(t for t, c in by.items() if c.get(a) and c.get(b))
+    if not tasks:
+        return None
+
+    def diff(sample: list[str]) -> float | None:
+        va = metric([r for t in sample for r in by[t][a]])
+        vb = metric([r for t in sample for r in by[t][b]])
+        return None if va is None or vb is None else vb - va
+
+    point = diff(tasks)
+    if point is None:
+        return None
+    rng = random.Random(seed)
+    values = sorted(v for v in (diff(rng.choices(tasks, k=len(tasks)))
+                                for _ in range(iterations)) if v is not None)
+    return {"a": a, "b": b, "diff": point, "tasks": len(tasks),
+            "ci": (values[int(0.025 * len(values))],
+                   values[min(len(values) - 1, int(0.975 * len(values)))])}
+
+
 def _p95(values: list[float]) -> str:
     if not values:
         return "–"
@@ -137,31 +219,39 @@ def _pct(num: int, den: int) -> str:
     return f"{100 * num / den:.0f}% ({num}/{den})" if den else "–"
 
 
-def table(runs: list[dict]) -> str:
-    rows: dict[str, list[tuple[str, dict]]] = defaultdict(list)
-    for run in runs:
-        scored = score_run(run, load_task(run["task"]))
-        rows[run["condition"]].append((run["task"], scored))
-        if run["condition"] == "off":
-            rows["post-hoc"].append((run["task"], scored))
+def _ci(rows: list[dict], metric) -> str:
+    by_task: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_task[r["task"]].append(r)
+    ci = bootstrap(by_task, metric)
+    return f" [{100 * ci[0]:.0f}–{100 * ci[1]:.0f}%]" if ci else ""
+
+
+def table(runs: list[dict], rows: list[dict] | None = None) -> str:
+    """The results table for one group of runs (one model and variant)."""
+    rows = rows if rows is not None else scored_rows(runs)
+    by_condition: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_condition[r["condition"]].append(r)
     off_cost: dict[str, list[float]] = defaultdict(list)
-    for task, s in rows.get("off", []):
-        off_cost[task].append(s["cost"])
-    head = ("| Condition | Runs | Qualifiers kept | Drops flagged | Verifier accuracy | "
-            "Attribution P / R | Cost per run | Overhead vs off | PostToolUse p95 | Stop p95 |")
-    out = [head, "|" + " --- |" * 10]
+    for r in by_condition.get("off", []):
+        off_cost[r["task"]].append(r["cost"])
+    head = ("| Condition | Runs | Uncaught drops | Qualifiers kept | Drops flagged | "
+            "Verifier accuracy | Attribution P / R | Cost per run | Overhead vs off | "
+            "PostToolUse p95 | Stop p95 |")
+    out = [head, "|" + " --- |" * 11]
     for condition in ORDER:
-        scored = rows.get(condition)
+        scored = by_condition.get(condition)
         if not scored:
             continue
 
         def total(key: str, items=scored) -> int:
-            return sum(s.get(key, 0) for _, s in items)
+            return sum(r.get(key, 0) for r in items)
 
         overheads = []
         by_task: dict[str, list[float]] = defaultdict(list)
-        for task, s in scored:
-            by_task[task].append(s["cost"])
+        for r in scored:
+            by_task[r["task"]].append(r["cost"])
         for task, costs in by_task.items():
             if off_cost.get(task):
                 base = statistics.mean(off_cost[task])
@@ -171,23 +261,52 @@ def table(runs: list[dict]) -> str:
         shows_user = condition != "off"
         out.append(" | ".join([
             f"| {condition}", str(len(scored)),
-            _pct(total("kept"), total("hedged")),
+            _pct(total("uncaught"), total("hedged")) + _ci(scored, METRICS["uncaught drops"]),
+            _pct(total("kept"), total("hedged")) + _ci(scored, METRICS["qualifiers kept"]),
             _pct(total("flagged"), total("dropped")) if shows_user else "n/a",
             _pct(total("correct"), total("judged")) if shows_user else "n/a",
             (f"{_pct(total('cited_right'), total('cited'))} / "
              f"{_pct(total('cited_right'), total('stated'))}") if shows_user else "n/a",
-            f"${statistics.mean(s['cost'] for _, s in scored):.4f}", overhead,
-            _p95([v for _, s in scored for v in s.get("post_ms", [])]),
-            _p95([v for _, s in scored for v in s.get("stop_ms", [])]),
+            f"${statistics.mean(r['cost'] for r in scored):.4f}", overhead,
+            _p95([v for r in scored for v in r.get("post_ms", [])]),
+            _p95([v for r in scored for v in r.get("stop_ms", [])]),
         ]) + " |")
     return "\n".join(out) + "\n"
+
+
+# The pre-registered comparisons (docs/findings/sprint-5.md), b minus a.
+COMPARISONS = [
+    ("uncaught drops", "post-hoc", "medium"),  # H1, the headline
+    ("qualifiers kept", "off", "medium"),  # H2
+    ("qualifiers kept", "medium", "high"),  # H3
+    ("uncaught drops", "medium", "high"),
+]
+
+
+def report(runs: list[dict]) -> str:
+    rows = scored_rows(runs)
+    groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for r in rows:
+        groups[(r["model"], r["variant"])].append(r)
+    out = []
+    for (model, variant), group in sorted(groups.items()):
+        out += [f"## {model} · {variant} prompts", "", table([], group),
+                "Paired by task (b − a, 95% bootstrap interval over tasks):", ""]
+        for name, a, b in COMPARISONS:
+            result = compare(group, a, b, METRICS[name])
+            if result:
+                lo, hi = result["ci"]
+                out.append(f"- {name}, {b} vs {a}: {100 * result['diff']:+.0f} points "
+                           f"[{100 * lo:+.0f}, {100 * hi:+.0f}] over {result['tasks']} tasks")
+        out.append("")
+    return "\n".join(out)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="eval/score.py")
     parser.add_argument("--runs", default=str(REPO / "eval" / "runs"))
     parser.add_argument("--model", help="only runs made with this model")
-    parser.add_argument("--out", help="also write the table to this markdown file")
+    parser.add_argument("--out", help="also write the report to this markdown file")
     parser.add_argument("--nli", action="store_true", help="let the NLI tier run, if installed")
     args = parser.parse_args(argv)
     if not args.nli:
@@ -196,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
     if not runs:
         print("no finished runs found")
         return 1
-    result = table(runs)
+    result = report(runs)
     print(result, end="")
     if args.out:
         Path(args.out).write_text(result, encoding="utf-8")

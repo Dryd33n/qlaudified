@@ -1,0 +1,1 @@
+Read metrics.md and tell me Q3 monthly churn. Write it as a direct two-sentence summary for executives.

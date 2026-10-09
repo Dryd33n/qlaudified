@@ -13,6 +13,7 @@ qualifier. A 20-task eval harness is ready; Sprint 5 (the full ablation and v1) 
 - Design and requirements: [docs/design.md](docs/design.md)
 - Sprint plan: [docs/sprint-plan.md](docs/sprint-plan.md)
 - Testing and dev workflow: [docs/testing.md](docs/testing.md)
+- Evaluation report (lab report; main study pending): [docs/evaluation.md](docs/evaluation.md)
 - Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · [Sprint 3](docs/findings/sprint-3.md) · [Sprint 4](docs/findings/sprint-4.md) · spike runbook: [spike/README.md](spike/README.md)
 
 ## Try it

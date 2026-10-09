@@ -247,7 +247,7 @@ The headline question: does re-injecting provenance during a run preserve qualif
 | Compaction stress | Provenance survives `/compact` | Long task with a forced compaction midway |
 | No-source question | Unsupported claims flagged | Asks something no file contains |
 
-Ground truth is a TOML file per task (read with the standard library's `tomllib`) listing the expected facts, their source spans and qualifiers, so scoring is automatic.
+Ground truth is a TOML file per task (read with the standard library's `tomllib`) listing the expected facts, their source spans and qualifiers, so scoring is automatic. Each task also has a pressure prompt (a slide line, a table, a headline, an executive summary): with natural prompts models kept every qualifier in the Sprint 4 dry run, a ceiling effect. The study protocol is in `docs/findings/sprint-5.md`.
 
 **Ablation conditions**
 

@@ -102,7 +102,7 @@ def main():
         shutil.rmtree(workdir, ignore_errors=True)
         return 0
 
-    shutil.copytree(src, sandbox, ignore=shutil.ignore_patterns("prompt.txt"))
+    shutil.copytree(src, sandbox, ignore=shutil.ignore_patterns("prompt*.txt"))
     if args.mode:
         store = os.path.join(sandbox, ".claude", ".qlaudified")
         os.makedirs(store, exist_ok=True)

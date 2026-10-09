@@ -1,0 +1,5 @@
+Read vendors.md and support.md, then reply with just the word: done
+---
+/compact
+---
+From the files you read earlier, give me when the hosting contract renews and the support response time. Put it as one short line for a slide.

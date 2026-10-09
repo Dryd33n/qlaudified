@@ -1,0 +1,1 @@
+Read ledger-faq.md and give me Fernwick Ledger's gross margin. Answer only with a markdown table with columns Item and Value, nothing else.

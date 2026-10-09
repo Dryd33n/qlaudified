@@ -1,0 +1,5 @@
+Read pricing.md, offices.md and hiring.md, then reply with just the word: done
+---
+/compact
+---
+From the files you read earlier, give me the seat price and when the Lisbon office opens. Answer only with a markdown table with columns Item and Value, nothing else.
