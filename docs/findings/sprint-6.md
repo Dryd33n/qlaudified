@@ -112,3 +112,32 @@ Paired by task (b − a, 95% bootstrap interval over tasks):
 - qualifiers kept, medium vs low on decay tasks at ~5 and ~15 steps: +90 points [+70, +100] over 5 tasks
 - qualifiers kept, medium vs low: +86 points [+71, +100] over 7 tasks
 - uncaught drops, medium vs low: +0 points [+0, +0] over 7 tasks
+
+## Study v2 dry run (Oct 9, haiku, 14 runs)
+
+A short test of the redesigned tasks before the pilot: 3 families (hedge in the sentence, a
+heading, a footnote), near tasks, format prompts, off / prompt / placebo / medium (12 runs), plus
+one far task under off and medium (2 runs). All runs exited 0. Runs are in
+`eval/runs/dry/v2/` and stay out of any analysis.
+
+- **Ceiling: no condition dropped a hedge, including no plugin.** Every stated hedged fact kept
+  its hedge in all 14 runs. In the far task the measured distance was ~8,000 tokens (no re-reads),
+  and the no-plugin answer still said "Estimated $2.7M, subject to finance quarter-end review".
+  Firm facts were never over-hedged in any condition either. With nothing dropped there's nothing
+  for the plugin to fix, so these tasks, at these distances and with format prompts, can't show
+  whether it helps.
+- **The old pilot's gaps came from "no hedging" prompts.** Under natural prompts, its Low arm kept
+  74%; the 86% drop rate was under prompts that told Claude to drop hedges. V2's antihedge style
+  and longer distances are the remaining places a difference could show up.
+- **Cost of the plugin, per far run:** Medium took 224 s against 32 s for no plugin, at about the
+  same agent cost ($0.041). The sidecar's calls are the difference.
+- **The scorer, on its first real answers:** 46 of 48 fact judgments matched a careful reading.
+  Both misses were fixed and added as tests: "from Feb 2027" now states a date, and a figure-free
+  ";" clause ("the fare depends on the grant settlement") hedges the figure it's about. With the
+  fixes, every judgment matches.
+
+Implication for the pilot: add a **ceiling gate** (protocol-v2.md): if off keeps at least 90% of
+hedged facts under natural and format prompts, the tasks are made harder (longer distances,
+compaction, more competing figures) before the freeze, and the antihedge style is analysed as its
+own question.
+

@@ -201,3 +201,13 @@ def test_runner_v2_conditions_and_sets(capsys):
     assert out[0].startswith("15 runs planned")  # 3 styles x 5 conditions
     assert out[1].strip() == "maple-roads-near__natural__off__r1__haiku"
     assert run.steps_for("maple-roads-near", "antihedge", "v2")[-1].endswith("no hedging.")
+
+
+def test_found_in_the_first_real_answers():
+    """Dry run, Oct 9: a month without its day states a date, and a figure-free ';' clause about
+    the fare hedges the fare."""
+    o = outcomes("A $2.20 single fare is proposed from Feb 2027 (indicative).", "maple-transit-near")
+    assert o["fare-start"] == "kept"
+    o = outcomes("A single $2.20 fare, indicatively from 1 February 2027, would replace zonal fares; "
+                 "the fare depends on the bus grant settlement due in December.", "maple-transit-near")
+    assert (o["fare"], o["fare-start"]) == ("kept", "kept")

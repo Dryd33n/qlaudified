@@ -27,6 +27,13 @@ also fed back into Claude's loop, so qualifiers survive long tasks.
 > would go unseen. The study has been redesigned ([protocol v2](docs/findings/protocol-v2.md))
 > and hasn't run yet. Read the numbers below as "refeeding made hedge words more frequent in
 > these answers", nothing more. Full numbers: [docs/findings/sprint-6.md](docs/findings/sprint-6.md).
+>
+> **First look at the redesigned tasks (Oct 9, 14 runs, haiku):** without being told to drop
+> hedges, Claude kept every one, **with or without the plugin**, even ~8,000 tokens after reading
+> the source. It never over-hedged a firm figure either. So far the plugin's measurable effect is
+> confined to prompts that ask for no hedging. Whether it helps in ordinary work is open, and the
+> next tasks are being made harder to find out. Medium also made a long task about 7× slower
+> (224 s vs 32 s).
 
 **Qualifiers kept in the final answer** (hedged facts stated with the source's hedge):
 

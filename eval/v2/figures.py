@@ -27,6 +27,7 @@ _DATE_MDY = re.compile(_MONTH + r"\s+(?P<day>\d{1,2})(?!\d)(?:st|nd|rd|th)?(?:,?
                        re.IGNORECASE)
 _DATE_DMY = re.compile(r"(?P<day>\d{1,2})(?:st|nd|rd|th)?\s+" + _MONTH + r"(?:,?\s+(?P<year>\d{4}))?",
                        re.IGNORECASE)
+_DATE_MY = re.compile(_MONTH + r"\s+(?P<year>\d{4})\b", re.IGNORECASE)
 _DATE_ISO = re.compile(r"\b(?P<year>\d{4})-(?P<m>\d{2})-(?P<day>\d{2})\b")
 _NUMBER = re.compile(
     r"(?P<cur>\$|USD\s?)?(?P<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
@@ -73,6 +74,11 @@ def extract(text: str) -> list[Figure]:
             if iso:
                 out.append(Figure(iso, "date", *m.span()))
                 taken.append(m.span())
+    for m in _DATE_MY.finditer(text):  # "Feb 2027": a month, stated without its day
+        if free(*m.span()):
+            month = MONTHS[m.group("mon").lower().rstrip(".")]
+            out.append(Figure(f"{m.group('year')}-{month:02d}", "date", *m.span()))
+            taken.append(m.span())
     for m in _NUMBER.finditer(text):
         if not free(*m.span()):
             continue
@@ -91,9 +97,10 @@ def matches(figure: Figure, value: float | str, unit: str) -> bool:
     if unit == "date":
         if figure.kind != "date":
             return False
-        want = str(value)
-        return figure.value == want or (str(figure.value).startswith("--")
-                                        and want[4:] == str(figure.value)[1:])
+        want, got = str(value), str(figure.value)
+        if len(got) == 7 and not got.startswith("--"):  # "2027-02": the month counts
+            return want.startswith(got)
+        return got == want or (got.startswith("--") and want[4:] == got[1:])
     if figure.kind == "date" or isinstance(figure.value, str):
         return False
     if unit == "%":

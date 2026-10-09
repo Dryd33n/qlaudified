@@ -30,7 +30,7 @@ CUES: dict[str, list[str]] = {
                "not approved", "not yet approved", "subject to", "under review",
                "under discussion", "in review", "being assessed", "still open", "may change",
                "can move", "could change", "will likely change", "not a commitment",
-               "not guaranteed", "indicative only", "tbc", "tbd", "to be confirmed",
+               "not guaranteed", "indicative only", "indicatively", "tbc", "tbd", "to be confirmed",
                "early data", "early indications", "if approved", "if confirmed",
                "depending on", "depends on", "assuming", "at risk", "restate", "restated",
                "for discussion", "consultation draft", "working draft"],

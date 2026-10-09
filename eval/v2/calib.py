@@ -140,6 +140,27 @@ def _segments(unit: Unit, figs: list[figures.Figure]) -> list[tuple[int, int]]:
     return list(itertools.pairwise(cuts))
 
 
+def _clause_cues(unit: Unit, figs: list, segments: list[tuple[int, int]], k: int) -> list[str]:
+    """Hedges from figure-free ``;`` clauses of the same sentence ("...; the fare depends on the
+    grant settlement"): they go to the segments sharing their topic, or, sharing none, to the
+    figure just before them."""
+    if unit.is_table or len(figs) < 1:
+        return []
+    out: list[str] = []
+    start = 0
+    for part in [*unit.text.split(";")]:
+        end = start + len(part)
+        found = cues.find(part) if not figures.extract(part) else []
+        if found:
+            topic = _topic(part)
+            named = [j for j, (x, y) in enumerate(segments) if topic & _topic(unit.text[x:y])]
+            before = [j for j, f in enumerate(figs) if f.end <= start]
+            if k in named or (not named and before and before[-1] == k):
+                out += found
+        start = end + 1
+    return out
+
+
 def score_answer(answer: str, facts: list[dict]) -> list[FactScore]:
     text = strip_plugin_text(answer)
     units = _units(text)
@@ -176,6 +197,7 @@ def score_answer(answer: str, facts: list[dict]) -> list[FactScore]:
                 named = [k for k, (x, y) in enumerate(segments) if topic & _topic(unit.text[x:y])]
                 if not named or hits[0] in named:
                     carried += found_after
+            carried += _clause_cues(unit, figs, segments, hits[0])
             found = cues.find(scope, extra) + unit.inherited + carried + global_cues
             score.stated, score.scope = True, scope.strip()
             score.hedged_answer = score.hedged_answer or bool(found)

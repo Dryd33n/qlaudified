@@ -152,9 +152,14 @@ Purpose:
 - measure cost per run and the run-to-run variance for the power calculation.
 
 Proposed size: 8 families (two per organisation, covering all five hedge placements), far tasks,
-natural and format prompts, conditions off, prompt, placebo and medium, one repeat. That's 64 runs,
-plus a few near runs to check distance. Then 40–60 human labels on pilot answers, κ, power, and the
-freeze.
+natural, format and antihedge prompts, conditions off, prompt, placebo and medium, one repeat. Then
+40–60 human labels on pilot answers, κ, power, and the freeze.
+
+**Ceiling gate (added after the Oct 9 dry run, before any pilot run):** if off keeps at least 90%
+of stated hedged facts under natural and format prompts, the tasks are too easy to show an effect.
+They are then made harder before the freeze, with longer distances, a `/compact` step and more
+competing figures, and re-piloted. The dry run (14 runs, no drops in any condition) suggests this
+is likely.
 
 ## Known limitations (stated, not fixed)
 
