@@ -2,6 +2,10 @@
 
 Protocol: [sprint-5.md](sprint-5.md) (measures, pre-registered hypotheses, budget and order).
 
+> **Methods critique (Oct 9):** the study design has known gaps (no prompt-only or rules-only
+> baseline, a scorer built from the plugin's own parts, no firm facts, too few tasks). Read the pilot
+> below as exploratory. Critique and redesign plan: [methods-critique.md](methods-critique.md).
+
 ## Pilot (Oct 9, haiku)
 
 48 runs, all exit 0, ~$0.25 of agent cost today plus sidecar calls (~$0.001 per ledger row):
@@ -42,7 +46,7 @@ and 26% under natural ones (kept 14/19). No task changes needed.
   against Sprint 4's ~$0.09 Sonnet run the same sidecar spend is a few percent. **NFR-1 and NFR-2
   are set from Sonnet repeat 1, not from this pilot.**
 - PostToolUse p95 with the sidecar 5.4–6.9 s (NFR-4 ≤ 10 s: met). Stop p95 8–25 s, from the
-  Administrator's report call; no NFR covers it.
+  Administrator's report call: inside NFR-5 (p95 ≤ 30 s).
 
 ### Scoring questions to settle before Sonnet (protocol amendment)
 

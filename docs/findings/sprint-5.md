@@ -192,7 +192,7 @@ numbers are noisy; comparisons are interleaved call by call.
   claim through its 2. `text.clean` now drops bare file names that contain a digit, so the
   verifier and capture both skip them (use tracking already skipped paths).
 - **The Stop report call is slow:** the Administrator's report call took 11–21 s (Stop p95 ~20 s
-  in the dry run). No NFR covers it; worth a look if users notice the wait.
+  in the dry run). That is inside NFR-5 (Stop and report p95 ≤ 30 s), but close enough to watch.
 - **Decay dry run: 7 decay tasks × {low, medium} × natural × 1 repeat on haiku, ~$0.32 with sidecar calls, all 14
   runs finished and scored.** Qualifiers kept in the final answer: Medium 14/14, Low 10/14 (+29
   points, paired, over 7 tasks); kept at first use 8/14 vs 7/14. Low dropped one hedge at every

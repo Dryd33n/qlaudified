@@ -123,10 +123,9 @@ Measured on Windows 11 under ordinary background load ([sprint-5.md](docs/findin
 | --- | --- | --- |
 | Hook overhead per tool call, no sidecar call (p95) | ≤ 400 ms | 364 ms (117 ms of it is shell and Python startup) |
 | Tool call with a sidecar call (p95) | ≤ 10 s | 5.4–6.9 s |
+| Report at the end of each answer (p95) | ≤ 30 s | 8–25 s |
 | Sidecar cost (haiku) | as low as possible | ~$0.001 per recorded fact, ~$0.02 for a 20-step task |
 | Cost overhead vs no plugin | set from the Sonnet study | on haiku, +58% to +73%, because a haiku run itself costs only ~$0.003 |
-
-The report at the end of each answer takes 8–25 s.
 
 ## Progress
 
