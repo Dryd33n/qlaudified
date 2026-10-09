@@ -174,6 +174,8 @@ Cost note: long reads aren't free. A bigread run cost $0.18 and a bigread-plus-c
 (each call re-reads ~140k tokens, cached), so a resumed pre-built history (one call per run) is
 the cheaper way to test long sessions if this continues.
 
+Next ideas for where hedges might actually get lost: [hedge-loss-ideas.md](hedge-loss-ideas.md).
+
 Tooling fixes found by the probe: sandbox paths are resolved from Windows 8.3 short names (Claude
 Code denied writing notes.md inside the sandbox otherwise), v2 and probe runs allow Write and Edit
 with `acceptEdits`, and the scorer cuts after the left figure when a sentence has no clause break.
