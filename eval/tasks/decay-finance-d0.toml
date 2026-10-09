@@ -1,0 +1,26 @@
+# Decay task (finance, about 0 tool calls between the read and the question), Sprint 5.
+id = "decay-finance-d0"
+type = "decay"
+sandbox = "tests/sandbox/decay-finance-d0"
+distance = 0
+compacted = false
+
+[[facts]]
+id = "q3-revenue"
+source = "q3-finance.md"
+locator = "L3"
+value = "4200000 USD"
+qualifiers = ["estimated", "preliminary"]
+origin = "Provided Document"
+kept = "Q3 revenue is estimated at $4.2M."
+dropped = "Q3 revenue was $4.2M."
+
+[[facts]]
+id = "q3-growth"
+source = "q3-finance.md"
+locator = "L4"
+value = "12 %"
+qualifiers = ["roughly", "pending"]
+origin = "Provided Document"
+kept = "Revenue grew roughly 12%, pending the audit."
+dropped = "Revenue grew 12% from Q2."

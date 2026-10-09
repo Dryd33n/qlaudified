@@ -10,6 +10,7 @@ from qlaudified.store import Store
 HEADER = "Provenance recorded earlier in this session (qlaudified):"
 
 
-def build_digest(store: Store, budget_chars: int) -> str:
+def build_digest(store: Store, budget_chars: int, csv_path: str = "") -> str:
     spans = [s for s in store.spans() if s.agent_id == "main"]
-    return inject.build_delta(spans, budget_chars, header=HEADER)
+    header = f"{HEADER} (full ledger: {csv_path})" if csv_path else HEADER
+    return inject.build_delta(spans, budget_chars, header=header, csv_path=csv_path)

@@ -6,10 +6,12 @@ High (VER-3). Each claim records which tier decided it.
 """
 
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from qlaudified import text
 from qlaudified.config import Config, Mode
 from qlaudified.store import Claim, Span, Store, Turn
 
@@ -37,7 +39,49 @@ def evidence(spans: list[Span]) -> list[Span]:
     """Spans claims are checked against. A WebFetch summary whose page was re-fetched gives way to
     the raw page, so a qualifier the summary dropped is still seen (CAP-3)."""
     fetched = {s.source for s in spans if s.origin == "web-raw"}
-    return [s for s in spans if not (s.origin == "web-summary" and s.source in fetched)]
+    # Claude's own claims are what's being checked, never evidence for themselves.
+    return [s for s in spans if s.origin != "claude"
+            and not (s.origin == "web-summary" and s.source in fetched)]
+
+
+def reread_sources(store: Store, project) -> tuple[list[Span], set[str], bool]:
+    """Passages of the local files Claude read, read again from disk (VER-3).
+
+    Returns (passages, sources that changed since Claude read them, whether every source read
+    could be re-read). Facts are all that's stored; claims without a number, date or qualifier
+    are checked against these. Command output and MCP results can't be re-read, and web pages
+    contribute only their facts, so a session with those sources isn't fully re-readable."""
+    from pathlib import Path
+
+    from qlaudified.capture import _hash
+
+    passages: list[Span] = []
+    changed: set[str] = set()
+    complete = True
+    cache: dict[str, list[str] | None] = {}
+    for src in store.sources():
+        if src.rereadable != "file":
+            complete = False
+            continue
+        if src.source not in cache:
+            try:
+                cache[src.source] = (Path(project) / src.source).read_text(
+                    encoding="utf-8", errors="replace").splitlines()
+            except OSError:
+                cache[src.source] = None
+        lines = cache[src.source]
+        m = re.fullmatch(r"L(\d+)(?:-L(\d+))?", src.locator)
+        if lines is None or not m:
+            changed.add(src.source)
+            continue
+        a, b = int(m.group(1)), int(m.group(2) or m.group(1))
+        body = "\n".join(lines[a - 1:b])
+        if _hash(body) != src.hash:
+            changed.add(src.source)
+            continue
+        passages.append(Span(f"{src.source} {src.locator}", src.origin, src.source, src.locator,
+                             body, hash=src.hash))
+    return passages, changed, complete
 
 
 def summary_issues(spans: list[Span], cfg: Config) -> list[dict]:
@@ -70,7 +114,8 @@ def summary_issues(spans: list[Span], cfg: Config) -> list[dict]:
 
 
 def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config, backend=None,
-                  extra_qualifiers: list[str] | None = None) -> tuple[list[Claim], int]:
+                  extra_qualifiers: list[str] | None = None,
+                  reread: tuple[list[Span], set[str], bool] | None = None) -> tuple[list[Claim], int]:
     from qlaudified.verify import candidates, claims, classify, tier1, tier2_nli, tier3_llm
 
     lex = cfg.lexicon()
@@ -88,10 +133,6 @@ def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config, backe
             skipped += 1
             continue
         found = index.top(claim_text, k=5)
-        kind = claims.code_claim_kind(claim_text, found[0][0].origin if found else None)
-        if kind == "value" and cfg.mode != Mode.HIGH:
-            skipped += 1  # code values (constants, config) are checked in High only
-            continue
         decided = tier1.check(claim_text, [s for s, _ in found], lex, context=sentence)
         if decided is None and found:
             if nli_ready is None:
@@ -99,6 +140,10 @@ def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config, backe
             if nli_ready:
                 decided = tier2_nli.check(claim_text, [s for s, _ in found[:3]])
         result = classify.classify(claim_text, decided, found)
+        no_figures = not text.numbers(text.clean(claim_text))
+        weak = result["verdict"] in ("unsupported", "unresolved", "partial")
+        if weak and reread is not None and no_figures:
+            result = _check_reread(claim_text, sentence, reread, lex) or result
         claim = Claim(
             claim_id=f"C{turn.n}.{len(out) + 1}", turn=turn.prompt_id, text=claim_text,
             span_ids=result["span_ids"], verdict=result["verdict"],
@@ -121,12 +166,32 @@ def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config, backe
     return out, skipped
 
 
-def verify_turn(store: Store, turn: Turn, cfg: Config, backend=None) -> TurnResult:
-    """Verify a turn's answer against the session's spans and store the claims (VER-1..3)."""
+def _check_reread(claim: str, sentence: str, reread: tuple[list[Span], set[str], bool],
+                  lex) -> dict | None:
+    """A claim with no fact behind it, checked against the re-read sources (VER-3)."""
+    from qlaudified.verify import tier1
+
+    passages, changed, complete = reread
+    decided = tier1.check(claim, passages, lex, context=sentence) if passages else None
+    if decided is not None:
+        decided["decided_by"] = "reread"  # span_ids are "path L4-L6": sources, not fact rows
+        return decided
+    if changed or not complete:
+        verdict = "source-changed" if changed and complete else "not-checked"
+        return {"verdict": verdict, "span_ids": sorted(changed)[:3], "dropped_qualifiers": [],
+                "decided_by": "reread", "confidence": 0.0}
+    return None
+
+
+def verify_turn(store: Store, turn: Turn, cfg: Config, backend=None,
+                project=None) -> TurnResult:
+    """Verify a turn's answer against the ledger's facts, re-reading sources for claims with no
+    fact behind them, and store the claims (VER-1 to VER-3)."""
     start = time.perf_counter()
     spans = store.spans()
+    reread = reread_sources(store, project) if project is not None else None
     found, skipped = verify_answer(turn.answer, spans, turn, cfg, backend,
-                                   store.sidecar_qualifiers())
+                                   store.sidecar_qualifiers(), reread)
     store.add_claims(turn.prompt_id, found)
     used = {i for c in found for i in c.span_ids}
     usage = dict(getattr(backend, "last_usage", {}) or {}) if backend is not None else {}

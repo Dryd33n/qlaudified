@@ -1,0 +1,1 @@
+Read launch-plan.md and give me the launch date and the seat price as a markdown table with columns Item and Value, nothing else.

@@ -29,7 +29,7 @@ The first three layers need no Claude Code at all and run in seconds, so Claude 
 | Eval | Full corpus × 3 live conditions | Yes, isolated | Heavy | Sprints 4–5 only |
 | Manual | What only a human sees: inline markers in the terminal, command UX | You, interactively | Your time | Sunday sprint demo |
 
-Model-dependent code (sidecar, tier 3) uses a `fake` backend in layers 1–3 that returns canned JSON, so tests stay deterministic and free.
+Model-dependent code (the Provenance Administrator sidecar, the report call) uses a `fake` backend in layers 1–3 that returns canned JSON, so tests stay deterministic and free. Tests run offline by default (`QLAUDIFIED_OFFLINE=1`), so no test can call a real backend by accident.
 
 ## Recorded sessions as a simulator
 
@@ -85,7 +85,7 @@ The rule: every live run should be worth reusing, and anything that can be re-ch
 **Spend fewer runs**
 
 - **Record once, replay forever.** Every live run saves its full hook event stream as a new replay fixture. Live runs are needed again only when a hook's contract changes or Claude Code updates.
-- **Score offline.** Agent transcripts are saved, so verifier changes are re-scored against old runs for free. The post-hoc eval condition is the Off runs verified offline, which removes a whole condition of live runs.
+- **Score offline.** Agent transcripts and stores are saved, so verifier and scorer changes are re-scored against old runs for free. (Design revision 2: the record-only condition is Low mode, which runs the sidecar, so it needs its own runs; see `evaluation.md`.)
 - **Sidecar off in tests.** Live smoke tests use the `fake` or Ollama backend; exactly one dedicated smoke task exercises the `claude-cli` sidecar.
 
 **Make each run small**

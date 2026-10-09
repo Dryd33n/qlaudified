@@ -1,11 +1,13 @@
-"""Delta re-injection: new provenance rows as compact factual lines (INJ-1, INJ-2).
+"""Refeed: new ledger rows as compact factual lines, and where the ledger lives (RFD-1, RFD-2).
 
-Line format: ``[S3 q3-update.md L3] Q3 revenue is estimated at $4.2M...; source says: estimated,
-preliminary``. Plain facts only, never instructions. Only spans with a number, date or qualifier
-are injected: those are what an answer can misstate, and Claude has just read the rest.
+Line format: ``[F3 q3-update.md L3] Q3 revenue is estimated at $4.2M...; source says: estimated,
+preliminary``. Plain facts only, never instructions. Rows are facts (a number, date or
+qualifier), so every row is worth refeeding except search titles. Overflow points to
+provenance.csv, which is always current (design revision 2).
 """
 
 import re
+from pathlib import Path
 
 from qlaudified import lexicon
 from qlaudified.store import Span
@@ -15,8 +17,9 @@ _MARKUP = re.compile(r"^(?:[\s#>*+\-|]|//|/\*|\"\"\"|''')+|(?:\"\"\"|'''|\*/)\s*
 
 
 def worth_injecting(span: Span) -> bool:
-    """Search result titles are stored but never injected: they rarely state a fact."""
-    return bool(span.numbers or span.qualifiers) and span.origin != "search-snippet"
+    """Search result titles are recorded but never refed: they rarely state a fact. Claude's own
+    claims aren't refed either: it knows what it said."""
+    return bool(span.numbers or span.qualifiers) and span.origin not in ("search-snippet", "claude")
 
 
 def snippet(span: Span, limit: int = SNIPPET_CHARS) -> str:
@@ -52,24 +55,45 @@ def _order(spans: list[Span]) -> list[Span]:
     return sorted(spans, key=rank)
 
 
-def _overflow(rest: list[Span]) -> str:
+def csv_hint(session_dir: Path, project: Path | None = None) -> str:
+    """provenance.csv's path as Claude should see it: relative to the project when inside it."""
+    path = Path(session_dir) / "provenance.csv"
+    try:
+        return path.relative_to(project).as_posix() if project else path.as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def session_line(csv_path: str) -> str:
+    """The fact Claude gets at session start in Medium and High (RFD-1)."""
+    return (f"qlaudified keeps this session's provenance ledger in {csv_path} (read-only): one row "
+            "per critical fact read or stated so far (a figure, date or qualifier), with its "
+            "source, the source's qualifiers and how it has been used. It updates after each "
+            "tool call.")
+
+
+def _overflow(rest: list[Span], csv_path: str = "") -> str:
+    noun = "row" if len(rest) == 1 else "rows"
+    if csv_path:
+        return f"+{len(rest)} more provenance {noun} in {csv_path}"
     sources = list(dict.fromkeys(s.source for s in rest))
     named = ", ".join(sources[:3]) + (f" and {len(sources) - 3} more" if len(sources) > 3 else "")
-    noun = "span" if len(rest) == 1 else "spans"
     return f"+{len(rest)} more provenance {noun} from {named}"
 
 
-def build_delta(spans: list[Span], budget_chars: int = 600, header: str = "") -> str:
-    """Fit lines into the budget; summarize overflow as a count plus file path (INJ-2)."""
+def build_delta(spans: list[Span], budget_chars: int = 600, header: str = "",
+                csv_path: str = "") -> str:
+    """Fit lines into the budget; overflow is a count plus the CSV's path (RFD-2)."""
     picked = _order([s for s in spans if worth_injecting(s)])
     lines = [header] if header else []
     used = len(header)
     for i, span in enumerate(picked):
         line = format_line(span)
         rest = picked[i + 1:]
-        tail = len(_overflow(rest)) + 1 if rest else 0
+        tail = len(_overflow(rest, csv_path)) + 1 if rest else 0
         if used + len(line) + 1 + tail > budget_chars:
-            lines.append(_overflow(picked[i:])[:budget_chars - used - 1] if used < budget_chars else "")
+            lines.append(_overflow(picked[i:], csv_path)[:budget_chars - used - 1]
+                         if used < budget_chars else "")
             break
         lines.append(line)
         used += len(line) + 1

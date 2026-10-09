@@ -30,8 +30,8 @@ def store(record: dict) -> Path:
     return Path(record["sandbox"]) / ".claude" / ".qlaudified"
 
 
-def provenance(record: dict) -> list[dict]:
-    paths = list((store(record) / "sessions").glob("*/provenance.csv"))
+def provenance(record: dict, name: str = "provenance.csv") -> list[dict]:
+    paths = list((store(record) / "sessions").glob(f"*/{name}"))
     assert len(paths) == 1, f"expected one session store, found {paths}"
     with open(paths[0], newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
@@ -48,7 +48,8 @@ def test_capture_fills_provenance_csv(task, expected):
     assert not (store(record) / "errors.log").exists()
     timings = [json.loads(line) for line in
                next((store(record) / "sessions").glob("*/timings.jsonl")).read_text().splitlines()]
-    assert all(t["elapsed_ms"] < 300 for t in timings if t["event"] == "PostToolUse")
+    # In process; the sidecar call (when the step qualifies) is the bulk of it (NFR-4: <= 10 s).
+    assert all(t["elapsed_ms"] < 10_000 for t in timings if t["event"] == "PostToolUse")
 
 
 def test_mode_skill_saves_the_project_default():
@@ -56,12 +57,18 @@ def test_mode_skill_saves_the_project_default():
     assert 'mode = "high"' in (store(record) / "config.toml").read_text(encoding="utf-8")
 
 
-def test_medium_injects_marks_and_reports():
-    """Sprint 2: the delta reaches Claude, the answer is verified and the turn report is saved."""
+def test_medium_records_refeeds_and_reports():
+    """Design revision 2: the ledger fills step by step with REQ-3.2 rows, the Administrator runs,
+    the answer is verified, and the report is saved."""
     record = run_live("seed-hedged")
     [folder] = (store(record) / "sessions").glob("*")
-    claims = [r for r in provenance(record) if r["kind"] == "claim"]
+    rows = provenance(record)
+    assert rows and {r["origin"] for r in rows} == {"Provided Document"}
+    assert all(r["uses"] for r in rows if r["claim"].startswith("Q3 revenue"))
+    claims = provenance(record, "claims.csv")
     assert claims and all(r["verdict"] in ("supported", "qualifier-dropped") for r in claims)
+    usage = [json.loads(line) for line in (folder / "usage.jsonl").read_text().splitlines()]
+    assert {u["tier"] for u in usage} >= {"administrator", "administrator-report"}
     assert (folder / "reports" / "turn-1.md").exists() and (folder / "reports" / "turn-1.json").exists()
     timings = [json.loads(line) for line in (folder / "timings.jsonl").read_text().splitlines()]
     assert {t["event"] for t in timings} >= {"PostToolUse", "MessageDisplay", "Stop"}

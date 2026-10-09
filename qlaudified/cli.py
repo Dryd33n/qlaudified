@@ -95,7 +95,7 @@ def cmd_report(project: Path, deep: bool = False) -> int:
         elif cfg.mode == config.Mode.HIGH:
             cfg.mode = config.Mode.MEDIUM  # on request without --deep, check what Medium would
         store = Store(folder)
-        result = verify_turn(store, turn, cfg, backend)
+        result = verify_turn(store, turn, cfg, backend, project)
         how = f"{cfg.mode}, deep ({backend.name})" if backend else f"{cfg.mode} (on request)"
         md = report.write_turn_report(folder, turn.n, turn.prompt_id, result.claims, result.spans,
                                       result.skipped, how, result.summary_issues)

@@ -1,340 +1,378 @@
 # qlaudified — Design & Requirements
 
-Oct 8, 2026 · Dryden
+Oct 8, 2026 · Dryden · Revision 2 (the Provenance Administrator design)
 
-> Exported from the living design doc. Sibling files: `sprint-plan.md`, `testing.md`. Diagrams are described in text where they appeared.
+> Sibling files: `sprint-plan.md`, `testing.md`, `evaluation.md`. Revision 2 realigns the build with
+> the original idea: a sidecar agent records the provenance of critical facts as the agent works,
+> and feeding that record back into the loop is the hypothesis under test. What changed from
+> revision 1 and why is at the end ("Design history").
 
 ## Overview
 
-qlaudified is an open-source Claude Code plugin that tracks where each claim in Claude's answer came from, and whether the source's qualifiers ("estimated", "may", "tentative") survived the trip. It is built for daily use, documented as a portfolio piece, and backed by a measured evaluation.
+qlaudified is an open-source Claude Code plugin for advanced research work. As Claude works, a
+sidecar agent, the **Provenance Administrator**, records where each critical fact came from, how
+it was qualified at the source, and how Claude used it, step by step, in a rolling read-only
+`provenance.csv`. At the end it writes a provenance report for the answer. Optionally, the record
+is fed back into Claude's loop so qualifiers survive many steps of work.
 
-**Problem.** Agents read sources across many steps, then answer in confident prose. Hedges get dropped, numbers drift, and citations point at pages that don't support the claim. Research on LM rewriting finds certainty is not preserved in up to 75% of outputs, and models amplify certainty more often than they soften it.
+**Problem.** Agents read sources across many steps, then answer in confident prose. Hedges get
+dropped, numbers drift, and citations point at sources that don't support the claim. Research on
+LM rewriting finds certainty is not preserved in up to 75% of outputs, and models amplify
+certainty more often than they soften it. The longer the task, the more steps a qualifier has to
+survive.
+
+**Who it's for.** Research-grade work where being right about what a source said matters more
+than speed. Time is a secondary cost; token cost is the one to keep small.
 
 **Goals for v1**
 
-- Record verbatim source spans for every retrieval from local docs, web pages and code, outside the context window.
-- Feed compact provenance back to Claude during the run so qualifiers survive into the answer and across compaction.
-- Verify each final claim against stored spans and show the result inline, as a full report, and as raw CSV.
-- Keep overhead low: deterministic work first, models only when needed, no second API key required.
-- Show measured results: qualifier preservation, attribution accuracy, cost and latency per mode.
+- Record a provenance row for every critical fact Claude encounters or states (REQ-3.2 fields:
+  claim, origin, primary source for hybrids, qualifiers at the source and at first use, and
+  operational impact), in a rolling, read-only `provenance.csv`.
+- Feed the record back into the loop (Medium and High) and measure whether it keeps qualifiers
+  alive across many steps.
+- Produce a provenance report for each answer, cross-checked by exact rules for numbers, dates
+  and qualifiers.
+- Keep token cost low: rules first, the sidecar only on critical material, small inputs, small
+  model.
+- Show measured results: qualifier decay across steps, ledger accuracy, cost per mode.
 
 **Non-goals for v1**
 
 - A GUI or Agent SDK app (CLI plugin only).
 - Training or fine-tuning any model.
-- Attributing claims to training data. Anything not matched to a source span is reported as unsupported, not traced to pretraining.
+- Proving that a claim came from training data. "Training Data" is a classification by
+  elimination: a critical claim Claude states that no source in the session supports, judged by
+  the sidecar as general knowledge rather than inference.
 - Enterprise features: auth, encryption at rest, multi-user audit.
 
 ## Decisions so far
 
-These were settled in the kickoff Q&A; anything not listed here is still open (see the last section).
-
 | Area | Decision |
 | --- | --- |
-| Purpose | Open-source plugin and portfolio project, with a real evaluation (not a research paper) |
+| Purpose | Open-source research tool and portfolio project, with a measured evaluation |
+| Core | The Provenance Administrator sidecar records REQ-3.2 provenance rows for critical facts |
+| Hypothesis | Feeding the record back into the loop preserves qualifiers across steps (Medium vs Low) |
 | Form | Claude Code plugin, CLI only for v1 |
-| Sources | Local doc folders, web pages, codebases |
-| Language | Python for hooks, verifier and eval tooling |
-| Verifier | Deterministic matching always; optional local NLI (`pip install qlaudified[nli]`); one batched LLM call for leftovers (automatic in High, on request in Medium) |
-| Sidecar LLM | Reuse the Claude Code login via `claude -p` with a small model by default; configurable backend (e.g. Ollama) |
-| Runtime behavior | Medium and High re-inject provenance; High adds a one-time Stop retry and the in-loop LLM sidecar |
-| Web sources | Shadow re-fetch in v1 (Claude keeps using WebFetch); a raw-fetch MCP tool as a later High-mode opt-in |
-| Code claims | Medium: behavior claims. High: behavior, README/doc facts, numbers and config values |
-| Output | Inline answer markers, `/qlaudified report`, and an option to open `provenance.csv` |
-| Storage | `.claude/.qlaudified/` inside the project |
+| Sources | Local docs and code, provided documents, user prompts, web pages, command output, MCP tools |
+| Language | Python for hooks, sidecar, verifier and eval tooling |
+| Sidecar LLM | Reuse the Claude Code login via `claude -p --safe-mode` with haiku by default; Ollama as a local, zero-API-cost option |
+| Timing | The sidecar runs synchronously: each row is complete before Claude's next step. Time is acceptable; token cost is minimized |
+| Storage | Facts only, never passages: fact rows plus a log of sources read (path, lines, hash) |
+| Output | Rolling `provenance.csv`, inline markers, provenance report, `/qlaudified report` |
+| Storage location | `.claude/.qlaudified/` inside the project |
 | Platforms | Windows and macOS first |
-| Evaluation | Synthetic planted-qualifier corpus plus a mode ablation |
+| Evaluation | Synthetic planted-qualifier corpus, decay tasks across step distances, mode ablation |
 | Distribution | GitHub repo only (clone + `--plugin-dir`) |
-| Timeline | Solo, focused push of about a month |
 
 ## Provenance modes
 
-The mode is the one knob users turn: each step up buys more checking for more time and usage. Every hook reads the mode first and exits immediately when it has nothing to do.
-
 | Behavior | Low | Medium | High |
 | --- | --- | --- | --- |
-| Span capture on retrieval | Deterministic, silent | Deterministic (spans, numbers, dates, hedges) | Deterministic |
-| In-loop LLM sidecar | Off | Off | On, filtered spans only |
-| Re-inject provenance deltas | No | Yes | Yes |
-| Web shadow re-fetch | No | Yes | Yes |
-| Code claims tracked | None | Behavior claims | Behavior, doc facts, numbers and config |
-| Final verification | None | Deterministic + NLI (if installed); LLM only via `report --deep` | Same, lower threshold for what counts as critical |
-| Stop retry on dropped qualifier or unsupported claim | No | No | Once per turn |
-| Inline markers and report | Report on request | Yes | Yes |
-| Target overhead (cost-weighted) | ~0% | ≤ 10% | ≤ 20% |
+| Rule-based fact extraction from every retrieval | Yes | Yes | Yes |
+| Provenance Administrator sidecar (REQ-3.2 rows) | Yes | Yes | Yes |
+| Rolling read-only `provenance.csv` | Yes | Yes | Yes |
+| **Refeed**: new rows and the CSV's location go back into the loop | No | Yes | Yes |
+| Compaction digest | No | Yes | Yes |
+| Inline markers | No | Yes | Yes |
+| Provenance report and summary line at the end | Yes | Yes | Yes |
+| Stop retry when the answer drops a qualifier or contradicts a source | No | No | Once per turn |
 
-Low captures spans silently at zero token cost, so `/qlaudified report` still works afterwards; nothing is injected or verified unless you ask.
+Low records without influencing Claude: nothing reaches Claude's context, so Low is also the
+eval's **record-only** condition. Medium is record + refeed, the hypothesis. High adds one retry.
 
 ## Functional requirements
 
-Requirements are grouped by component and numbered so issues and tests can reference them.
+**Mode control (MOD)** (unchanged)
 
-**Mode control (MOD)**
-
-- MOD-1: `/qlaudified mode <low|medium|high>` sets the mode for the project; `/qlaudified mode` with no argument prints the current mode.
-- MOD-2: The mode persists in `.claude/.qlaudified/config.toml` and survives restarts.
+- MOD-1: `/qlaudified mode <low|medium|high>` sets the mode for the project; no argument prints it.
+- MOD-2: The mode persists in `.claude/.qlaudified/config.toml`.
 - MOD-3: A one-session override is possible without changing the saved default.
 
-**Capture (CAP)**
+**Interception (INT)**: what the sidecar sees
 
-- CAP-1: After every retrieval tool call (`Read`, `Grep`, `WebFetch`, `WebSearch`, configured MCP tools, and Bash output per the decisions table), store each returned passage with source ID, location (path + line range, or URL + paragraph), timestamp and a content hash.
-- CAP-2: Tag each stored span with detected numbers, dates, units, named entities and hedge words.
-- CAP-3: For `WebFetch`, download the same URL separately, extract the main text, and store it as the raw source; store the WebFetch summary as a derived span linked to it. (Sprint 0: the WebFetch payload carries only the summary, so the re-fetch is the only raw source.)
-- CAP-4: When the raw re-fetch fails (paywall, JS-only page, timeout), mark the source `summarized-only` rather than failing the hook.
-- CAP-5: Store `WebSearch` results as `search-snippet` origin, weaker than a fetched page.
-- CAP-6: Spans from subagents carry the subagent ID so multi-agent runs stay traceable.
+- INT-1: Capture the user's prompt at submission (`UserPromptSubmit`), and the files the prompt
+  names or attaches, as origins in their own right.
+- INT-2: After every tool call, collect the tool input, the tool output, and Claude's reasoning
+  text since the previous step (from the session transcript).
+- INT-3: Rules extract candidate facts (sentences or lines with a number, date or qualifier) and
+  detect uses of known facts (their values appearing in Claude's text or tool inputs) before any
+  model call.
+- INT-4: Subagent calls carry their agent ID; their rows stay attributable (CAP-6 from rev 1).
 
-**Re-injection (INJ)**
+**Provenance record (PROV)**: the Provenance Administrator, REQ-3.2
 
-- INJ-1: In Medium and High, return only the provenance rows that are new since the last injection, as compact factual lines.
-- INJ-2: Never exceed a configurable per-call budget (default 600 characters); summarize overflow as a count plus file path.
-- INJ-3: After compaction, re-inject a compact digest of critical spans and qualifiers via `SessionStart` (`compact`).
+- PROV-1 **Critical claim description:** the statement, figure, date or condition identified as
+  critical, one row per fact.
+- PROV-2 **Origin classification:** Direct Retrieved Fact, Provided Document, Internal Document,
+  User Prompt, Model Inference, Training Data, or Hybrid.
+- PROV-3 **Primary source resolution (hybrids only):** which origin primarily influenced the claim,
+  and whether the sources agreed.
+- PROV-4 **Linguistic qualifiers:** the qualifiers in the original source, and those present at
+  the claim's first use in Claude's reasoning or tool calls.
+- PROV-5 **Operational impact:** how the claim was used in later tool calls and its effect on the
+  final conclusion; updated as uses accrue, finalized at Stop.
+- PROV-6 **Threshold:** the sidecar runs only when the step meets the mode's criticality threshold
+  (rules found a new candidate fact or a use of a tracked fact). Steps with nothing critical cost
+  no tokens.
+- PROV-7 **Rolling and read-only:** `provenance.csv` is rewritten from the store after every
+  update; its read-only attribute makes Claude's Write and Edit fail, and any change is undone at
+  the next rewrite.
 
-**Sidecar (SID, High only)**
+**Refeed (RFD)**: Medium and High
 
-- SID-1: Send only flagged sentences (numbers, dates, hedges, entities), not whole documents, to the sidecar model.
-- SID-2: The sidecar classifies each flagged span's criticality and extracts qualifiers it would miss lexically.
-- SID-3: Nested `claude -p` calls run in safe mode (`--safe-mode`: no hooks, plugins or CLAUDE.md) to prevent recursion.
+- RFD-1: At session start, tell Claude where the CSV is and what it holds, as a plain fact.
+- RFD-2: After each step, return the new or changed rows as compact factual lines, within a
+  per-call budget (default 600 characters); overflow is a count plus the CSV path.
+- RFD-3: After compaction, re-send a digest of the qualified rows and the CSV's location.
+- RFD-4: Log every time Claude reads the CSV (a consult), with its step and size.
 
-**Verification (VER)**
+**Verification and report (VER, REP)**
 
-- VER-1: At `Stop`, split the final answer into atomic claims and link each to candidate spans.
-- VER-2: Label each claim: supported, partially supported, qualifier dropped, contradicted, unsupported, or inference.
-- VER-3: Run tiers in order (deterministic, then NLI if installed, then one batched LLM call) and record which tier decided.
-- VER-4: In High, if any critical claim is contradicted or drops a qualifier, block the stop once with a factual list of the problems; never block twice in one turn.
-
-**Reporting (REP)**
-
-- REP-1: Rewrite the displayed answer with inline markers such as `[S3]`, `[S3, qualifier: estimated]` or `[unsupported]`; the stored transcript is unchanged. Claude Code holds each streamed batch until the `MessageDisplay` hook returns, so the marker path must stay fast; in `claude -p` the hook runs once per message with the full text.
-- REP-2: `/qlaudified report` prints a claim-by-claim report for the last turn, with a summary line on top; adding `--deep` runs the LLM tier for that turn.
-- REP-3: `/qlaudified csv` opens `provenance.csv` in the default app; `--path` prints its location.
-- REP-4: Each turn's report is also saved as markdown and JSON under the session folder.
+- VER-1: At Stop, split the final answer into claims and match each to fact rows.
+- VER-2: Exact rule checks on numbers, dates, units and hedge classes label each claim:
+  supported, qualifier dropped, contradicted, unsupported, or not checked.
+- VER-3: Claims without a number, date or qualifier are checked by re-reading the sources Claude
+  read (local files from disk, with a hash check; web pages via re-fetch). Command output and MCP
+  results can't be re-read: those claims are reported as not checked.
+- VER-4: In High, if a critical claim drops a qualifier or is contradicted, block the stop once with
+  a factual list of the problems; never twice in one turn.
+- REP-1: Inline markers such as `[F3]` or `[F3, qualifier: estimated]` on the displayed answer.
+- REP-2: The Provenance Administrator writes the provenance report at Stop from the rows and the
+  rule verdicts (one batched call); `/qlaudified report` prints it.
+- REP-3: `/qlaudified csv` opens `provenance.csv` (and `claims.csv`); `--path` prints locations.
+- REP-4: Each turn's report is saved as markdown and JSON.
 
 **Configuration (CFG)**
 
-- CFG-1: The LLM backend is configurable: `claude-cli` (default, model configurable), `ollama`, or `none`.
-- CFG-2: Hedge lexicon, critical-claim threshold and injection budget are configurable per project.
+- CFG-1: The sidecar backend is configurable: `claude-cli` (default, haiku), `ollama`, or `none`
+  (rules only: the judgment fields stay empty).
+- CFG-2: Hedge lexicon, criticality threshold and refeed budget are configurable per project.
 
 ## Non-functional requirements and token budget
 
-Overhead is measured cost-weighted (dollars or plan usage), not in raw tokens, because a sidecar token on a small model costs several times less than one on the primary model.
+Time is a secondary cost for research work; token cost is the one to shrink. Overhead is measured
+cost-weighted (dollars or plan usage), because a haiku sidecar token costs several times less than
+a primary-model token.
 
 | ID | Requirement | Target |
 | --- | --- | --- |
-| NFR-1 | Cost overhead, Medium | ≤ 10% over the plugin-off baseline, averaged across the eval set |
-| NFR-2 | Cost overhead, High | ≤ 20% over baseline |
-| NFR-3 | Capture hook latency, Medium | p95 ≤ 300 ms per retrieval, excluding network re-fetch |
-| NFR-4 | Web re-fetch | Runs in the background; never blocks the agent loop for more than 2 s |
-| NFR-5 | Stop verification time | p95 ≤ 5 s for Medium on a typical answer (≤ 20 claims) |
-| NFR-6 | Install | `pip install qlaudified` works on Windows and macOS with no compiler; NLI is an optional extra |
-| NFR-7 | Failure safety | Any hook error is logged and the run continues unchanged; qlaudified never breaks a session |
-| NFR-8 | Privacy | All provenance data stays local; nothing leaves the machine except calls to the configured LLM backend |
+| NFR-1 | Cost overhead, Medium (record + refeed) vs no plugin | Provisional ≤ 20%; set from the pilot |
+| NFR-2 | Cost overhead, High vs no plugin | Provisional ≤ 30%; set from the pilot |
+| NFR-3 | Rule path latency (no sidecar call) | PostToolUse p95 ≤ 400 ms (revised Oct 8 from 300 ms: revision 2 measures 360–390 ms; time is the accepted cost) |
+| NFR-4 | Sidecar step latency | p95 ≤ 10 s per step that meets the threshold |
+| NFR-5 | Stop and report time | p95 ≤ 30 s |
+| NFR-6 | Install | `pip install qlaudified` works on Windows and macOS with no compiler |
+| NFR-7 | Failure safety | Any hook or sidecar error is logged and the run continues unchanged |
+| NFR-8 | Privacy | Provenance stays local; only the configured sidecar backend sees excerpts; no passages are stored |
 
-**How the budget is kept**
+**How the token budget is kept small**
 
-1. **Deltas, not the whole CSV.** Earlier injections stay in the conversation and are prompt-cached, so each hook adds only new rows, about 30–60 tokens each.
-2. **Deterministic first.** Span indexing, number and date matching and hedge diffs cost no model tokens.
-3. **Filter before any model.** The High sidecar sees flagged sentences only, typically a small fraction of each document.
-4. **Batch the LLM.** Verification makes at most one LLM call per turn, covering every unresolved claim.
-5. **Measure it.** The sidecar logs its own usage, since calls made from hooks are not counted in Claude Code's cost output.
+1. **Rules first.** Fact extraction, value matching, use detection, qualifier checks and the
+   verdicts cost no tokens. The sidecar fills only the judgment fields (origin, hybrid resolution,
+   impact) and qualifiers the word list misses.
+2. **Threshold.** Steps with no new candidate fact and no use of a tracked fact skip the sidecar.
+3. **Small sidecar inputs.** The sidecar sees candidate sentences, Claude's latest reasoning
+   (capped), the tool input, and only the ledger rows the step touches, never whole documents or
+   the whole CSV.
+4. **Stable prompt prefix.** Instructions and schema come first and never change, so repeated
+   calls can reuse the prompt cache.
+5. **Small model, or none.** Haiku by default; Ollama for zero API cost; `none` for rules only.
+6. **Deltas, not the whole CSV.** Refeed sends only new or changed rows; Claude can read the full
+   CSV when it wants to, and each read is logged so its cost is measured.
+7. **One call at the end.** The report and any leftover judgments are one batched call per turn.
+8. **Measure it.** Every sidecar call is logged to `usage.jsonl` (tokens, cost, time).
 
 ## Architecture
 
-qlaudified is a plugin folder: four hooks, one command and a Python package. Claude Code is never patched; the hooks observe events and add context.
-
-*Diagram — "Four hooks connect Claude Code to a local Python core" (three layers, top to bottom):*
-
-- **Claude Code session:** Claude (primary agent, unchanged) · Retrieval tools (Read, Grep, WebFetch, WebSearch, MCP, Bash) · `/qlaudified` command (mode, report, open CSV).
-- ↓ *tool results, final answer* / ↑ *deltas, digest, one retry*
-- **Hooks (plugin):** Capture (`PostToolUse`: spans + deltas) · Digest (`SessionStart` `compact`: after compaction) · Verify (`Stop`: claims to verdicts) · Markers (`MessageDisplay`: inline `[S3]` tags).
-- ↓ *calls*
-- **qlaudified core (Python):** Span indexer (numbers, dates, hedge words) · Web re-fetch (raw page vs WebFetch summary) · Sidecar (High mode only, flagged spans) · Verifier (rules, then NLI, then one LLM call).
-- ↓ *read and write* → **Session store** (`.claude/.qlaudified/`: SQLite, CSV, reports)
-- ↓ *unresolved claims* → **LLM backend** (`claude -p` small model, or Ollama, or none)
-
-Hooks stay thin and call into the core, so the same logic can later back an Agent SDK GUI.
+```
+Claude Code session
+  Claude (primary agent, unchanged) · tools · /qlaudified
+      │ prompt, tool calls, results, reasoning (transcript)      ▲ refeed rows, digest, retry (Medium/High)
+      ▼                                                          │
+Hooks (plugin)
+  UserPromptSubmit  PostToolUse  SessionStart  MessageDisplay  Stop
+      │
+      ▼
+qlaudified core (Python)
+  Rules: fact extraction, value/qualifier matching, use detection
+  Provenance Administrator: sidecar calls (threshold-gated, synchronous)
+  Ledger: SQLite (source of truth) → rolling provenance.csv (read-only)
+  Verifier + report: rule checks, source re-reads, one report call
+  Web re-fetch (background)
+      │
+      ▼
+Session store .claude/.qlaudified/sessions/<id>/       Sidecar backend (claude -p haiku · Ollama · none)
+```
 
 ```
 qlaudified/
   .claude-plugin/plugin.json
-  hooks/hooks.json          PostToolUse, SessionStart, Stop (MessageDisplay from Sprint 2)
+  hooks/hooks.json          UserPromptSubmit, PostToolUse, SessionStart, MessageDisplay, Stop
   hooks/run.py, cli.py      entry points; launch.sh picks py -3 or python3
   skills/qlaudified/        /qlaudified mode | report | csv
-  qlaudified/               Python package
-    capture.py  refetch.py  sidecar.py  verify/  store.py  backends/
-  eval/                     corpus, tasks, runner
+  qlaudified/               Python package: capture, facts, administrator, ledger, refeed, verify, report
+  eval/                     tasks, runner, scorer
 ```
 
-## Flows
+## Flow of a task
 
-Every retrieval adds a few compact rows to Claude's context; at the end, verification either saves the report or, in High only, sends Claude back once.
-
-*Diagram — "Provenance flows back into the loop after every retrieval":*
-
-1. User prompt → Claude reasons → Retrieval tool call → Capture hook → **Inject new rows** (new rows only) → back to Claude reasons. Side notes: WebFetch triggers a raw re-fetch in the background; in High, the sidecar runs on flagged spans.
-2. When Claude stops calling tools: final answer → Markers on display → `Stop`: verify claims.
-3. Decision "Problem in High?": **yes** → Block, list issues → Claude revises once (back to Claude reasons). **No, or already retried** → Save report.
-
-Compaction is the other flow: when Claude Code compacts the conversation, the `SessionStart` hook (`compact`) re-injects a digest of the critical spans and their qualifiers, which the transcript summary would otherwise lose. Web shadow re-fetch runs in the background and attaches the raw page to the span when it finishes.
+1. **Query submission.** The user's prompt (and any attached or named files) is captured by
+   `UserPromptSubmit`; facts in it become User Prompt or Provided Document rows.
+2. **Context assembly.** Claude Code assembles the context. In Medium and High it includes the
+   session-start fact line, earlier refeed lines and, after compaction, the digest.
+3. **Primary loop and tool call.** Claude reasons and calls a tool.
+4. **Data retrieval.** The tool runs and returns its result.
+5. **Interception.** `PostToolUse` collects the tool input, the result and Claude's reasoning since
+   the last step. Rules extract candidate facts and detect uses of tracked facts.
+6. **Threshold and extraction.** If the step meets the mode's threshold, the Provenance
+   Administrator fills the REQ-3.2 fields for new facts and updates rows whose facts were used.
+7. **Record update.** Rows are written to SQLite and `provenance.csv` is rewritten (read-only).
+8. **Refeed (Medium, High).** New and changed rows return to Claude as compact factual lines;
+   the loop continues at step 3.
+9. **Final synthesis.** When Claude answers, `MessageDisplay` adds markers (Medium, High);
+   `Stop` checks the answer's claims against the rows, re-reads sources for claims without facts,
+   finalizes operational impact, and the Administrator writes the report. In High, a dropped
+   qualifier or contradiction blocks the stop once.
+10. **Result.** The answer is shown with markers and a one-line summary; the report and CSV are
+    available via `/qlaudified report` and `/qlaudified csv`.
 
 ## Data model
 
-Everything lives under `.claude/.qlaudified/` in the project, one folder per session, with a SQLite index for fast lookup and `provenance.csv` as the human-readable export.
-
 ```
 .claude/.qlaudified/
-  config.toml            mode, backend, budgets, lexicon overrides
-  .gitignore             ignores everything below by default
+  config.toml              mode, backend, threshold, budgets, lexicon overrides
+  .gitignore               ignores everything below
   sessions/<session_id>/
-    index.sqlite         spans, claims, links (source of truth)
-    provenance.csv       flat export: span rows, then claim rows (`kind` column)
-    raw/<hash>.txt       verbatim source text (re-fetched pages, file snapshots)
-    reports/turn-<n>.md  human report per turn
-    reports/turn-<n>.json
-    usage.jsonl          sidecar and verifier token/cost log
+    index.sqlite           facts, uses, sources read, claims (source of truth)
+    provenance.csv         rolling, read-only: one row per critical fact
+    claims.csv             final-answer claims and verdicts
+    sources.jsonl          sources read: path or URL, lines, content hash, step (no text)
+    consults.jsonl         Claude's reads of provenance.csv
+    reports/turn-<n>.md    provenance report per turn (and .json)
+    usage.jsonl            sidecar token, cost and time log
 ```
 
-**Span record** (one per captured passage)
+**Fact row** (`provenance.csv`, column order as Claude sees it)
 
-| Field | Example | Notes |
+| Field | Example | Filled by |
 | --- | --- | --- |
-| `span_id` | `S14` | Short ID used in markers and injections |
-| `origin` | `local-doc` | `local-doc`, `code`, `command-output`, `web-raw`, `web-summary`, `search-snippet`, `mcp`, `user-prompt` |
-| `source` | `notes/q3.md` or a URL | |
-| `locator` | `L22-L24` or `p7` | Line range, or paragraph index for web |
-| `text` | verbatim passage | Capped length; full text in `raw/` |
-| `numbers` | `4.2M USD; 2026-09-30` | Normalized values |
-| `qualifiers` | `estimated; preliminary` | From lexicon, plus sidecar in High |
-| `derived_from` | `S13` | Links a WebFetch summary span to its raw page span |
-| `agent_id` | `main` | Subagent ID when captured inside one |
-| `turn`, `ts`, `hash` | | Ordering and change detection |
+| `fact_id` | `F3` | rules |
+| `claim` | Q3 revenue is estimated at $4.2M, based on preliminary figures | rules (PROV-1) |
+| `value` | `4200000 USD` | rules |
+| `origin` | `Internal Document` | rules for retrieval origins; sidecar for Inference, Training Data, Hybrid (PROV-2) |
+| `source`, `locator` | `q3-update.md`, `L3` | rules |
+| `source_qualifiers` | `estimated; preliminary` | rules + sidecar (PROV-4) |
+| `first_use_step` | `5` | rules |
+| `first_use_qualifiers` | `` (none: dropped at first use) | rules (PROV-4) |
+| `uses` | `5:Write notes.md; 9:Bash calc.py` | rules |
+| `primary_source`, `sources_agree` | `F3`, `yes` | sidecar (PROV-3, hybrids only) |
+| `operational_impact` | Used to compute revenue per employee; drove the summary's headline figure | sidecar (PROV-5) |
+| `agent_id`, `step`, `turn`, `ts` | `main`, `2`, … | rules |
 
-**Claim record** (one per atomic claim in a final answer): `claim_id`, `turn`, `text`, `span_ids`, `verdict`, `dropped_qualifiers`, `decided_by` (`deterministic`, `nli` or `llm`), `confidence`, `critical`.
+**Injection line format** (refeed): `[F3 q3-update.md L3] Q3 revenue is estimated at $4.2M...;
+source says: estimated, preliminary`. Plain facts, never instructions.
 
-**Injection line format** (what Claude sees mid-run): `[S14 notes/q3.md L22] Q3 revenue 4.2M USD; source says: estimated, preliminary`. Plain facts, no instructions, so it doesn't trip prompt-injection defenses. Only spans with a number, date or qualifier are injected, qualified ones first, and search-result titles never are: Claude has just read the rest (Sprint 2). The per-call delta is the spans that call added for that agent, so parallel calls never inject a row twice.
+## Verification
 
-## Verification pipeline
+The rule checks are the exact backbone under the sidecar's judgments.
 
-Each claim goes through the cheapest tier that can decide it, and only unresolved claims move on, so most turns never call a model.
-
-1. **Claim extraction.** Split the answer into sentences, then into atomic claims at conjunctions and lists (rule-based). Mark a claim critical if it carries a number, date, named entity, comparison or qualifier. In Medium, non-critical claims are skipped.
-2. **Candidate retrieval.** For each claim, pull the top 3–5 spans by BM25 over stored span text, boosted by shared numbers and entities. No embeddings in v1, to keep installs light.
-3. **Tier 1, deterministic.** Normalize and compare numbers, dates and units ("$4.2M" = "4.2 million USD"). Diff hedge words between span and claim. Measure fuzzy token overlap. Decides: exact support, number mismatch (contradicted), and dropped qualifier.
-4. **Tier 2, NLI (optional extra).** A small DeBERTa-class MNLI model, run with ONNX Runtime on CPU, scores each (span, claim) pair as entails, neutral or contradicts. Confident results are final; borderline ones move on.
-5. **Tier 3, LLM (one batched call).** All leftover claims plus their candidate spans go to the configured backend in a single prompt with a strict JSON output schema. Handles paraphrase, synthesis across sources and "is this inference reasonable?" Automatic in High; in Medium only via `/qlaudified report --deep`.
-6. **Classify.** Claims with no span above threshold become `unsupported`; claims combining several spans become `inference` with all their span IDs listed.
-
-**Hedge lexicon.** v1 ships a curated list grouped by strength (e.g. *may/might/could*, *estimated/approximately/preliminary*, *reportedly/allegedly*, *likely/unlikely*). A qualifier counts as dropped when the span's strongest hedge class is missing from the claim. The lexicon is user-extendable in `config.toml`.
-
-**Backends.** `claude-cli` runs `claude -p --model <small model> --output-format json` in safe mode with a JSON schema; `ollama` calls the local HTTP API; `none` skips tier 3 and reports leftovers as `unresolved`.
+1. **Claim extraction:** rule-based split into atomic claims; code blocks, headings and the
+   assistant talking about itself are skipped.
+2. **Matching:** claims with a number, date or qualifier match fact rows by value (0.5% tolerance,
+   units, a less precise date matching a more precise one) and words.
+3. **Rule verdicts:** a qualifier counts as dropped when the claim lacks the source fact's
+   strongest hedge class (attribution > tentative > estimate > likelihood > modal); a different
+   value on the same topic is a contradiction.
+4. **Re-reads:** claims without facts are checked against the sources Claude read, re-read from
+   disk (hash-checked) or re-fetched; command and MCP output can't be re-read.
+5. **Report:** the Administrator writes the report from rows, uses and verdicts in one call.
 
 ## Evaluation plan
 
-The headline question: does re-injecting provenance during a run preserve qualifiers better than checking only afterwards, and at what cost? Two pieces answer it: a synthetic corpus where every answer is known, and an ablation across four conditions.
+The headline question: **does feeding the provenance record back into the loop keep qualifiers
+alive across steps, and at what token cost?** Details and the pre-registered protocol:
+`evaluation.md` and `findings/sprint-5.md`.
 
-**Synthetic corpus ("Fernwick Co.", a fictional company)**
-
-- Local docs: about 30 markdown and PDF files (memos, meeting notes, reports) with planted facts, each with a known qualifier and source.
-- Code: a small repo whose README and config state limits and values, some deliberately out of sync with the code.
-- Web: saved HTML pages served from a local web server, so re-fetch is reproducible and the internet isn't needed.
-- About 20 tasks, four of each of five types:
-
-| Task type | What it tests | Example |
-| --- | --- | --- |
-| Single-hop hedged fact | Qualifier survives one read | "What was Q3 revenue?" (source says *estimated*) |
-| Multi-hop chain | Qualifier survives 2–3 documents | Memo cites report, report hedges the figure |
-| Conflicting sources | Correct attribution between near-duplicates | Two reports disagree on a date |
-| Compaction stress | Provenance survives `/compact` | Long task with a forced compaction midway |
-| No-source question | Unsupported claims flagged | Asks something no file contains |
-
-Ground truth is a TOML file per task (read with the standard library's `tomllib`) listing the expected facts, their source spans and qualifiers, so scoring is automatic. Each task also has a pressure prompt (a slide line, a table, a headline, an executive summary): with natural prompts models kept every qualifier in the Sprint 4 dry run, a ceiling effect. The study protocol is in `docs/findings/sprint-5.md`.
-
-**Ablation conditions**
-
-1. Off (plugin disabled)
-2. Post-hoc only (Stop verification, no re-injection)
-3. Medium
-4. High
-
-Comparing 2 and 3 isolates the main contribution.
-
-**Metrics**
-
-- Qualifier preservation rate: planted hedges still present in the final answer.
-- Attribution precision and recall: claim-to-span links against ground truth.
-- Verifier accuracy: qlaudified's verdicts against the known answer.
-- Cost overhead per condition: Claude Code's `total_cost_usd` plus the sidecar's `usage.jsonl`.
-- Latency: hook and verification timings.
-
-**Harness, sized for a Pro plan.** Only three conditions run live: Off, Medium and High. The post-hoc condition is the Off transcripts verified offline, which gives the same answers without new runs. 20 tasks × 3 live conditions × 2 repeats is about 120 short runs on a Sonnet-class primary model, spread over about a week with a daily cap from the cost ledger. If the cap bites, the second repeat of the Off condition goes first. Every run is recorded, so verifier changes are re-scored for free.
+- **Conditions:** Off (no plugin) · Low (record only) · Medium (record + refeed) · High (+ retry).
+  The headline compares Medium with Low; Low with Off checks the record itself has no effect.
+- **Tasks:** the 20-task Fernwick corpus (natural and pressure prompts) plus decay tasks where the
+  question comes 0, ~5 or ~15 steps after the hedged fact is read.
+- **Measures:** qualifiers kept in the final answer; the decay curve (qualifier present at first
+  use, at later uses, at the end); ledger accuracy against ground truth (claims, origins,
+  qualifiers); verifier accuracy; consults of the CSV; cost per condition and per row.
 
 ## Milestones
 
-Six one-week sprints, starting with a three-day spike on Oct 9, lead to an evaluated v1.0.0 on Nov 15. Medium mode is usable daily by the end of Sprint 2.
+Sprints 0–4 built revision 1 (rule-based capture and verification, deltas, High mode, eval
+harness). Sprint 5 rebuilds the core around the Provenance Administrator; Sprint 6 runs the study
+and releases v1. Details in `sprint-plan.md`.
 
-*Timeline — "Six sprints to an evaluated v1 on Nov 15":* S0 Spike (Oct 9–11) · S1 Foundations + capture (Oct 12–18) · S2 Medium end to end (Oct 19–25) · S3 Web + model tiers (Oct 26–Nov 1) · S4 High + eval harness (Nov 2–8) · S5 Results + release (Nov 9–14) · v1.0.0 on GitHub (Nov 15).
+## Decisions to lock in
 
-Tasks, requirement IDs and the "done when" check for each sprint are in `sprint-plan.md`.
+Technical decisions that carry over from revision 1, plus the new ones.
 
-## Decisions to lock in now
-
-These close gaps that would otherwise surface mid-sprint. All are settled as of Oct 8.
-
-| Area | Decision | Why it eases development |
+| Area | Decision | Why |
 | --- | --- | --- |
-| Runtime dependencies | Core is standard library only (`json`, `sqlite3`, `re`, `urllib`, `html.parser`); `[web]` and `[nli]` are pip extras | Hooks run on plain system Python with no virtualenv to locate, and start fast |
-| Python | 3.11+ (raised from 3.10 on Oct 8 so config can use the standard library's `tomllib`); `run.py` logs a clear one-time message and exits 0 on older interpreters | Sprint 0: bare `python` on Windows hit the Store's 3.9; Apple's `python3` may be 3.9 too |
-| Hook command | One shell-form line per hook: `command -v py >/dev/null 2>&1 && exec py -3 -S "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event> \|\| exec python3 -S "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" <Event>`; Git for Windows is required on Windows. `-S` skips `site` (the core is stdlib-only), which saved ~50 ms per call in Sprint 1 | hooks.json has no per-OS field. Two exec hooks per event showed a visible error per event (Sprint 0 findings, option a); a `/qlaudified setup` step is the fallback if Git-less Windows matters |
-| Hook entry point | One `run.py <event>` dispatcher with lazy imports | One place for error handling, logging and timing; keeps NFR-3 reachable |
-| Turn identity | `session_id` names the session folder; `prompt_id` keys each turn | Both come from Claude Code, so there are no counters to keep in sync |
-| Concurrency | SQLite in WAL mode with a busy timeout | Parallel tool calls fire several hooks at once |
-| Store | SQLite is the source of truth; `provenance.csv` is an export | Fast lookups for the verifier, readable CSV for people |
-| What counts as retrieval | `Read`, `Grep`, `WebFetch`, `WebSearch`, MCP tools, and all `Bash` **and `PowerShell`** tool output as `command-output` spans; simple file reads (`cat`, `type`, `Get-Content`, `head`, `tail`, `sed -n`) are upgraded to file spans with line ranges; huge or install-style output is skipped. Everything else (`Glob`, `ToolSearch`, `Agent`, ...) is ignored by tool name | Claims backed by scripts and tests stay sourced instead of showing as unsupported. Windows without Git Bash runs commands through the PowerShell tool |
-| Payload shapes | Read: `tool_response.file.{content, startLine, numLines}`; Grep: `rel\path:line:text` lines; Bash: `stdout`/`stderr` only; WebFetch: summary in `result`, page size in `bytes`; WebSearch: `{title, url}` results; MCP: `tool_name` `mcp__<server>__<tool>`, response is a **list** of `{type, text}` blocks | Mapped in Sprint 0 (findings, payload map); capture must accept dict and list responses |
-| `Read` output | Already arrives without line-number prefixes; the locator comes from `startLine` and `numLines` | Spans must hold the file's real text |
-| Paths | Normalize every path: expand Windows 8.3 short names (`DRYDEN~1`) to long names, unify separators (env vars use `/`, payloads `\`), then store relative to the project | Sprint 0: `%TEMP%` paths arrived in 8.3 form; matching on raw strings would split one file into several sources |
-| Self-capture | Never capture paths under `.claude/.qlaudified/` | Sprint 0: Grep matched the probe's own log folder; hidden folders aren't skipped |
-| Subagents | Capture inside subagents (their PostToolUse payloads carry `agent_id` and `agent_type`); their injections land in their own context; a subagent's reply becomes a span derived from its sources. A passage is one span per agent (unique on source, locator, hash and agent), so a subagent re-reading a file gets its own span. Act on `SubagentStop` only when `agent_type` is set | Explore-style agents do much of the reading. `SubagentStop` also fires every turn for internal helpers with an empty `agent_type` |
-| Final answer text | `Stop` reads `last_assistant_message` from its payload | No transcript parsing for VER-1 |
-| Claim parsing | Claims come from prose, list items and table rows; code blocks, headings, bare links and short lead-ins are skipped. Sentences split at clause joints (`;`, `, which`, `, but`, ...), but hedges count across the whole sentence. The assistant talking about itself or to the user is never critical | Code isn't a factual claim about a source; Sprint 2 live runs showed a split clause losing its hedge |
-| Tier 1 matching | Spans are compared sentence by sentence, so a hedge belongs to the number next to it; numbers match on value (0.5%) with units equal or one side unitless; a yearless date (`--11-18`) matches the same day | `SYNC_INTERVAL_S = 900` stays unhedged when the comment above says "roughly" |
-| Turns | Stop records each answer in a `turns` table keyed by `prompt_id`; reports are `turn-<n>`; Low records the answer so `/qlaudified report` can verify it on request | Report on request in Low needs the answer text |
-| Recording | With `QLAUDIFIED_RECORD_DIR` set, `run.py` appends each event and our response to `events.jsonl` there (`live.py --record`) | Every live run becomes a replay fixture with the plugin's own responses |
-| Web re-fetch | PostToolUse launches a detached `python -m qlaudified.refetch` (stdlib `urllib` + `html.parser` main text); Stop waits up to 8 s for pending fetches; the summary's `derived_from` holds the raw span range or `summarized-only: <reason>`. Raw page text replaces the summary as evidence, and summary sentences that drop a page qualifier are reported | Sprint 3: `async` hooks are killed when a `claude -p` session ends, and the eval runs in `-p` |
-| Model tiers | NLI: DeBERTa-v3-xsmall MNLI (quantized ONNX, ~87 MB) in `~/.cache/qlaudified/`, installed with `/qlaudified nli install`; runs only on claims the rules leave open, skips search titles. LLM: one batched call per turn, only for unresolved, partial, inference and unsupported claims with candidates; it may cite only the passages it was given | Each tier is optional and labelled in the report |
-| High sidecar | Detached haiku call per retrieval with flagged sentences, launched from PostToolUse like the re-fetch; results are stored on the spans and injected with the next delta | A synchronous call would add ~3-4 s to every retrieval (Sprint 4 prep) |
-| Stop retry (VER-4) | `{"decision": "block", "reason": <numbered factual problem list>}`, never when `stop_hook_active` is true; the retry counts as one `--max-turns` turn. Only lexicon hedges and contradictions block; sidecar-only qualifiers are reported but never block | Confirmed live in Sprint 4 prep: Claude rewrote the answer with the qualifier restored |
-| Eval Off condition | Runs in Low mode: nothing reaches Claude's context, and the captured spans let the post-hoc condition re-verify the same runs offline | Exact post-hoc spans with no transcript parsing; a few no-plugin runs confirm equal cost |
-| Offline runs | `QLAUDIFIED_OFFLINE=1` (set by the simulator and the benchmark) turns off the re-fetch and the LLM backend | Replays must never touch the network or spend usage |
-| Low mode | Capture only: no injection or verification; report on request | Costs zero tokens and still leaves a trail |
-| Commands | One `/qlaudified` plugin skill: `mode`, `report`, `report --deep`, `csv`. Its `` !`...` `` line runs the CLI before Claude sees anything, so a command costs no model turn | One file to maintain, one name to learn. A skill, not `commands/`, because `${CLAUDE_PLUGIN_ROOT}` is only substituted in plugin skills |
-| LLM tier in Medium | On request only: `/qlaudified report --deep` runs it for that turn; automatic in High | Medium stays free on a Pro plan; you pay only for answers you check |
-| Retention | Prune sessions after 30 days; cap the raw cache at 200 MB; auto `.gitignore` | Raw copies can hold secrets and grow quickly |
-| Compatibility | Minimum Claude Code version 2.1.294 (the version Sprint 0 tested); `SessionStart` warns when older | Hook fields change between versions |
-| Eval primary model | Sonnet class | Closest to real use; the run count is capped by the cost ledger |
-| Name | Keep qlaudified, defined in one place; check Anthropic's brand guidelines before publishing, since it echoes "Claude" | A later rename is one edit, not a search |
+| Runtime dependencies | Core is standard library only; `[nli]` is an optional extra | Hooks run on plain system Python with no virtualenv |
+| Python | 3.11+; `run.py` explains older interpreters and exits 0 | Bare `python` on Windows can be the Store's 3.9 (Sprint 0) |
+| Hook command | One shell-form line per hook: `py -3 -S` if present, else `python3 -S`; Git for Windows required | One hooks.json for both OSes (Sprint 1) |
+| Hook entry point | One `run.py <event>` dispatcher with lazy imports | One place for error handling, logging and timing |
+| Turn and step identity | `session_id` names the session folder, `prompt_id` keys each turn, steps count tool calls within the session | No counters to keep in sync across processes beyond the store |
+| Concurrency | SQLite WAL with a busy timeout; the CSV is rewritten under the database lock | Parallel tool calls fire several hooks at once |
+| Store | SQLite is the source of truth; `provenance.csv` is rewritten from it after every update and kept read-only | Any edit to the CSV is undone at the next rewrite |
+| What is a fact | A sentence or line with a number, date or qualifier (lexicon, plus sidecar finds). Named entities alone don't make a fact | Keeps the ledger to tens of rows, not every sentence |
+| Passages | Never stored. Sources read are logged with a hash; local files are re-read from disk when needed, web pages re-fetched; command and MCP output keep only their facts | Small store, little copied text (NFR-8) |
+| Sidecar timing | Synchronous in every mode, gated by the threshold; the web re-fetch stays a background job | Rows are complete before Claude's next step; time is acceptable, tokens are minimized |
+| Reasoning text | Read from the transcript (`transcript_path` in every payload): assistant text since the last tool result. Thinking arrives empty (redacted) in `claude -p`, so in practice this is Claude's visible text plus its tool inputs | Hooks don't receive Claude's reasoning directly |
+| Use tracking | A use is a clause stating a tracked fact's value on the same topic (topic overlap ignores numbers and runs both ways); its qualifiers are the hedges in that clause. Figures Claude states that match no fact become its own claim rows (Model Inference, Training Data or Hybrid, for the sidecar). The final answer is the last use | Found in Sprint 5: a shared figure alone isn't a shared topic, and a hedge belongs to the figure in its own clause |
+| Retrieval tools | `Read`, `Grep`, `WebFetch`, `WebSearch`, MCP tools, `Bash` and `PowerShell` output; simple file reads become file facts with line numbers | Mapped in Sprint 0 |
+| Paths | Normalize 8.3 short names and separators, store relative to the project | Sprint 0 |
+| Self-capture | Never capture the store; reads of `provenance.csv` are logged as consults instead | Sprint 0 |
+| Subagents | Facts and uses carry the agent ID; refeed lands in that agent's context | Sprint 0, Sprint 1 |
+| Web re-fetch | Background job from PostToolUse; Stop waits up to 8 s | `async` hooks die with `claude -p` (Sprint 3) |
+| Stop retry | `{"decision": "block", "reason": <factual problem list>}`, never when `stop_hook_active`; counts as one `--max-turns` turn | Confirmed live (Sprint 4) |
+| Recording | `QLAUDIFIED_RECORD_DIR` makes `run.py` log every event and response | Live runs become replay fixtures |
+| Offline runs | `QLAUDIFIED_OFFLINE=1` turns off the re-fetch and real sidecar backends | Tests and replays never spend usage |
+| Commands | One `/qlaudified` plugin skill: `mode`, `report`, `csv` | No model turn per command |
+| Retention | Prune sessions after 30 days; auto `.gitignore` | Stores can hold excerpts of private sources |
+| Compatibility | Claude Code 2.1.294+ | The versions tested |
 
 ## Risks and open questions
 
-The biggest technical risk is inline markers: the display hook runs while the answer streams, before Stop verification has a verdict.
-
-**Risks**
-
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Markers need verdicts that don't exist yet while streaming | Inline markers show nothing useful | **Confirmed in Sprint 0:** answers stream one paragraph per `MessageDisplay` delta, and Stop can fire before the last one. Markers come from fast deterministic span matching per delta, rewritten via `displayContent`; full verdicts go in a summary line at Stop and in the report |
-| `claude -p` startup takes seconds and uses plan limits | Slow Stop in High, eval runs throttled | **Confirmed:** ~1.7 s fixed overhead, ~2.6 s per haiku call. One batched call per turn; tier 3 only; haiku by default; Ollama as a local fallback |
-| Windows hook quirks (paths with backslashes, PowerShell vs Git Bash) | Hooks fail silently | **Changed:** shell-form hook with a `py -3` / `python3` fallback (see the Hook command decision); Git for Windows required; normalize 8.3 short paths and separators; CI on both OSes |
-| Re-fetched page differs from what WebFetch saw | False "qualifier dropped" flags | **Changed:** WebFetch's payload has no raw text, only the summary and `bytes`. Compare the re-fetched page's size to `bytes`; label large mismatches `summarized-only` |
-| Stored spans carry injected instructions | Re-injection relays an attack | Inject only extracted facts and qualifiers in a fixed format, never raw text; never capture the store itself. Sprint 0: Claude treats injected lines as labelled hook output and cross-checks them, so paths in them must be right |
-| Rule-based claim splitting misses compound claims | Lower attribution recall | Measure it in the eval; let the tier-3 LLM split leftovers |
-| Stop retry loops or annoys | Worse UX in High | Hard cap of one retry per turn, guarded by the Stop payload's `stop_hook_active`; easy to disable |
+| Sidecar cost per step | Overhead too high for daily use | Threshold, small inputs, haiku or Ollama, rules for exact fields; measured per row in the pilot |
+| Sidecar latency (3–5 s per qualifying step) | Slower runs | Accepted for research use; the threshold skips most steps |
+| Reasoning text from the transcript | Format may change between versions; thinking may be redacted | Parse only assistant text blocks; fall back to tool inputs alone |
+| Origin judgments (inference vs training data) are subjective | Ledger accuracy hard to score | Ground truth for origins only where the corpus makes it unambiguous; report agreement, not truth, elsewhere |
+| Claude ignores the CSV | Refeed has no effect | The consult log measures it; deltas still carry the key facts |
+| Claude's own notes become sources | A dropped qualifier gets laundered | Files Claude wrote in the session are derived, not sources (open item) |
+| Injected rows read as instructions | Prompt-injection defenses trip | Plain facts in a fixed format, never raw source text |
 
 **Open questions**
 
-- [ ] Concrete criticality thresholds for Medium vs High: which claim types count, and at what confidence? (Sprint 2)
-- [ ] Default small model for the `claude-cli` backend, chosen from Sprint 0 timings.
-- [ ] Check the name against Anthropic's brand guidelines, and availability on GitHub and PyPI, before publishing.
-- [ ] Which 2–3 real tasks to show as README demos once the eval is done.
+- [ ] Files Claude writes in the session: mark as derived, and flag hedged figures written without
+  their hedge at write time?
+- [ ] Separate `claims.csv`, or claim verdicts in the main CSV?
+- [ ] Decay distances: 0, ~5, ~15 steps, or a longer tail?
+- [ ] Final NFR-1 and NFR-2 targets, from the pilot's measured cost per row.
 
-Low mode, the command layout and the store format are now settled in the decisions table above.
+## Design history
+
+**Revision 1 (Sprints 0–4)** made rule-based capture and verification the core: every passage
+stored as a span, deltas injected in Medium, a small background sidecar in High only, and
+verification at Stop by rules, optional NLI and an LLM tier. It met its latency targets and
+showed the mechanisms work (findings for Sprints 0–4).
+
+**Revision 2 (Oct 8)** returns to the original idea: the sidecar's provenance record is the
+product, built per REQ-3.2, and refeeding it is the hypothesis. What changed and why:
+
+- The sidecar moves from a High-only extra to the core of every mode, and runs synchronously.
+- Facts replace passages in storage; non-fact claims are checked by re-reading sources.
+- Rows follow a claim through the loop (first use, uses, impact), not just its source.
+- `provenance.csv` becomes rolling and read-only, and Claude is told where it is.
+- Low now records with the sidecar (no longer free) and is the eval's record-only condition.
+- Rule verification, the web re-fetch, markers, the retry and the eval harness carry over.
+- Superseded: per-passage spans and their BM25 index, Medium's code-claim level, NLI as a tier
+  (kept as an optional extra for re-read claims), and the 300 ms target for every PostToolUse.

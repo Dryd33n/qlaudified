@@ -1,0 +1,26 @@
+# Decay task (launch, about 0 tool calls between the read and the question), Sprint 5.
+id = "decay-launch-d0"
+type = "decay"
+sandbox = "tests/sandbox/decay-launch-d0"
+distance = 0
+compacted = false
+
+[[facts]]
+id = "launch-date"
+source = "launch-plan.md"
+locator = "L3"
+value = "2027-03-03"
+qualifiers = ["tentatively"]
+origin = "Provided Document"
+kept = "The launch is tentatively set for March 3, 2027."
+dropped = "The launch is on March 3, 2027."
+
+[[facts]]
+id = "seat-price"
+source = "launch-plan.md"
+locator = "L4"
+value = "15 USD"
+qualifiers = ["expected to"]
+origin = "Provided Document"
+kept = "Seats are expected to cost $15 per month."
+dropped = "Seats cost $15 per month."

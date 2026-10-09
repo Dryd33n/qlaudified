@@ -1,4 +1,4 @@
-"""Turn a retrieval tool result into spans (CAP-1, CAP-5, CAP-6).
+"""Turn a retrieval tool result into facts and a sources-read log (CAP-1, CAP-5, CAP-6, PROV-1).
 
 Field locations come from the Sprint 0 payload map (docs/findings/sprint-0.md):
 
@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 
 from qlaudified import indexer, paths
-from qlaudified.store import Span
+from qlaudified.store import Source, Span
 
 SHELL_TOOLS = {"Bash", "PowerShell"}
 RETRIEVAL_TOOLS = {"Read", "Grep", "WebFetch", "WebSearch", *SHELL_TOOLS}
@@ -53,12 +53,22 @@ def is_retrieval(tool_name: str) -> bool:
 
 
 def spans_from_tool_result(
-    payload: dict, project: Path | None = None, lexicon: dict[str, list[str]] | None = None
+    payload: dict, project: Path | None = None, lexicon: dict[str, list[str]] | None = None,
+    provided: set[str] | frozenset[str] = frozenset(), step: int = 0,
 ) -> list[Span]:
-    """Spans for one PostToolUse payload, indexed and ready to store (IDs are set by the store)."""
+    """Fact rows for one PostToolUse payload, ready to store (IDs are set by the store)."""
+    return read_tool_result(payload, project, lexicon, provided, step)[0]
+
+
+def read_tool_result(
+    payload: dict, project: Path | None = None, lexicon: dict[str, list[str]] | None = None,
+    provided: set[str] | frozenset[str] = frozenset(), step: int = 0,
+) -> tuple[list[Span], list[Source]]:
+    """(facts, sources read) for one PostToolUse payload. Passages are parsed into facts and
+    logged as sources (with a hash), never stored themselves (design revision 2)."""
     tool = payload.get("tool_name") or ""
     if not is_retrieval(tool):
-        return []
+        return [], []
     project = project if project is not None else paths.project_dir(payload)
     cwd = payload.get("cwd")
     tool_input = payload.get("tool_input") or {}
@@ -79,21 +89,80 @@ def spans_from_tool_result(
 
     agent = payload.get("agent_id") or "main"
     turn = payload.get("prompt_id")
-    return [indexed(origin, source, locator, text, agent, turn, lexicon)
-            for origin, source, locator, text in raw[:MAX_SPANS_PER_CALL]
-            if text.strip() and not paths.is_store_path(source)]
+    facts: list[Span] = []
+    sources: list[Source] = []
+    for origin, source, locator, text in raw[:MAX_SPANS_PER_CALL]:
+        if not text.strip() or paths.is_store_path(source):
+            continue
+        sources.append(Source(source, locator, _hash(text), origin, REREADABLE.get(origin, "no"),
+                              agent, turn, step))
+        if origin == "search-snippet":
+            continue  # result titles are logged as sources but rarely state a fact
+        facts += facts_from_passage(origin, source, locator, text, agent, turn, lexicon,
+                                    category_for(origin, source, provided), step)
+    return facts, sources
+
+
+# How each kind of source can be read again later (VER-3): local files from disk, pages by
+# re-fetching; command output and MCP results are gone once the tool returns.
+REREADABLE = {"local-doc": "file", "code": "file", "web-summary": "web", "web-raw": "web"}
+_LEADING_MARKUP = re.compile(r"^(?:[\s#>*+\-|]|//|/\*|\"\"\"|''')+")
+_TRAILING_MARKUP = re.compile(r"(?:\"\"\"|'''|\*/)\s*$")
+
+
+def category_for(origin: str, source: str, provided: set[str] | frozenset[str]) -> str:
+    """REQ-3.2 origin for what Claude read; Claude's own claims are classified by the sidecar."""
+    if origin in ("local-doc", "code"):
+        return "Provided Document" if source in provided else "Internal Document"
+    if origin == "user-prompt":
+        return "User Prompt"
+    return "Direct Retrieved Fact"
+
+
+def _hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def facts_from_passage(origin: str, source: str, locator: str, text: str, agent: str = "main",
+                       turn: str | None = None, lexicon: dict[str, list[str]] | None = None,
+                       category: str = "", step: int = 0) -> list[Span]:
+    """The facts in a passage: each sentence (or code line) with a number, date or qualifier.
+
+    File passages get one locator per line (``L5``); other passages keep theirs (``p3``)."""
+    from qlaudified import text as textlib
+
+    m = re.fullmatch(r"L(\d+)(?:-L\d+)?", locator)
+    first_line = int(m.group(1)) if m else None
+    out = []
+    for i, line in enumerate(text.splitlines()):
+        stripped = _TRAILING_MARKUP.sub("", _LEADING_MARKUP.sub("", line)).strip()
+        if not stripped:
+            continue
+        for sentence in textlib.sentences(stripped):
+            cleaned = textlib.clean(sentence)
+            numbers = indexer.extract_numbers(cleaned) + indexer.extract_dates(cleaned)
+            hedges = indexer.find_hedges(sentence, lexicon)
+            if not numbers and not hedges:
+                continue
+            out.append(Span(
+                span_id="", origin=origin, source=source,
+                locator=f"L{first_line + i}" if first_line is not None else locator,
+                text=sentence, numbers="; ".join(numbers),
+                qualifiers="; ".join(w for words in hedges.values() for w in words),
+                agent_id=agent, turn=turn, hash=_hash(sentence), category=category, step=step,
+            ))
+    return out
 
 
 def indexed(origin: str, source: str, locator: str, text: str, agent: str = "main",
             turn: str | None = None, lexicon: dict[str, list[str]] | None = None) -> Span:
-    """A span with its numbers, dates and hedge words filled in (CAP-2)."""
+    """A single fact row for ``text`` as is (tests and tools that build one fact by hand)."""
     hedges = indexer.find_hedges(text, lexicon)
     return Span(
         span_id="", origin=origin, source=source, locator=locator, text=text,
         numbers="; ".join(indexer.extract_numbers(text) + indexer.extract_dates(text)),
         qualifiers="; ".join(w for words in hedges.values() for w in words),
-        agent_id=agent, turn=turn,
-        hash=hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
+        agent_id=agent, turn=turn, hash=_hash(text),
     )
 
 

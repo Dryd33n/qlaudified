@@ -1,0 +1,9 @@
+Read launch-plan.md and tell me in one line that you have read it.
+---
+Read ops-1.md, ops-2.md, ops-3.md, ops-4.md, ops-5.md and tell me each file's main figure in one line.
+---
+Read ops-6.md, ops-7.md, ops-8.md, ops-9.md, ops-10.md and tell me each file's main figure in one line.
+---
+Read ops-11.md, ops-12.md, ops-13.md, ops-14.md, ops-15.md and tell me each file's main figure in one line.
+---
+From what you read earlier, give me the launch date and the seat price as a markdown table with columns Item and Value, nothing else.

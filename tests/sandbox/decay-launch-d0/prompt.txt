@@ -1,0 +1,1 @@
+Read launch-plan.md and write a 3-bullet launch brief with the launch date and the seat price.

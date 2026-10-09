@@ -36,7 +36,7 @@ def test_bm25_ranks_the_fact_line_first_and_honors_cited_ids(notes):
     index = Index(notes)
     assert index.top("What was Q3 revenue?")[0][0].span_id == at(notes, "L3")
     assert index.top("Headcount reached 48")[0][0].span_id == at(notes, "L4")
-    assert index.top("Pricing per seat [S5]")[0][0].span_id == "S5"
+    assert index.top("Pricing per seat [F5]")[0][0].span_id == "F5"
 
 
 def test_dropped_qualifier_is_flagged_with_the_words(notes):
@@ -101,14 +101,59 @@ def test_a_date_without_a_year_matches_the_same_day():
     assert check("The older plan tentatively said November 18.", spans)["verdict"] == "supported"
 
 
-def test_code_values_are_checked_in_high_only():
-    from qlaudified.config import Mode
+def test_claims_without_facts_are_checked_by_re_reading_sources(tmp_path):
+    """Design revision 2: only facts are stored, so a claim with no number or qualifier is
+    checked against the files Claude read, re-read from disk (VER-3)."""
+    import shutil
 
-    spans = spans_from("repo", "ledger/config.py", "ledger/sync.py")
-    answer = ("SYNC_INTERVAL_S is 900 seconds. The next sync is scheduled from last_ts plus "
-              "SYNC_INTERVAL_S.")
-    medium, skipped = verify_answer(answer, spans, Turn(1, "p", answer, ""), Config())
-    assert [c.text for c in medium] == [
-        "The next sync is scheduled from last_ts plus SYNC_INTERVAL_S."] and skipped == 1
-    high, _ = verify_answer(answer, spans, Turn(1, "p", answer, ""), Config(mode=Mode.HIGH))
-    assert len(high) == 2
+    from qlaudified import capture
+    from qlaudified.store import Store
+    from qlaudified.verify import verify_turn
+
+    project = tmp_path / "project"
+    shutil.copytree(SANDBOX / "repo", project)
+    store = Store(project / ".claude" / ".qlaudified" / "sessions" / "s1")
+    content = (project / "ledger" / "sync.py").read_text(encoding="utf-8")
+    payload = {"tool_name": "Read", "cwd": str(project),
+               "tool_response": {"file": {"filePath": str(project / "ledger" / "sync.py"),
+                                          "content": content, "startLine": 1}}}
+    facts, sources = capture.read_tool_result(payload, project)
+    store.add_spans(facts)
+    store.add_sources(sources)
+    answer = ("The next sync is computed from last_ts plus the sync interval. "
+              "The sync module was written by Dana Whitfield.")
+    turn = store.start_turn("p1", answer)
+    found = verify_turn(store, turn, Config(), project=project).claims
+    assert [c.decided_by for c in found] == ["reread", "deterministic"]
+    assert found[0].verdict in ("supported", "partial")  # word overlap with the code itself
+    assert found[0].span_ids == ["ledger/sync.py L4-L6"]
+    assert found[1].verdict == "unsupported"  # nothing Claude read says who wrote it
+
+    (project / "ledger" / "sync.py").write_text(content.replace("next sync", "next run"),
+                                               encoding="utf-8")
+    turn = store.start_turn("p2", "The next sync is computed from last_ts plus the sync interval.")
+    [changed] = verify_turn(store, turn, Config(), project=project).claims
+    assert (changed.verdict, changed.span_ids) == ("source-changed", ["ledger/sync.py"])
+
+
+def test_command_output_cant_be_re_read_so_such_claims_are_not_checked(tmp_path):
+    from qlaudified.store import Source, Store
+    from qlaudified.verify import verify_turn
+
+    store = Store(tmp_path / "s")
+    store.add_sources([Source("$ pytest -q", "p1", "abc", "command-output", "no")])
+    turn = store.start_turn("p1", "The test suite covers the sync scheduler at Fernwick.")
+    [claim] = verify_turn(store, turn, Config(), project=tmp_path).claims
+    assert claim.verdict == "not-checked"
+
+
+def test_claudes_own_claims_are_never_evidence(notes):
+    claude = Span("F99", "claude", "claude", "step 3", "Q3 revenue was $9.9M.", "9900000 USD",
+                  hash="c")
+    assert verdicts("Q3 revenue was $9.9M.", [*notes, claude])[0][1] in (
+        "unsupported", "contradicted")
+
+def test_a_cited_fact_id_goes_first(notes):
+    index = Index(notes)
+    revenue = at(notes, "L3")
+    assert index.top(f"Headcount reached 48 [{revenue}]")[0][0].span_id == revenue

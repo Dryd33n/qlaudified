@@ -1,37 +1,60 @@
-"""Session store: SQLite (WAL, busy timeout) is the source of truth; provenance.csv is an export.
+"""Session ledger: SQLite (WAL, busy timeout) is the source of truth; provenance.csv is its rolling,
+read-only view (design revision 2).
 
-Layout per session: index.sqlite, provenance.csv, raw/<hash>.txt, reports/turn-<n>.{md,json},
-usage.jsonl. Several hook processes write at once (parallel tool calls), so every write is one
-short ``BEGIN IMMEDIATE`` transaction. The store root gets a ``.gitignore`` on first use. Turns are
-numbered in the order their Stop arrives and keyed by ``prompt_id``.
+The ledger holds **facts, never passages**: one row per critical fact (a sentence or line with a
+number, date or qualifier) that Claude read or stated, with its provenance fields (REQ-3.2). What
+Claude read is logged in ``sources`` (path or URL, lines, content hash; no text), so a source can
+be re-read later and checked for changes. Steps count tool calls per session. Several hook
+processes write at once (parallel tool calls), so every write is one short ``BEGIN IMMEDIATE``
+transaction, and the CSV is rewritten under the same lock.
+
+Layout per session: index.sqlite, provenance.csv, claims.csv, consults.jsonl,
+reports/turn-<n>.{md,json}, usage.jsonl, timings.jsonl.
 """
 
+import contextlib
 import csv
 import os
 import sqlite3
+import stat
 import time
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
 from qlaudified.paths import ensure_gitignore
 
-TEXT_CAP = 4000  # chars kept in the index; longer text goes to raw/<hash>.txt
+TEXT_CAP = 600  # a fact is one sentence or line; anything longer is cut
 
 
 @dataclass
 class Span:
-    span_id: str  # "S14"
-    origin: str  # local-doc | code | command-output | web-raw | web-summary | search-snippet | mcp | user-prompt
-    source: str  # project-relative path, URL, or "mcp:<server>/<tool>"
-    locator: str  # "L22-L24" or "p7"
-    text: str
-    numbers: str = ""
-    qualifiers: str = ""
+    """One fact row. Named Span for continuity with revision 1; ``Fact`` is the same class."""
+
+    span_id: str  # "F14"
+    origin: str  # how it was read: local-doc | code | command-output | web-raw | web-summary |
+    #              search-snippet | mcp | user-prompt | claude
+    source: str  # project-relative path, URL, "mcp:<server>/<tool>", "prompt" or "claude"
+    locator: str  # "L22", "p7", "turn 2" or "step 5"
+    text: str  # the critical claim (REQ-3.2: description)
+    numbers: str = ""  # normalized values and dates
+    qualifiers: str = ""  # qualifiers in the original source (REQ-3.2)
     derived_from: str | None = None
     agent_id: str = "main"
     turn: str | None = None  # prompt_id
     ts: str = ""
     hash: str = ""
+    category: str = ""  # REQ-3.2 origin: Direct Retrieved Fact | Provided Document | Internal
+    #                    Document | User Prompt | Model Inference | Training Data | Hybrid
+    step: int = 0  # the tool call that brought it in
+    first_use_step: int | None = None
+    first_use_qualifiers: str | None = None  # qualifiers present at first use ("" = none)
+    uses: str = ""  # "5:Write notes.md; 9:Bash calc.py"
+    primary_source: str = ""  # hybrids: the fact that mainly drove it
+    sources_agree: str = ""  # hybrids: yes | no
+    impact: str = ""  # operational impact (REQ-3.2)
+
+
+Fact = Span
 
 
 @dataclass
@@ -39,11 +62,12 @@ class Claim:
     claim_id: str  # "C2.1": turn 2, first claim
     turn: str  # prompt_id
     text: str
-    span_ids: list[str]
-    # supported | partial | qualifier-dropped | contradicted | unsupported | inference | unresolved
+    span_ids: list[str]  # fact IDs
+    # supported | partial | qualifier-dropped | contradicted | unsupported | inference |
+    # unresolved | not-checked | source-changed
     verdict: str
     dropped_qualifiers: list[str]
-    decided_by: str  # deterministic | nli | llm | none
+    decided_by: str  # deterministic | nli | llm | reread | none
     confidence: float
     critical: bool
 
@@ -58,17 +82,27 @@ class Turn:
 
 SPAN_FIELDS = [f.name for f in fields(Span)]
 CLAIM_FIELDS = [f.name for f in fields(Claim)]
-# provenance.csv: one row per span, then one per claim; claim rows reuse turn and text.
-CSV_FIELDS = ["kind", *SPAN_FIELDS, "claim_id", "verdict", "span_ids", "dropped_qualifiers",
-              "decided_by", "confidence", "critical"]
+# provenance.csv as Claude and people see it: REQ-3.2 columns first.
+CSV_COLUMNS = [
+    ("fact_id", "span_id"), ("claim", "text"), ("value", "numbers"), ("origin", "category"),
+    ("source", "source"), ("locator", "locator"), ("source_qualifiers", "qualifiers"),
+    ("first_use_step", "first_use_step"), ("first_use_qualifiers", "first_use_qualifiers"),
+    ("uses", "uses"), ("primary_source", "primary_source"), ("sources_agree", "sources_agree"),
+    ("operational_impact", "impact"), ("read_as", "origin"), ("agent_id", "agent_id"),
+    ("step", "step"), ("turn", "turn"), ("ts", "ts"),
+]
+CLAIM_CSV = ["claim_id", "turn", "text", "verdict", "fact_ids", "dropped_qualifiers",
+             "decided_by", "confidence", "critical"]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS spans (
     seq INTEGER PRIMARY KEY AUTOINCREMENT,
     span_id TEXT UNIQUE, origin TEXT, source TEXT, locator TEXT, text TEXT, numbers TEXT,
-    qualifiers TEXT, derived_from TEXT, agent_id TEXT, turn TEXT, ts TEXT, hash TEXT
+    qualifiers TEXT, derived_from TEXT, agent_id TEXT, turn TEXT, ts TEXT, hash TEXT,
+    category TEXT, step INTEGER, first_use_step INTEGER, first_use_qualifiers TEXT, uses TEXT,
+    primary_source TEXT, sources_agree TEXT, impact TEXT
 );
-CREATE UNIQUE INDEX IF NOT EXISTS spans_same_passage ON spans(source, locator, hash, agent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS spans_same_fact ON spans(source, locator, hash, agent_id);
 CREATE TABLE IF NOT EXISTS claims (
     claim_id TEXT PRIMARY KEY, turn TEXT, text TEXT, span_ids TEXT, verdict TEXT,
     dropped_qualifiers TEXT, decided_by TEXT, confidence REAL, critical INTEGER
@@ -76,11 +110,32 @@ CREATE TABLE IF NOT EXISTS claims (
 CREATE TABLE IF NOT EXISTS turns (
     n INTEGER PRIMARY KEY AUTOINCREMENT, prompt_id TEXT UNIQUE, answer TEXT, ts TEXT
 );
-CREATE TABLE IF NOT EXISTS sidecar (
-    span_id TEXT, sentence TEXT, criticality REAL, qualifiers TEXT, agent_id TEXT,
-    injected INTEGER DEFAULT 0, PRIMARY KEY (span_id, sentence)
+CREATE TABLE IF NOT EXISTS steps (
+    n INTEGER PRIMARY KEY AUTOINCREMENT, tool_use_id TEXT UNIQUE, tool TEXT, agent_id TEXT, ts TEXT
 );
+CREATE TABLE IF NOT EXISTS sources (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, locator TEXT, hash TEXT, origin TEXT,
+    rereadable TEXT, agent_id TEXT, turn TEXT, step INTEGER, ts TEXT,
+    UNIQUE (source, locator, hash, agent_id)
+);
+CREATE TABLE IF NOT EXISTS provided (source TEXT PRIMARY KEY, turn TEXT);
 """
+
+
+@dataclass
+class Source:
+    source: str
+    locator: str
+    hash: str
+    origin: str
+    rereadable: str  # file | web | no
+    agent_id: str = "main"
+    turn: str | None = None
+    step: int = 0
+
+
+def _now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
 class Store:
@@ -90,8 +145,22 @@ class Store:
         ensure_gitignore(self.session_dir.parent.parent)
         self.db_path = self.session_dir / "index.sqlite"
         self.csv_path = self.session_dir / "provenance.csv"
+        self.claims_path = self.session_dir / "claims.csv"
+        self._con: sqlite3.Connection | None = None
 
     def _connect(self) -> sqlite3.Connection:
+        """One connection per Store, opened on first use: a hook call makes ~10 ledger calls,
+        and reopening (WAL and schema checks included) cost ~30 ms of the step (Sprint 5)."""
+        if self._con is None:
+            self._con = self._open()
+        return self._con
+
+    def close(self) -> None:
+        if self._con is not None:
+            self._con.close()
+            self._con = None
+
+    def _open(self) -> sqlite3.Connection:
         con = sqlite3.connect(self.db_path, timeout=10, isolation_level=None)
         con.execute("PRAGMA busy_timeout = 10000")
         # Switching to WAL and creating the schema ignore the busy timeout, and parallel hooks
@@ -100,7 +169,7 @@ class Store:
             try:
                 if con.execute("PRAGMA journal_mode").fetchone()[0] != "wal":
                     con.execute("PRAGMA journal_mode = WAL")
-                if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'sidecar'").fetchone():
+                if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'provided'").fetchone():
                     con.executescript(SCHEMA)
                 return con
             except sqlite3.OperationalError as e:
@@ -110,47 +179,49 @@ class Store:
                 time.sleep(0.01 + 0.0002 * attempt)
         return con
 
-    def _query(self, sql: str, args: tuple = ()) -> list[tuple]:
+    @contextlib.contextmanager
+    def _write(self):
         con = self._connect()
         try:
-            return con.execute(sql, args).fetchall()
-        finally:
-            con.close()
+            con.execute("BEGIN IMMEDIATE")
+            yield con
+            con.execute("COMMIT")
+        except BaseException:
+            if con.in_transaction:
+                con.execute("ROLLBACK")
+            raise
+
+    def _query(self, sql: str, args: tuple = ()) -> list[tuple]:
+        return self._connect().execute(sql, args).fetchall()
+
+    # --- facts -------------------------------------------------------------------------------
 
     def add_span(self, span: Span) -> str:
         return self.add_spans([span])[0]
 
     def add_spans(self, spans: list[Span]) -> list[str]:
-        """Store spans and return their IDs. A passage the same agent saw before keeps its first ID;
-        a subagent reading it gets its own span, since its context is separate (CAP-6)."""
+        """Store facts and return their IDs. A fact the same agent saw before keeps its first ID;
+        a subagent reading it gets its own row, since its context is separate."""
         return [span_id for span_id, _ in self._insert(spans)]
 
     def add_new_spans(self, spans: list[Span]) -> list[Span]:
-        """Store spans and return only those this agent hadn't seen: the delta to inject (INJ-1).
-
-        Each hook call injects its own new rows, so parallel tool calls never inject a row twice."""
+        """Store facts and return only those this agent hadn't seen: the delta to refeed."""
         return [span for span, (_, new) in zip(spans, self._insert(spans), strict=True) if new]
 
     def _insert(self, spans: list[Span]) -> list[tuple[str, bool]]:
         out = []
-        con = self._connect()
-        try:
-            con.execute("BEGIN IMMEDIATE")
+        cols = [c for c in SPAN_FIELDS if c != "span_id"]
+        with self._write() as con:
             for span in spans:
                 row = asdict(span)
-                row["ts"] = row["ts"] or time.strftime("%Y-%m-%dT%H:%M:%S%z")
-                if len(row["text"]) > TEXT_CAP:
-                    self._save_raw(row["hash"], row["text"])
-                    row["text"] = row["text"][:TEXT_CAP]
-                cols = [c for c in SPAN_FIELDS if c != "span_id"]
+                row["ts"] = row["ts"] or _now()
+                row["text"] = row["text"][:TEXT_CAP]
                 cur = con.execute(
                     f"INSERT OR IGNORE INTO spans ({', '.join(cols)}) "
-                    f"VALUES ({', '.join('?' for _ in cols)})",
-                    [row[c] for c in cols],
-                )
+                    f"VALUES ({', '.join('?' for _ in cols)})", [row[c] for c in cols])
                 new = cur.rowcount == 1
                 if new:
-                    span_id = f"S{cur.lastrowid}"
+                    span_id = f"F{cur.lastrowid}"
                     con.execute("UPDATE spans SET span_id = ? WHERE seq = ?", (span_id, cur.lastrowid))
                 else:
                     span_id = con.execute(
@@ -160,78 +231,114 @@ class Store:
                     ).fetchone()[0]
                 span.span_id = span_id
                 out.append((span_id, new))
-            con.execute("COMMIT")
-        except BaseException:
-            if con.in_transaction:
-                con.execute("ROLLBACK")
-            raise
-        finally:
-            con.close()
         return out
-
-    def _save_raw(self, digest: str, text: str) -> None:
-        raw = self.session_dir / "raw"
-        raw.mkdir(exist_ok=True)
-        (raw / f"{digest or 'nohash'}.txt").write_text(text, encoding="utf-8")
 
     def spans(self, with_numbers: bool = False) -> list[Span]:
         where = " WHERE numbers != ''" if with_numbers else ""
         rows = self._query(f"SELECT {', '.join(SPAN_FIELDS)} FROM spans{where} ORDER BY seq")
         return [Span(**dict(zip(SPAN_FIELDS, r, strict=True))) for r in rows]
 
+    facts = spans
+
+    def update_fact(self, span_id: str, **values) -> None:
+        unknown = set(values) - set(SPAN_FIELDS)
+        if unknown:
+            raise ValueError(f"unknown fact fields: {sorted(unknown)}")
+        with self._write() as con:
+            con.execute(f"UPDATE spans SET {', '.join(f'{k} = ?' for k in values)} "
+                        "WHERE span_id = ?", (*values.values(), span_id))
+
+    def delete_fact(self, span_id: str) -> None:
+        """The sidecar judged a candidate trivial (a version number, a step count)."""
+        with self._write() as con:
+            con.execute("DELETE FROM spans WHERE span_id = ?", (span_id,))
+
+    def append_impact(self, span_id: str, note: str) -> None:
+        """Operational impact grows as a fact is used (PROV-5)."""
+        with self._write() as con:
+            row = con.execute("SELECT impact FROM spans WHERE span_id = ?", (span_id,)).fetchone()
+            if row is not None:
+                impact = f"{row[0]}; {note}" if row[0] else note
+                con.execute("UPDATE spans SET impact = ? WHERE span_id = ?", (impact, span_id))
+
     def set_derived_from(self, span_id: str, value: str) -> None:
-        """Link a WebFetch summary to its raw page spans, or mark it ``summarized-only`` (CAP-3, 4)."""
-        con = self._connect()
-        try:
-            con.execute("UPDATE spans SET derived_from = ? WHERE span_id = ?", (value, span_id))
-        finally:
-            con.close()
+        """Link a WebFetch summary fact to its page, or mark it ``summarized-only`` (CAP-3, 4)."""
+        self.update_fact(span_id, derived_from=value)
 
-    def add_sidecar(self, rows: list[dict]) -> None:
-        """High sidecar results per flagged sentence: criticality and extra qualifiers (SID-2)."""
-        con = self._connect()
-        try:
-            con.executemany(
-                "INSERT OR REPLACE INTO sidecar (span_id, sentence, criticality, qualifiers, "
-                "agent_id) VALUES (?, ?, ?, ?, ?)",
-                [(r["span_id"], r["sentence"], r["criticality"], "; ".join(r["qualifiers"]),
-                  r["agent_id"]) for r in rows])
-        finally:
-            con.close()
-
-    def take_sidecar(self, agent_id: str) -> list[dict]:
-        """Sidecar rows with extra qualifiers not yet injected for this agent; marks them injected."""
-        con = self._connect()
-        try:
-            con.execute("BEGIN IMMEDIATE")
-            rows = con.execute(
-                "SELECT span_id, sentence, qualifiers FROM sidecar WHERE agent_id = ? "
-                "AND injected = 0 AND qualifiers != ''", (agent_id,)).fetchall()
-            con.execute("UPDATE sidecar SET injected = 1 WHERE agent_id = ? AND injected = 0",
-                        (agent_id,))
-            con.execute("COMMIT")
-        finally:
-            con.close()
-        return [{"span_id": a, "sentence": b, "qualifiers": c.split("; ")} for a, b, c in rows]
+    def record_use(self, span_id: str, step: int, where: str, qualifiers: str) -> bool:
+        """Note that a fact was used at ``step``; the first use also keeps the qualifiers present
+        then (PROV-4). Returns True for the first use."""
+        with self._write() as con:
+            row = con.execute("SELECT first_use_step, uses FROM spans WHERE span_id = ?",
+                              (span_id,)).fetchone()
+            if row is None:
+                return False
+            first, uses = row
+            entry = f"{step}:{where}"
+            if entry in (uses or "").split("; "):
+                return False
+            uses = f"{uses}; {entry}" if uses else entry
+            if first is None:
+                con.execute("UPDATE spans SET uses = ?, first_use_step = ?, first_use_qualifiers = ? "
+                            "WHERE span_id = ?", (uses, step, qualifiers, span_id))
+                return True
+            con.execute("UPDATE spans SET uses = ? WHERE span_id = ?", (uses, span_id))
+            return False
 
     def sidecar_qualifiers(self) -> list[str]:
-        """Every qualifier the sidecar found in this session: an extra lexicon class at Stop."""
-        rows = self._query("SELECT qualifiers FROM sidecar WHERE qualifiers != ''")
-        return sorted({w for (q,) in rows for w in q.split("; ") if w})
+        """Qualifiers on facts that the base lexicon doesn't know (sidecar finds): an extra
+        lexicon class when verifying."""
+        from qlaudified.lexicon import HEDGES
+
+        known = {w for words in HEDGES.values() for w in words}
+        rows = self._query("SELECT qualifiers FROM spans WHERE qualifiers != ''")
+        return sorted({w for (q,) in rows for w in q.split("; ") if w and w not in known})
+
+    # --- steps, sources, provided files ------------------------------------------------------
+
+    def next_step(self, tool_use_id: str, tool: str, agent_id: str = "main") -> int:
+        """The step number of this tool call (1, 2, ...); the same call always gets the same n."""
+        with self._write() as con:
+            con.execute("INSERT OR IGNORE INTO steps (tool_use_id, tool, agent_id, ts) "
+                        "VALUES (?, ?, ?, ?)", (tool_use_id, tool, agent_id, _now()))
+            return con.execute("SELECT n FROM steps WHERE tool_use_id = ?",
+                               (tool_use_id,)).fetchone()[0]
+
+    def current_step(self) -> int:
+        rows = self._query("SELECT MAX(n) FROM steps")
+        return rows[0][0] or 0
+
+    def add_sources(self, sources: list[Source]) -> None:
+        cols = [f.name for f in fields(Source)]
+        with self._write() as con:
+            con.executemany(
+                f"INSERT OR IGNORE INTO sources ({', '.join(cols)}, ts) "
+                f"VALUES ({', '.join('?' for _ in cols)}, ?)",
+                [(*(getattr(s, c) for c in cols), _now()) for s in sources])
+
+    def sources(self) -> list[Source]:
+        cols = [f.name for f in fields(Source)]
+        rows = self._query(f"SELECT {', '.join(cols)} FROM sources ORDER BY seq")
+        return [Source(*r) for r in rows]
+
+    def add_provided(self, paths: list[str], turn: str | None) -> None:
+        with self._write() as con:
+            con.executemany("INSERT OR IGNORE INTO provided (source, turn) VALUES (?, ?)",
+                            [(p, turn) for p in paths])
+
+    def provided(self) -> set[str]:
+        return {r[0] for r in self._query("SELECT source FROM provided")}
+
+    # --- turns and claims --------------------------------------------------------------------
 
     def start_turn(self, prompt_id: str, answer: str) -> Turn:
         """Record a turn's final answer; a second Stop in the same turn updates it and keeps its n."""
-        ts = time.strftime("%Y-%m-%dT%H:%M:%S%z")
-        con = self._connect()
-        try:
+        ts = _now()
+        with self._write() as con:
             con.execute(
                 "INSERT INTO turns (prompt_id, answer, ts) VALUES (?, ?, ?) ON CONFLICT(prompt_id) "
-                "DO UPDATE SET answer = excluded.answer, ts = excluded.ts",
-                (prompt_id, answer, ts),
-            )
+                "DO UPDATE SET answer = excluded.answer, ts = excluded.ts", (prompt_id, answer, ts))
             n = con.execute("SELECT n FROM turns WHERE prompt_id = ?", (prompt_id,)).fetchone()[0]
-        finally:
-            con.close()
         return Turn(n, prompt_id, answer, ts)
 
     def last_turn(self) -> Turn | None:
@@ -240,32 +347,20 @@ class Store:
 
     def add_claims(self, turn: str, claims: list[Claim]) -> None:
         """Replace the turn's claims, so a re-verified turn keeps no stale verdicts."""
-        con = self._connect()
-        try:
-            con.execute("BEGIN IMMEDIATE")
+        with self._write() as con:
             con.execute("DELETE FROM claims WHERE turn = ?", (turn,))
             con.executemany(
                 f"INSERT INTO claims ({', '.join(CLAIM_FIELDS)}) "
                 f"VALUES ({', '.join('?' for _ in CLAIM_FIELDS)})",
                 [(c.claim_id, c.turn, c.text, "; ".join(c.span_ids), c.verdict,
                   "; ".join(c.dropped_qualifiers), c.decided_by, c.confidence, int(c.critical))
-                 for c in claims],
-            )
-            con.execute("COMMIT")
-        except BaseException:
-            if con.in_transaction:
-                con.execute("ROLLBACK")
-            raise
-        finally:
-            con.close()
+                 for c in claims])
 
     def claims(self, turn: str | None = None) -> list[Claim]:
         where, args = (" WHERE c.turn = ?", (turn,)) if turn is not None else ("", ())
         rows = self._query(
             f"SELECT {', '.join('c.' + f for f in CLAIM_FIELDS)} FROM claims c "
-            f"LEFT JOIN turns t ON t.prompt_id = c.turn{where} ORDER BY t.n, c.rowid",
-            args,
-        )
+            f"LEFT JOIN turns t ON t.prompt_id = c.turn{where} ORDER BY t.n, c.rowid", args)
         out = []
         for r in rows:
             c = Claim(**dict(zip(CLAIM_FIELDS, r, strict=True)))
@@ -275,24 +370,45 @@ class Store:
             out.append(c)
         return out
 
-    def export_csv(self) -> Path:
-        """Write provenance.csv atomically: spans, then claim verdicts (REP-3).
+    # --- the CSV views -----------------------------------------------------------------------
 
-        Raises if the file is locked (open in Excel)."""
-        tmp = self.csv_path.with_suffix(f".{os.getpid()}.tmp")
-        with open(tmp, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, CSV_FIELDS, restval="")
-            writer.writeheader()
-            for span in self.spans():
-                writer.writerow({"kind": "span", **{c: getattr(span, c) or "" for c in SPAN_FIELDS}})
-            for claim in self.claims():
-                writer.writerow({
-                    "kind": "claim", "claim_id": claim.claim_id, "turn": claim.turn,
-                    "text": claim.text, "verdict": claim.verdict,
-                    "span_ids": "; ".join(claim.span_ids),
-                    "dropped_qualifiers": "; ".join(claim.dropped_qualifiers),
-                    "decided_by": claim.decided_by, "confidence": f"{claim.confidence:.2f}",
-                    "critical": "yes" if claim.critical else "no",
-                })
-        os.replace(tmp, self.csv_path)
+    def export_csv(self) -> Path:
+        """Rewrite provenance.csv (facts, REQ-3.2 columns) and claims.csv from the ledger.
+
+        provenance.csv is read-only on disk, so Claude's Write and Edit fail on it; this is the
+        only writer, under the database lock, so parallel hooks never interleave. Any other
+        change to the file is undone here (PROV-7)."""
+        con = self._connect()
+        try:
+            con.execute("BEGIN IMMEDIATE")  # serializes rewrites across hook processes
+            self._write_csv(self.csv_path, [h for h, _ in CSV_COLUMNS],
+                            ({h: _cell(getattr(s, attr)) for h, attr in CSV_COLUMNS}
+                             for s in self.spans()))
+            self._write_csv(self.claims_path, CLAIM_CSV, (
+                {"claim_id": c.claim_id, "turn": c.turn, "text": c.text, "verdict": c.verdict,
+                 "fact_ids": "; ".join(c.span_ids),
+                 "dropped_qualifiers": "; ".join(c.dropped_qualifiers),
+                 "decided_by": c.decided_by, "confidence": f"{c.confidence:.2f}",
+                 "critical": "yes" if c.critical else "no"} for c in self.claims()))
+            con.execute("COMMIT")
+        finally:
+            if con.in_transaction:
+                con.execute("ROLLBACK")
         return self.csv_path
+
+    @staticmethod
+    def _write_csv(path: Path, header: list[str], rows) -> None:
+        tmp = path.with_suffix(f".{os.getpid()}.tmp")
+        with open(tmp, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, header, restval="")
+            writer.writeheader()
+            writer.writerows(rows)
+        if path.exists():
+            os.chmod(path, stat.S_IREAD | stat.S_IWRITE)  # Windows can't replace a read-only file
+        os.replace(tmp, path)
+        os.chmod(path, stat.S_IREAD)
+
+
+def _cell(value) -> str:
+    """One physical line per row: facts are single sentences, but keep the CSV line-safe."""
+    return "" if value is None else " ".join(str(value).split())

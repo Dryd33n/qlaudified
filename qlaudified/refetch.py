@@ -84,10 +84,16 @@ def run(job: dict) -> str:
         store.set_derived_from(job["summary_span_id"], f"summarized-only: {reason}")
         return reason
     lex = config.load(job["project"]).lexicon()
-    spans = [capture.indexed("web-raw", job["url"], f"p{i}", text, job["agent_id"], job["turn"],
-                             lex) for i, text in enumerate(paragraphs, 1)]
-    nums = sorted(int(i[1:]) for i in store.add_spans(spans))
-    store.set_derived_from(job["summary_span_id"], f"S{nums[0]}-S{nums[-1]}")
+    facts = [f for i, text in enumerate(paragraphs, 1)
+             for f in capture.facts_from_passage("web-raw", job["url"], f"p{i}", text,
+                                                 job["agent_id"], job["turn"], lex,
+                                                 "Direct Retrieved Fact")]
+    if not facts:
+        store.set_derived_from(job["summary_span_id"], "page has no facts")
+        return "ok"
+    nums = sorted(int(i[1:]) for i in store.add_spans(facts))
+    store.set_derived_from(job["summary_span_id"], f"F{nums[0]}-F{nums[-1]}")
+    store.export_csv()
     return "ok"
 
 

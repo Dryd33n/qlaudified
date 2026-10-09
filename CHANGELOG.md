@@ -2,6 +2,12 @@
 
 Three lines per sprint, written at the Sunday demo.
 
+## Design revision 2 (Oct 8, 2026)
+
+- Back to the original idea: a Provenance Administrator sidecar records REQ-3.2 rows (claim, origin, hybrid resolution, qualifiers at the source and at first use, operational impact) for critical facts in a rolling, read-only `provenance.csv`; feeding it back into the loop is the hypothesis.
+- Modes: Low records, Medium records and refeeds, High adds the retry. Facts are stored, never passages; time is accepted as a cost, tokens are minimized.
+- Sprint 5 rebuilds the core; Sprint 6 runs the study (decay across steps, Medium vs Low) and ships v1 on Nov 22.
+
 ## Sprint 4 · High mode and eval harness (Nov 2–8, 2026; done Oct 8)
 
 - High mode works: a background sidecar finds qualifiers the lexicon misses, and Stop blocks once with a factual problem list; live, Claude turned "Q3 revenue was $4.2M." into "an estimated $4.2M, based on preliminary figures".

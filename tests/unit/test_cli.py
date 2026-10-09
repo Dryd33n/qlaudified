@@ -64,11 +64,11 @@ def test_report_deep_runs_one_llm_call_and_labels_its_verdicts(project, capsys, 
     store.add_span(Span("", "local-doc", "ops.md", "L2", "Deploys go out on Tuesdays after QA.",
                         hash="h"))
     store.start_turn("p1", "Releases ship weekly, after the testing team signs off at Fernwick.")
-    fake = FakeBackend([{"verdicts": [{"id": "C1.1", "verdict": "inference", "span_ids": ["S1", "S9"],
+    fake = FakeBackend([{"verdicts": [{"id": "C1.1", "verdict": "inference", "span_ids": ["F1", "F9"],
                                        "dropped_qualifiers": [], "confidence": 0.7}]}])
     monkeypatch.setattr(backends, "get_backend", lambda name, model=None: fake)
     assert cli.main(["report", "--deep"]) == 0
     out = capsys.readouterr().out
     assert "**inference** (LLM): Releases ship weekly" in out
-    assert len(fake.prompts) == 1 and "[S1] (ops.md L2)" in fake.prompts[0]
-    assert Store(folder).claims("p1")[0].span_ids == ["S1"]  # S9 wasn't offered, so it's dropped
+    assert len(fake.prompts) == 1 and "[F1] (ops.md L2)" in fake.prompts[0]
+    assert Store(folder).claims("p1")[0].span_ids == ["F1"]  # F9 wasn't offered, so it's dropped

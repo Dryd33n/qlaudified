@@ -116,6 +116,12 @@ def tokens(text: str) -> list[str]:
     return out
 
 
+def words(tokens: Iterable[str]) -> list[str]:
+    """Tokens without the numbers: what a passage is about, for topic checks. A shared figure
+    alone isn't a shared topic ("revenue grew 12%" vs "the data team runs 12 jobs")."""
+    return [t for t in tokens if not t[0].isdigit()]
+
+
 def coverage(claim_tokens: Iterable[str], other: Iterable[str]) -> float:
     """Share of the claim's distinct content words found in ``other``."""
     want = set(claim_tokens)

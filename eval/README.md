@@ -16,6 +16,8 @@ ledger.jsonl per-run cost log shared with scripts/live.py (git-ignored)
 runs/        recorded runs, re-scored offline (git-ignored)
 ```
 
-The off condition runs the plugin in Low mode, so Claude sees nothing from it; the post-hoc
-condition is those same runs verified offline and needs no runs of its own.
-Never run `run.py` without deciding the day's budget first (`--daily-cap`, `--max-runs`).
+Conditions (design revision 2): **off** (no plugin), **low** (record only: the sidecar builds the
+ledger and report, nothing reaches Claude), **medium** (record + refeed), **high** (+ one retry).
+Tasks: the 20 corpus tasks plus 7 decay tasks (`decay-*`: the question 0, ~5 or ~15 tool calls
+after the hedged fact is read, one variant compacted). One repeat is 216 runs. Never run `run.py`
+without deciding the day's budget first (`--daily-cap`, `--max-runs`).

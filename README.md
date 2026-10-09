@@ -1,14 +1,21 @@
 # qlaudified
 
-A Claude Code plugin that tracks where each claim in Claude's answer came from, and whether the source's
-qualifiers ("estimated", "may", "tentative") survived the trip.
+A Claude Code plugin for research work. As Claude works, a sidecar agent (the Provenance
+Administrator) records every critical fact: what it says, where it came from, how the source
+qualified it ("estimated", "may", "tentative"), whether that qualifier survived Claude's use of it,
+and how it shaped the answer. The record is a rolling, read-only `provenance.csv`, closed by a
+provenance report. Optionally it's fed back into Claude's loop, so qualifiers survive long tasks.
 
-**Status:** pre-alpha. Sprints 0–4 are done. Medium mode records each retrieval, feeds new facts
-and their qualifiers back to Claude, marks the displayed answer with source IDs, and verifies each
-answer at Stop; WebFetch pages are re-fetched so their raw text is the evidence, and an optional
-NLI model and an on-request LLM check settle what the rules can't. High mode also checks sources
-in the background as Claude works and asks Claude to revise once when an answer drops a
-qualifier. A 20-task eval harness is ready; Sprint 5 (the full ablation and v1) is next.
+**Status:** pre-alpha, mid-redesign. Sprints 0–4 built design revision 1 (rule-based capture and
+verification, refeeding in Medium, a retry in High, a 20-task eval harness). On Oct 8 the design
+returned to its original idea (revision 2: the sidecar's provenance record is the core and
+refeeding is the hypothesis). Sprint 5 rebuilds the core; Sprint 6 runs the study and ships v1.
+
+| Mode | What it does |
+| --- | --- |
+| Low | Records provenance (sidecar + rules); nothing reaches Claude |
+| Medium | Records and feeds the record back into the loop |
+| High | Medium, plus one retry when the answer drops a qualifier or contradicts a source |
 
 - Design and requirements: [docs/design.md](docs/design.md)
 - Sprint plan: [docs/sprint-plan.md](docs/sprint-plan.md)
@@ -25,7 +32,7 @@ project folder (not this repo's own working copy):
 claude --plugin-dir /path/to/qlaudified
 ```
 
-Then:
+Then (these describe what's built today, revision 1; Sprint 5 changes Low and Medium as above):
 - `/qlaudified mode` shows the mode; `/qlaudified mode high` saves it for the project, and
   `/qlaudified mode low --session` changes it for this session only.
 - `/qlaudified report` prints the last answer's claim-by-claim report; `--deep` adds one LLM
@@ -43,7 +50,8 @@ Then:
 | 2 · Oct 19–25 | Medium mode end to end | Done: [results](docs/findings/sprint-2.md) |
 | 3 · Oct 26–Nov 1 | Web sources, NLI and LLM tiers | Done: [results](docs/findings/sprint-3.md) |
 | 4 · Nov 2–8 | High mode and the eval harness | Done: [results](docs/findings/sprint-4.md) |
-| 5 · Nov 9–15 | Ablation results, README, v1 tag | Next |
+| 5 · Nov 9–15 | The Provenance Administrator (design revision 2) | Next |
+| 6 · Nov 16–22 | Study, README, v1 tag | |
 
 What Sprint 0 settled:
 - Hooks use one command for both OSes: `py -3` on Windows, `python3` on macOS. Python 3.11+ is
@@ -75,7 +83,7 @@ hooks/run.py                 single hook entry point: run.py <event>
 hooks/cli.py, launch.sh      /qlaudified entry point and Python picker
 skills/qlaudified/SKILL.md   /qlaudified mode | report | csv
 qlaudified/                  Python package (standard library only)
-eval/                        Fernwick corpus, tasks, runner (Sprints 2-5)
+eval/                        Fernwick corpus, tasks, runner, scorer
 scripts/live.py              isolated live smoke runs
 scripts/bench_capture.py     end-to-end hook latency (NFR-3)
 spike/                       Sprint 0 throwaway probes

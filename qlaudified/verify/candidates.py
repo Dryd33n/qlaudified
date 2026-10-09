@@ -13,7 +13,7 @@ from qlaudified.store import Span
 K1, B = 1.2, 0.75
 NUMBER_BOOST = 3.0  # per shared normalized number or date
 CITED_BOOST = 100.0  # the claim names the span ("[S3]"), so it goes first
-_CITED = re.compile(r"\bS(\d+)\b")
+_CITED = re.compile(r"\bF(\d+)\b")
 
 
 class Index:
@@ -43,7 +43,7 @@ class Index:
         """The best k spans for a claim, highest score first; spans scoring 0 are left out."""
         query = text.tokens(text.clean(claim))
         nums = text.numbers(text.clean(claim))
-        cited = {f"S{n}" for n in _CITED.findall(claim)}
+        cited = {f"F{n}" for n in _CITED.findall(claim)}
         scored = []
         for i, span in enumerate(self.spans):
             score = self.bm25(query, i)

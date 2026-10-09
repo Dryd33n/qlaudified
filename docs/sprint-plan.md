@@ -1,6 +1,6 @@
 # Sprint plan
 
-Six one-week sprints take qlaudified from a hook spike to a tagged, evaluated v1 on Nov 15, 2026.
+Seven one-week sprints take qlaudified from a hook spike to a tagged, evaluated v1 on Nov 22, 2026. Sprints 0–4 built design revision 1; Sprint 5 rebuilds the core around the Provenance Administrator (revision 2), and Sprint 6 runs the study.
 
 > Exported from the living design doc. See `design.md` for requirement IDs and `testing.md` for the test setup.
 
@@ -15,7 +15,8 @@ Medium mode is usable daily by the end of Sprint 2; everything after adds depth,
 | 2 | Oct 19–25 | Medium mode end to end | Dropped qualifier caught and reported on a real task |
 | 3 | Oct 26–Nov 1 | Web sources, NLI and LLM tiers | WebFetch summary diffed against the raw page |
 | 4 | Nov 2–8 | High mode and the eval harness | One forced retry fixes a claim; runner scores 20 tasks |
-| 5 | Nov 9–15 | Ablation results, README, v1 tag | Results table and charts in the README |
+| 5 | Nov 9–15 | The Provenance Administrator (design revision 2) | A live task fills `provenance.csv` step by step; Medium refeeds it |
+| 6 | Nov 16–22 | Study, README, v1 tag | Decay curves and the Medium-vs-Low result in the README |
 
 ## Sprint 0 · Spike (Oct 9–11)
 
@@ -90,22 +91,42 @@ Goal: finish High mode and get the evaluation ready to run, so Sprint 5 is only 
 
 **Done when:** a High-mode run forces one retry that fixes a dropped qualifier, and the dry run produces a scored results table.
 
-## Sprint 5 · Results and release (Nov 9–15)
+## Sprint 5 · The Provenance Administrator (Nov 9–15)
 
-Goal: run the ablation, publish the numbers honestly, and ship v1.
+Goal: rebuild the core around design revision 2. The sidecar records REQ-3.2 provenance rows for critical facts in a rolling, read-only `provenance.csv`; refeeding it is a mode switch. Revision 1's rules, re-fetch, markers, retry and eval harness carry over.
 
-- [x] Study framework: pressure prompt variants, runner variants and limit handling, paired comparisons with bootstrap intervals, pre-registered protocol (docs/findings/sprint-5.md)
-- [ ] Pilot (haiku, pressure, off) and the go/no-go on the ceiling effect
-- [ ] Full study runs on Sonnet (3 repeats) and a haiku cross-check, spread across days to stay inside plan usage limits (~$25)
-- [ ] Results: comparison table and charts; post-hoc vs Medium uncaught drops called out as the headline
+Already done in this sprint, before the redesign (still used):
+- [x] Study framework: pressure prompt variants, runner variants and limit handling, paired comparisons with bootstrap intervals (docs/findings/sprint-5.md)
+
+The rebuild:
+- [x] Facts, not passages: rule extraction of fact rows (number, date, qualifier); a sources log with hashes; drop passage storage and the raw cache (PROV-1, NFR-8)
+- [x] Interception: capture the user prompt and provided files (`UserPromptSubmit`); read Claude's reasoning since the last step from the transcript; detect uses of tracked facts in reasoning and tool inputs (INT-1 to INT-3)
+- [x] Provenance Administrator: threshold-gated synchronous sidecar call per step; origin classification, hybrid resolution, qualifiers at the source and at first use, operational impact; small inputs and a stable prompt prefix (PROV-2 to PROV-6)
+- [x] Rolling read-only `provenance.csv`, rewritten under the database lock after each update; `claims.csv` for verdicts (PROV-7, REP-3)
+- [x] Refeed as a mode switch: session-start fact line, deltas with the CSV path on overflow, compaction digest, consult log (RFD-1 to RFD-4)
+- [x] Modes per revision 2: Low = record, Medium = record + refeed, High = + retry (MOD)
+- [x] Verification on facts plus source re-reads; the Administrator writes the report in one call at Stop (VER-1 to VER-4, REP-2)
+- [x] Decay tasks: hedged fact at step 1, question 0, ~5 and ~15 steps later, plus a `/compact` variant, with ground truth for REQ-3.2 fields where unambiguous
+- [x] Scorer: decay curve (qualifier at first use, later uses, final), ledger accuracy, consults, cost per row; protocol amendment before any study run
+- [ ] Tests and benchmarks: rule path p95 ≤ 300 ms; sidecar step p95 ≤ 10 s; cost per qualifying step measured with a fake backend and one live call
+
+**Done when:** a live task fills `provenance.csv` with REQ-3.2 rows step by step (record only in Low), Medium refeeds them, the report is written at Stop, and the decay tasks run end to end in a small dry run.
+
+## Sprint 6 · Study and release (Nov 16–22)
+
+Goal: run the study, publish the numbers honestly, and ship v1.
+
+- [ ] Pilot (haiku): cost per row and per run for each mode; set NFR-1 and NFR-2; go/no-go on the decay tasks' drop rate
+- [ ] Study runs on Sonnet and a haiku cross-check within the ~$25 budget, spread across days (plan usage plus extra credits)
+- [ ] Results: decay curves and the Medium-vs-Low comparison as the headline; ledger accuracy; cost; consult rate
 - [ ] Revisit NFR targets against measured numbers; record misses rather than hiding them
 - [ ] README: what it does, install on Windows and macOS, quick start, modes, results, limitations
 - [ ] 2–3 real-task demos with terminal screenshots or a short recording
 - [ ] Tag v1.0.0 on GitHub with release notes
 
-**Done when:** v1.0.0 is tagged on Nov 15 and the README shows the measured results.
+**Done when:** v1.0.0 is tagged and the README shows the measured results.
 
-**If time runs short,** cut in this order: High-mode code-claim extras, Ollama backend, NLI extra. Never cut the post-hoc vs Medium comparison.
+**If time runs short,** cut in this order: Ollama backend, NLI extra, the haiku cross-check. Never cut the Medium-vs-Low comparison on the decay tasks.
 
 ## Working rhythm
 

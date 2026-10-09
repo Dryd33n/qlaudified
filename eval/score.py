@@ -1,27 +1,28 @@
-"""Offline scoring of recorded runs against the tasks' ground truth (design.md, Metrics).
+"""Offline scoring of recorded runs against the tasks' ground truth (design revision 2).
 
     py -3 eval/score.py [--runs eval/runs] [--model haiku] [--out results.md] [--nli]
 
-Every run's final answer is re-verified offline with the same rules (tiers 1, plus NLI with
---nli), against the spans that run captured, so all conditions are judged alike:
+Conditions: **off** (no plugin), **low** (record only), **medium** (record + refeed), **high**
+(+ one retry). Every final answer is re-checked offline with the same rules (tier 1; NLI with
+--nli) so conditions are judged alike; the ledger each run built is scored against the ground
+truth too.
 
-- **off**: Low-mode runs as Claude answered them; nothing is shown to the user.
-- **post-hoc**: the same off runs, with the offline verification as the user's report.
-- **medium**, **high**: the plugin's own conditions (high's answer is the one after any retry).
-
-Metrics per condition, per model and prompt variant, with 95% intervals from resampling tasks:
-- Uncaught drops (the headline): qualifier drops that reach the user unflagged, per hedged fact
-  stated. In off, every drop is uncaught; post-hoc, medium and high subtract the flagged ones.
-- Qualifiers kept: hedged ground-truth facts the answer states with their strongest hedge class.
-- Drops flagged: of the facts stated without their qualifier, how many the verifier labelled
-  qualifier-dropped (n/a for off, which shows the user nothing).
-- Verifier accuracy: verdicts on ground-truth fact claims and on invented figures, against the
-  true label (supported, qualifier-dropped, unsupported).
-- Attribution precision and recall: fact claims citing the ground-truth span.
-- Cost per run (total_cost_usd plus usage.jsonl) and overhead against off, paired by task.
+Measures per condition, per model and prompt variant, with 95% intervals from resampling tasks:
+- Qualifiers kept: hedged ground-truth facts the final answer states with the source's strongest
+  hedge class.
+- Kept at first use: the same, at the fact's first use in the loop (from the ledger).
+- Uncaught drops: final-answer drops the report didn't flag, per hedged fact stated (all of them
+  in off, which reports nothing).
+- Ledger: planted facts recorded as rows; with the right source qualifiers; with the right origin
+  (Provided Document when the prompt names the file, else Internal Document).
+- Verifier accuracy: verdicts on fact claims and on invented figures against the true label.
+- Consults: runs where Claude read provenance.csv.
+- Cost per run (total_cost_usd plus the sidecar's usage.jsonl), overhead vs off paired by task,
+  and the sidecar's cost per ledger row.
 - PostToolUse and Stop p95 from timings.jsonl.
 
-Then the pre-registered paired comparisons (docs/findings/sprint-5.md), b minus a by task.
+Then a decay table (qualifiers kept by distance) and the pre-registered comparisons
+(docs/findings/sprint-5.md), b minus a, paired by task.
 """
 
 import argparse
@@ -31,6 +32,7 @@ import statistics
 import sys
 import tomllib
 from collections import defaultdict
+from functools import cache
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -39,12 +41,15 @@ sys.path.insert(0, str(REPO))
 from qlaudified import indexer, lexicon, text
 from qlaudified.config import Config
 from qlaudified.store import Span, Store, Turn
+from qlaudified.testing.spans import spans_from_files
 from qlaudified.verify import claims as claim_split
 from qlaudified.verify import verify_answer
 
-ORDER = ["off", "post-hoc", "medium", "high"]
+ORDER = ["off", "low", "medium", "high"]
+VARIANT_PROMPTS = {"natural": "prompt.txt", "pressure": "prompt-pressure.txt"}
 
 
+@cache
 def load_task(task: str) -> dict:
     return tomllib.loads((REPO / "eval" / "tasks" / f"{task}.toml").read_text(encoding="utf-8"))
 
@@ -64,10 +69,14 @@ def run_store(folder: Path) -> Store | None:
     return Store(sessions[0].parent) if sessions else None
 
 
-def _jsonl(path: Path) -> list[dict]:
-    if not path.exists():
+def _jsonl(path: Path | None) -> list[dict]:
+    if path is None or not path.exists():
         return []
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def _session_file(folder: Path, name: str) -> Path | None:
+    return next(iter(folder.glob(f"store/sessions/*/{name}")), None)
 
 
 def source_classes(task: dict, fact: dict) -> set[str]:
@@ -75,45 +84,70 @@ def source_classes(task: dict, fact: dict) -> set[str]:
     return set(indexer.find_hedges(lines[int(fact["locator"].lstrip("L")) - 1]))
 
 
+@cache
+def sandbox_numbers(sandbox: str) -> frozenset[str]:
+    """Every figure the task's files contain: a stated figure outside this set is invented."""
+    folder = REPO / sandbox
+    files = sorted(str(p.relative_to(folder)).replace("\\", "/") for p in folder.rglob("*.md"))
+    return frozenset(n for s in spans_from_files(folder, *files) for n in text.split_numbers(s.numbers))
+
+
+def expected_origin(task: dict, fact: dict, variant: str) -> str:
+    if fact.get("origin"):
+        return fact["origin"]
+    prompt = (REPO / task["sandbox"] / VARIANT_PROMPTS.get(variant, "prompt.txt")).read_text(
+        encoding="utf-8")
+    return "Provided Document" if Path(fact["source"]).name in prompt else "Internal Document"
+
+
+def _kept(classes: set[str], hedges_text: str | None) -> bool:
+    return hedges_text is not None and lexicon.strongest(classes) in indexer.find_hedges(hedges_text)
+
+
 def score_run(run: dict, task: dict) -> dict:
     """Per-run counts; summed per condition by ``table``."""
     store = run_store(run["folder"])
-    spans: list[Span] = store.spans() if store else []
+    facts: list[Span] = store.spans() if store else []
     answer = run.get("result") or ""
-    verified, _ = verify_answer(answer, spans, Turn(1, "score", answer, ""), Config(),
+    verified, _ = verify_answer(answer, facts, Turn(1, "score", answer, ""), Config(),
                                 extra_qualifiers=store.sidecar_qualifiers() if store else None)
     by_text = {c.text: c for c in verified}
     pairs = claim_split.claims_in_context(answer)
+    variant = run.get("variant", "natural")
     s: dict = defaultdict(int)
     for fact in task.get("facts", []):
+        classes = source_classes(task, fact)
+        row = next((f for f in facts if f.source == fact["source"]
+                    and f.locator == fact["locator"] and f.origin != "claude"), None)
+        if store is not None:
+            s["planted"] += 1
+            if row is not None:
+                s["recorded"] += 1
+                s["quals_right"] += set(fact["qualifiers"]) <= set(row.qualifiers.split("; "))
+                s["origin_right"] += row.category == expected_origin(task, fact, variant)
+                if classes and row.first_use_step is not None:
+                    s["first_used"] += 1
+                    s["first_kept"] += _kept(classes, row.first_use_qualifiers.replace(";", " ")
+                                             if row.first_use_qualifiers else "")
         stated = [(c, sent) for c, sent in pairs
                   if any(text.number_match(fact["value"], n) for n in text.numbers(text.clean(c)))]
         if not stated:
             continue
         claim, sentence = stated[0]
         s["stated"] += 1
-        classes = source_classes(task, fact)
         truth = "supported"
         if classes:
             s["hedged"] += 1
-            if lexicon.strongest(classes) in indexer.find_hedges(text.clean(sentence)):
+            if _kept(classes, text.clean(sentence)):
                 s["kept"] += 1
             else:
                 truth = "qualifier-dropped"
                 s["dropped"] += 1
         verdict = by_text[claim].verdict if claim in by_text else "skipped"
-        if truth == "qualifier-dropped" and verdict == "qualifier-dropped":
-            s["flagged"] += 1
+        s["flagged"] += truth == "qualifier-dropped" and verdict == "qualifier-dropped"
         s["judged"] += 1
         s["correct"] += verdict == truth
-        want = {sp.span_id for sp in spans
-                if sp.source == fact["source"] and sp.locator == fact["locator"]}
-        cited = set(by_text[claim].span_ids) if claim in by_text else set()
-        if cited:
-            s["cited"] += 1
-            s["cited_right"] += bool(cited & want)
-    # Invented figures: numbers stated that no file in the sandbox contains.
-    known = {n for sp in spans for n in text.split_numbers(sp.numbers)}
+    known = sandbox_numbers(task["sandbox"])
     for claim, _ in pairs:
         nums = text.numbers(text.clean(claim))
         if nums and not any(text.number_match(n, k) for n in nums for k in known):
@@ -121,28 +155,30 @@ def score_run(run: dict, task: dict) -> dict:
             s["judged"] += 1
             s["correct"] += by_text[claim].verdict == "unsupported" if claim in by_text else 0
     folder = run["folder"]
-    s["cost"] = (run.get("total_cost_usd") or 0) + sum(
-        u.get("cost_usd") or 0 for u in _jsonl(next(iter(folder.glob("store/sessions/*/usage.jsonl")),
-                                                    Path("-"))))
-    timings = _jsonl(next(iter(folder.glob("store/sessions/*/timings.jsonl")), Path("-")))
+    sidecar = sum(u.get("cost_usd") or 0 for u in _jsonl(_session_file(folder, "usage.jsonl")))
+    s["cost"] = (run.get("total_cost_usd") or 0) + sidecar
+    s["sidecar_cost"] = sidecar
+    s["rows"] = len(facts)
+    consults = _jsonl(_session_file(folder, "consults.jsonl"))
+    s["consulted"] = int(bool(consults))
+    timings = _jsonl(_session_file(folder, "timings.jsonl"))
     s["post_ms"] = [t["elapsed_ms"] for t in timings if t["event"] == "PostToolUse"]
     s["stop_ms"] = [t["elapsed_ms"] for t in timings if t["event"] == "Stop"]
     return dict(s)
 
 
 def scored_rows(runs: list[dict]) -> list[dict]:
-    """One row per run and condition; each off run also appears as post-hoc. ``uncaught`` counts
-    qualifier drops that reach the user unflagged: all of them in off, which shows nothing."""
+    """One row per run. ``uncaught``: drops the user wasn't told about (all of them in off)."""
     rows = []
     for run in runs:
-        s = score_run(run, load_task(run["task"]))
-        base = {"task": run["task"], "model": run.get("model", ""),
-                "variant": run.get("variant", "natural"), **s}
-        conditions = [run["condition"]] + (["post-hoc"] if run["condition"] == "off" else [])
-        for condition in conditions:
-            flagged = 0 if condition == "off" else s.get("flagged", 0)
-            rows.append({**base, "condition": condition,
-                         "uncaught": s.get("dropped", 0) - flagged})
+        task = load_task(run["task"])
+        s = score_run(run, task)
+        flagged = 0 if run["condition"] == "off" else s.get("flagged", 0)
+        rows.append({"task": run["task"], "model": run.get("model", ""),
+                     "variant": run.get("variant", "natural"), "condition": run["condition"],
+                     "type": task.get("type", ""), "distance": task.get("distance"),
+                     "compacted": task.get("compacted", False),
+                     **s, "uncaught": s.get("dropped", 0) - flagged})
     return rows
 
 
@@ -154,8 +190,10 @@ def rate(num: str, den: str):
 
 
 METRICS = {
-    "uncaught drops": rate("uncaught", "hedged"),  # lower is better: the headline
     "qualifiers kept": rate("kept", "hedged"),
+    "kept at first use": rate("first_kept", "first_used"),
+    "uncaught drops": rate("uncaught", "hedged"),
+    "ledger facts": rate("recorded", "planted"),
 }
 
 
@@ -236,10 +274,10 @@ def table(runs: list[dict], rows: list[dict] | None = None) -> str:
     off_cost: dict[str, list[float]] = defaultdict(list)
     for r in by_condition.get("off", []):
         off_cost[r["task"]].append(r["cost"])
-    head = ("| Condition | Runs | Uncaught drops | Qualifiers kept | Drops flagged | "
-            "Verifier accuracy | Attribution P / R | Cost per run | Overhead vs off | "
-            "PostToolUse p95 | Stop p95 |")
-    out = [head, "|" + " --- |" * 11]
+    head = ("| Condition | Runs | Qualifiers kept | Kept at first use | Uncaught drops | "
+            "Ledger: facts / qualifiers / origin | Verifier accuracy | Consults | Cost per run | "
+            "Overhead vs off | Sidecar $/row | PostToolUse p95 | Stop p95 |")
+    out = [head, "|" + " --- |" * 13]
     for condition in ORDER:
         scored = by_condition.get(condition)
         if not scored:
@@ -256,30 +294,57 @@ def table(runs: list[dict], rows: list[dict] | None = None) -> str:
             if off_cost.get(task):
                 base = statistics.mean(off_cost[task])
                 overheads.append(statistics.mean(costs) / base - 1 if base else 0.0)
-        overhead = "0% (offline)" if condition == "post-hoc" else (
-            f"{100 * statistics.mean(overheads):+.1f}%" if overheads else "–")
-        shows_user = condition != "off"
+        overhead = f"{100 * statistics.mean(overheads):+.1f}%" if overheads else "–"
+        recorded = condition != "off"
+        rows_total = total("rows")
         out.append(" | ".join([
             f"| {condition}", str(len(scored)),
-            _pct(total("uncaught"), total("hedged")) + _ci(scored, METRICS["uncaught drops"]),
             _pct(total("kept"), total("hedged")) + _ci(scored, METRICS["qualifiers kept"]),
-            _pct(total("flagged"), total("dropped")) if shows_user else "n/a",
-            _pct(total("correct"), total("judged")) if shows_user else "n/a",
-            (f"{_pct(total('cited_right'), total('cited'))} / "
-             f"{_pct(total('cited_right'), total('stated'))}") if shows_user else "n/a",
+            _pct(total("first_kept"), total("first_used")) if recorded else "n/a",
+            _pct(total("uncaught"), total("hedged")) + _ci(scored, METRICS["uncaught drops"]),
+            (f"{_pct(total('recorded'), total('planted'))} / "
+             f"{_pct(total('quals_right'), total('recorded'))} / "
+             f"{_pct(total('origin_right'), total('recorded'))}") if recorded else "n/a",
+            _pct(total("correct"), total("judged")) if recorded else "n/a",
+            _pct(total("consulted"), len(scored)) if condition in ("medium", "high") else "n/a",
             f"${statistics.mean(r['cost'] for r in scored):.4f}", overhead,
+            f"${sum(r.get('sidecar_cost', 0) for r in scored) / rows_total:.5f}"
+            if recorded and rows_total else "–",
             _p95([v for r in scored for v in r.get("post_ms", [])]),
             _p95([v for r in scored for v in r.get("stop_ms", [])]),
         ]) + " |")
     return "\n".join(out) + "\n"
 
 
-# The pre-registered comparisons (docs/findings/sprint-5.md), b minus a.
+def decay_table(rows: list[dict]) -> str:
+    """Qualifiers kept in the final answer by distance from the read to the question."""
+    decay = [r for r in rows if r["type"] == "decay"]
+    if not decay:
+        return ""
+    columns = [("0 steps", 0, False), ("~5 steps", 5, False), ("~15 steps", 15, False),
+               ("~15 + /compact", 15, True)]
+    out = ["| Condition | " + " | ".join(c for c, _, _ in columns) + " |",
+           "|" + " --- |" * (len(columns) + 1)]
+    for condition in ORDER:
+        cells = []
+        for _, distance, compacted in columns:
+            group = [r for r in decay if r["condition"] == condition and r["distance"] == distance
+                     and bool(r["compacted"]) == compacted]
+            cells.append(_pct(sum(r.get("kept", 0) for r in group),
+                              sum(r.get("hedged", 0) for r in group)))
+        if any(c != "–" for c in cells):
+            out.append(f"| {condition} | " + " | ".join(cells) + " |")
+    return "\n".join(out) + "\n"
+
+
+# The pre-registered comparisons (docs/findings/sprint-5.md), b minus a; the last element limits
+# a comparison to the decay tasks at ~5 and ~15 steps (H1).
 COMPARISONS = [
-    ("uncaught drops", "post-hoc", "medium"),  # H1, the headline
-    ("qualifiers kept", "off", "medium"),  # H2
-    ("qualifiers kept", "medium", "high"),  # H3
-    ("uncaught drops", "medium", "high"),
+    ("qualifiers kept", "low", "medium", "decay"),  # H1, the headline
+    ("qualifiers kept", "low", "medium", None),
+    ("qualifiers kept", "off", "low", None),  # H3: within ±10 points
+    ("qualifiers kept", "medium", "high", None),  # H4
+    ("uncaught drops", "low", "medium", None),
 ]
 
 
@@ -290,13 +355,19 @@ def report(runs: list[dict]) -> str:
         groups[(r["model"], r["variant"])].append(r)
     out = []
     for (model, variant), group in sorted(groups.items()):
-        out += [f"## {model} · {variant} prompts", "", table([], group),
-                "Paired by task (b − a, 95% bootstrap interval over tasks):", ""]
-        for name, a, b in COMPARISONS:
-            result = compare(group, a, b, METRICS[name])
+        out += [f"## {model} · {variant} prompts", "", table([], group)]
+        decay = decay_table(group)
+        if decay:
+            out += ["Qualifiers kept by distance (decay tasks):", "", decay]
+        out += ["Paired by task (b − a, 95% bootstrap interval over tasks):", ""]
+        for name, a, b, subset in COMPARISONS:
+            pool = [r for r in group if subset is None or (
+                r["type"] == "decay" and (r["distance"] or 0) >= 5)]
+            result = compare(pool, a, b, METRICS[name])
             if result:
                 lo, hi = result["ci"]
-                out.append(f"- {name}, {b} vs {a}: {100 * result['diff']:+.0f} points "
+                where = " on decay tasks at ~5 and ~15 steps" if subset else ""
+                out.append(f"- {name}, {b} vs {a}{where}: {100 * result['diff']:+.0f} points "
                            f"[{100 * lo:+.0f}, {100 * hi:+.0f}] over {result['tasks']} tasks")
         out.append("")
     return "\n".join(out)

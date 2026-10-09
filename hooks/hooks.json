@@ -1,5 +1,5 @@
 {
-  "description": "qlaudified hooks. One shell-form line per hook: py -3 if present, else python3 (docs/design.md, Hook command).",
+  "description": "qlaudified hooks (design revision 2). One shell-form line per hook: py -3 if present, else python3. PostToolUse runs on every tool call: the Provenance Administrator's step.",
   "hooks": {
     "SessionStart": [
       {
@@ -14,12 +14,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read|Grep|Bash|PowerShell|WebFetch|WebSearch|mcp__.*",
         "hooks": [
           {
             "type": "command",
             "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" PostToolUse || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" PostToolUse",
-            "timeout": 30
+            "timeout": 60
           }
         ]
       }
@@ -30,7 +29,7 @@
           {
             "type": "command",
             "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" Stop",
-            "timeout": 60
+            "timeout": 120
           }
         ]
       }
@@ -42,6 +41,17 @@
             "type": "command",
             "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" MessageDisplay || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" MessageDisplay",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v py >/dev/null 2>&1 && exec py -3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" UserPromptSubmit || exec python3 -S \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" UserPromptSubmit",
+            "timeout": 30
           }
         ]
       }

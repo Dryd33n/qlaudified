@@ -81,12 +81,17 @@ def check(claim: str, spans: list[Span], lex: dict[str, list[str]] | None = None
     return _check_words(claim_classes, claim_tokens, units)
 
 
+def _overlap(topic: list[str], span: Span) -> float:
+    """Shared topic words, the better of both directions: a fact is one short sentence, so a long
+    claim can be on its topic while covering only a small share of the claim's words."""
+    words = text.words(text.tokens(text.clean(span.text)))
+    return max(text.coverage(topic, words), text.coverage(words, topic))
+
+
 def _check_numbers(claim_numbers, claim_classes, claim_tokens, spans, units, lex) -> dict | None:
-    tiny = len(set(claim_tokens)) <= 2
-    on_topic = {
-        s.span_id for s in spans
-        if tiny or text.coverage(claim_tokens, text.tokens(text.clean(s.text))) >= MIN_SPAN_OVERLAP
-    }
+    topic = text.words(claim_tokens)
+    tiny = len(set(topic)) <= 1
+    on_topic = {s.span_id for s in spans if tiny or _overlap(topic, s) >= MIN_SPAN_OVERLAP}
     matches = {
         n: [u for u in units if u.span.span_id in on_topic
             and any(text.number_match(n, m) for m in u.numbers)]

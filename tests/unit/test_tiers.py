@@ -142,7 +142,7 @@ def test_nli_decides_paraphrases_the_rules_cannot(real_nli):
 def test_tier_labels_cover_every_decider():
     from qlaudified.report import TIERS
 
-    assert set(TIERS) == {"deterministic", "nli", "llm"}
+    assert set(TIERS) == {"deterministic", "nli", "llm", "reread"}
 
 
 def test_nli_ignores_search_titles(real_nli):

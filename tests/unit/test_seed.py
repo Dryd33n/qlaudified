@@ -28,10 +28,10 @@ def task_spans(task: dict):
     return spans_from_files(folder, *files)
 
 
-def test_four_tasks_per_type():
+def test_four_tasks_per_type_plus_the_decay_tasks():
     from collections import Counter
 
-    assert Counter(load(p)["type"] for p in TASKS) == {t: 4 for t in TYPES}
+    assert Counter(load(p)["type"] for p in TASKS) == {**{t: 4 for t in TYPES}, "decay": 7}
 
 
 @pytest.mark.parametrize("path", TASKS, ids=lambda p: p.stem)

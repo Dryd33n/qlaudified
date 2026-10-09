@@ -35,7 +35,7 @@ def test_delta_never_exceeds_the_budget_and_counts_the_overflow():
     for budget in (120, 300, 600):
         delta = inject.build_delta(many, budget)
         assert 0 < len(delta) <= budget
-        assert delta.splitlines()[-1].startswith("+") and "more provenance spans from doc" in delta
+        assert delta.splitlines()[-1].startswith("+") and "more provenance rows from doc" in delta
 
 
 def test_summary_line_puts_problems_first():

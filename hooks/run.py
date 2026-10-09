@@ -20,6 +20,7 @@ EVENTS = {
     "SessionStart": "session_start",
     "Stop": "stop",
     "MessageDisplay": "message_display",
+    "UserPromptSubmit": "user_prompt_submit",
 }
 
 

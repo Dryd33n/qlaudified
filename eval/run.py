@@ -1,13 +1,13 @@
 """Eval runner: tasks × conditions × repeats via isolated `claude -p` runs; resumable and cost-capped.
 
-    py -3 eval/run.py [--tasks a,b] [--variants natural,pressure] [--conditions off,medium,high]
+    py -3 eval/run.py [--tasks a,b] [--variants natural,pressure] [--conditions off,low,medium,high]
                       [--repeats 2] [--model haiku] [--daily-cap 2.0] [--max-runs N]
                       [--max-turns 6] [--dry-run]
 
-Conditions (design.md, Evaluation plan; Sprint 4 decision): **off** runs the plugin in Low mode,
-so nothing reaches Claude's context but the spans are captured for the post-hoc condition, which
-eval/score.py builds offline; **medium** and **high** set that mode. The mode is written to the
-sandbox's config.toml before the run. High gets one extra turn for the Stop retry (VER-4).
+Conditions (design revision 2): **off** runs without the plugin; **low** records only (the
+sidecar builds the ledger and report, nothing reaches Claude); **medium** records and refeeds;
+**high** adds the retry. The mode is written to the sandbox's config.toml before the run. High gets
+one extra turn for the Stop retry (VER-4).
 
 Variants (Sprint 5): **natural** uses the task's prompt.txt; **pressure** uses
 prompt-pressure.txt, the same question under a realistic constraint (a slide line, a table, a
@@ -40,7 +40,8 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 from live import LEDGER, TEST_ENV, spent_today
 
-CONDITIONS = {"off": "low", "medium": "medium", "high": "high"}
+# Design revision 2: off runs without the plugin; low records only; medium refeeds; high retries.
+CONDITIONS: dict[str, str | None] = {"off": None, "low": "low", "medium": "medium", "high": "high"}
 VARIANTS = {"natural": "prompt.txt", "pressure": "prompt-pressure.txt"}
 LIMITED = re.compile(r"usage limit|rate limit|limit reached|429|overloaded|quota|credit balance",
                      re.IGNORECASE)
@@ -79,13 +80,16 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     shutil.copytree(REPO / "tests" / "sandbox" / task, sandbox,
                     ignore=shutil.ignore_patterns("prompt*.txt", ".claude"))
     store = sandbox / ".claude" / ".qlaudified"
-    store.mkdir(parents=True)
-    (store / "config.toml").write_text(f'mode = "{CONDITIONS[condition]}"\n', encoding="utf-8")
+    mode = CONDITIONS[condition]
+    if mode is not None:
+        store.mkdir(parents=True)
+        (store / "config.toml").write_text(f'mode = "{mode}"' + chr(10), encoding="utf-8")
     env = {**os.environ, **TEST_ENV, "QLAUDIFIED_RECORD_DIR": str(work / "record")}
     env.pop("CLAUDE_CODE_SKIP_PROMPT_HISTORY", None)  # --resume steps need the transcript
     env.pop("QLAUDIFIED_OFFLINE", None)
     turns_cap = max_turns + (1 if condition == "high" else 0)
-    base = ["--plugin-dir", str(REPO), "--model", model, "--max-turns", str(turns_cap),
+    plugin = ["--plugin-dir", str(REPO)] if mode is not None else []
+    base = [*plugin, "--model", model, "--max-turns", str(turns_cap),
             "--allowedTools", "Read,Grep,Glob,Bash", "--permission-prompts", "none",
             "--output-format", "json"]
     start = time.time()
@@ -111,14 +115,15 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
         "model": model, "returncode": returncode, "wall_s": round(time.time() - start, 1),
         "total_cost_usd": round(cost, 6), "num_turns": turns, "session_id": session_id,
         "result": data.get("result") or "", "stderr": stderr.decode("utf-8", "replace")[-1000:],
-        "plugin_dir": str(REPO),
+        "plugin_dir": str(REPO) if mode is not None else None,
     }
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
     if (work / "record" / "events.jsonl").exists():
         shutil.copy(work / "record" / "events.jsonl", out / "events.jsonl")
-    shutil.copytree(store, out / "store", dirs_exist_ok=True)
+    if store.exists():
+        shutil.copytree(store, out / "store", dirs_exist_ok=True)
     (out / "result.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
     shutil.rmtree(work, ignore_errors=True)
     return record
@@ -128,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="eval/run.py")
     parser.add_argument("--tasks", help="comma-separated task IDs (default: all)")
     parser.add_argument("--variants", default="natural,pressure")
-    parser.add_argument("--conditions", default="off,medium,high")
+    parser.add_argument("--conditions", default="off,low,medium,high")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--model", default="haiku")
     parser.add_argument("--max-turns", type=int, default=6)

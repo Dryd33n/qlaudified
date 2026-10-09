@@ -1,0 +1,7 @@
+Read q3-finance.md and tell me in one line that you have read it.
+---
+Read ops-1.md, ops-2.md, ops-3.md and tell me each file's main figure in one line.
+---
+Read ops-4.md, ops-5.md and tell me each file's main figure in one line.
+---
+From what you read earlier, write a 3-bullet board summary of Fernwick's Q3 revenue and revenue growth.
