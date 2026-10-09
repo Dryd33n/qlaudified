@@ -2,6 +2,12 @@
 
 Three lines per sprint, written at the Sunday demo.
 
+## Sprint 5 · The Provenance Administrator (Nov 9–15, 2026; done Oct 8)
+
+- The core runs on revision 2: live, a 4-step decay task filled `provenance.csv` step by step (one ~4.5 s, ~$0.0005 haiku call per qualifying step), Medium refed the facts (Claude cited `[F1]`), and every Stop wrote its report.
+- Benchmarks: PostToolUse p95 364 ms (NFR-3 ≤ 400 ms, after cutting `dataclasses` and `traceback` from the hook path), sidecar step ~6.5 s (NFR-4 ≤ 10 s), ~$0.0013 per qualifying step.
+- The 14-run decay dry run scored end to end: Medium kept 14/14 qualifiers, Low 10/14 (too few runs to mean anything yet); the live run also caught digits in file names being read as figures.
+
 ## Design revision 2 (Oct 8, 2026)
 
 - Back to the original idea: a Provenance Administrator sidecar records REQ-3.2 rows (claim, origin, hybrid resolution, qualifiers at the source and at first use, operational impact) for critical facts in a rolling, read-only `provenance.csv`; feeding it back into the loop is the hypothesis.

@@ -48,10 +48,17 @@ def wait_for_pending(session_dir: Path, max_s: float = WAIT_S) -> None:
     folder = pending_dir(session_dir)
     deadline = time.time() + max_s
     while folder.is_dir():
-        live = [p for p in folder.glob("*.json") if time.time() - p.stat().st_mtime < STALE_S]
-        if not live or time.time() > deadline:
+        if not any(_is_live(p) for p in folder.glob("*.json")) or time.time() > deadline:
             return
         time.sleep(0.1)
+
+
+def _is_live(job: Path) -> bool:
+    """A job file can vanish between glob and stat when its job finishes; that one is done."""
+    try:
+        return time.time() - job.stat().st_mtime < STALE_S
+    except FileNotFoundError:
+        return False
 
 
 def run_job(argv: list[str], runner: Callable[[dict], object], event: str) -> int:

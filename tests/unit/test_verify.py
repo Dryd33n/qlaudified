@@ -157,3 +157,21 @@ def test_a_cited_fact_id_goes_first(notes):
     index = Index(notes)
     revenue = at(notes, "L3")
     assert index.top(f"Headcount reached 48 [{revenue}]")[0][0].span_id == revenue
+
+
+@pytest.mark.parametrize("claim", ["ops-1.md: Support closed 214 tickets in week 3.",
+                                   "Per q3-ops.md, support closed 214 tickets in week 3."])
+def test_digits_in_file_names_are_not_figures(claim):
+    """Live decay-finance-d5: the 1 in "ops-1.md" made a verbatim restatement "contradicted"."""
+    from qlaudified.capture import indexed
+
+    fact = indexed("local-doc", "ops-1.md", "L3", "Support closed 214 tickets in week 3.")
+    fact.span_id = "F5"
+    assert check(claim, [fact])["verdict"] == "supported"
+
+
+def test_a_prompt_naming_numbered_files_is_not_a_fact():
+    from qlaudified.capture import facts_from_passage
+
+    prompt = "Read ops-1.md, ops-2.md, ops-3.md and tell me each file's main figure in one line."
+    assert facts_from_passage("user-prompt", "prompt", "turn 2", prompt) == []

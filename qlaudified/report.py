@@ -6,9 +6,9 @@ Stop shows the user; ``/qlaudified report`` prints the markdown.
 """
 
 import json
-from dataclasses import asdict
 from pathlib import Path
 
+from qlaudified.records import asdict
 from qlaudified.store import Claim, Span
 
 # Problems first in the summary; supported last.

@@ -6,10 +6,10 @@ qualified it ("estimated", "may", "tentative"), whether that qualifier survived 
 and how it shaped the answer. The record is a rolling, read-only `provenance.csv`, closed by a
 provenance report. Optionally it's fed back into Claude's loop, so qualifiers survive long tasks.
 
-**Status:** pre-alpha, mid-redesign. Sprints 0–4 built design revision 1 (rule-based capture and
-verification, refeeding in Medium, a retry in High, a 20-task eval harness). On Oct 8 the design
-returned to its original idea (revision 2: the sidecar's provenance record is the core and
-refeeding is the hypothesis). Sprint 5 rebuilds the core; Sprint 6 runs the study and ships v1.
+**Status:** pre-alpha. Sprints 0–4 built design revision 1 (rule-based capture and verification,
+refeeding in Medium, a retry in High, a 20-task eval harness). On Oct 8 the design returned to its
+original idea (revision 2: the sidecar's provenance record is the core and refeeding is the
+hypothesis). Sprint 5 rebuilt the core around it; Sprint 6 runs the study and ships v1.
 
 | Mode | What it does |
 | --- | --- |
@@ -21,7 +21,7 @@ refeeding is the hypothesis). Sprint 5 rebuilds the core; Sprint 6 runs the stud
 - Sprint plan: [docs/sprint-plan.md](docs/sprint-plan.md)
 - Testing and dev workflow: [docs/testing.md](docs/testing.md)
 - Evaluation report (lab report; main study pending): [docs/evaluation.md](docs/evaluation.md)
-- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · [Sprint 3](docs/findings/sprint-3.md) · [Sprint 4](docs/findings/sprint-4.md) · spike runbook: [spike/README.md](spike/README.md)
+- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · [Sprint 3](docs/findings/sprint-3.md) · [Sprint 4](docs/findings/sprint-4.md) · [Sprint 5](docs/findings/sprint-5.md) · spike runbook: [spike/README.md](spike/README.md)
 
 ## Try it
 
@@ -32,7 +32,7 @@ project folder (not this repo's own working copy):
 claude --plugin-dir /path/to/qlaudified
 ```
 
-Then (these describe what's built today, revision 1; Sprint 5 changes Low and Medium as above):
+Then:
 - `/qlaudified mode` shows the mode; `/qlaudified mode high` saves it for the project, and
   `/qlaudified mode low --session` changes it for this session only.
 - `/qlaudified report` prints the last answer's claim-by-claim report; `--deep` adds one LLM
@@ -50,8 +50,8 @@ Then (these describe what's built today, revision 1; Sprint 5 changes Low and Me
 | 2 · Oct 19–25 | Medium mode end to end | Done: [results](docs/findings/sprint-2.md) |
 | 3 · Oct 26–Nov 1 | Web sources, NLI and LLM tiers | Done: [results](docs/findings/sprint-3.md) |
 | 4 · Nov 2–8 | High mode and the eval harness | Done: [results](docs/findings/sprint-4.md) |
-| 5 · Nov 9–15 | The Provenance Administrator (design revision 2) | Next |
-| 6 · Nov 16–22 | Study, README, v1 tag | |
+| 5 · Nov 9–15 | The Provenance Administrator (design revision 2) | Done: [results](docs/findings/sprint-5.md) |
+| 6 · Nov 16–22 | Study, README, v1 tag | Next |
 
 What Sprint 0 settled:
 - Hooks use one command for both OSes: `py -3` on Windows, `python3` on macOS. Python 3.11+ is

@@ -11,9 +11,9 @@ Each step, Claude's reasoning since the last step and the tool call's input are 
 
 import json
 import re
-from dataclasses import dataclass
 
 from qlaudified import indexer, paths, text, transcript
+from qlaudified.records import record
 from qlaudified.store import Span
 
 MIN_TOPIC = 0.25  # share of the fact's words a using sentence must share, unless it's tiny
@@ -24,7 +24,7 @@ _CLAUSES = re.compile(r"[,;:]\s+|\s+(?:and|but|while|whereas)\s+")
 _PATHS = re.compile(r"\S*[/\\]\S*|\b\w*_\w*\d\w*\b")
 
 
-@dataclass
+@record
 class Use:
     fact: Span
     sentence: str
@@ -32,7 +32,7 @@ class Use:
     qualifiers: str  # hedge words in the using sentence ("" if none)
 
 
-@dataclass
+@record
 class Scan:
     uses: list[Use]
     # (sentence, where, figures): Claude's own critical statements, with the figures in them

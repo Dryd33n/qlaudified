@@ -34,6 +34,7 @@ def sentences(text: str) -> list[str]:
 _NOISE = re.compile(
     r"\[S\d+[^\]]*\]"  # our own markers
     r"|\b[\w./\\-]+\.\w+:\d+(?:-\d+)?\b"  # ledger/config.py:6
+    r"|\b[\w-]*\d[\w-]*\.[A-Za-z][A-Za-z0-9]{0,4}\b"  # ops-1.md, q3-finance.md (not 4.2M)
     r"|\bL\d+(?:-L?\d+)?\b"  # L3-L6
     r"|\bS\d+\b"  # S14
 )

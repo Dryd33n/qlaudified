@@ -150,6 +150,80 @@ Found while building:
   317 ms). Rewriting a new read-only file can also draw an antivirus scan: one benchmark run had a
   2.5 s p95. Time is the accepted cost in revision 2, so NFR-3 is revised to 400 ms; lazy imports
   are the next lever if it matters.
+  *Later the same day:* lazy imports done (see Benchmarks below).
 - **One study repeat is now 216 runs** (27 tasks × 2 prompt styles × 4 conditions); the pilot sets
   how many repeats the budget allows.
 - The free test suite takes ~80 s (from ~60 s): every tool call now runs the hook.
+
+## Benchmarks (Oct 8, revision 2)
+
+Machine under its usual background load (~20% CPU, Defender real-time scanning on), so absolute
+numbers are noisy; comparisons are interleaved call by call.
+
+- **Rule path (NFR-3, p95 <= 400 ms): met.** PostToolUse on `post_read`, 150 interleaved calls
+  each: before 314 / 407 ms (p50 / p95), after 276 / 364 ms, revision 1 268 / 338 ms. The fix was
+  imports: `dataclasses` (pulls in `inspect`, `ast`, `dis`, ~27 ms) is replaced on the hook path by
+  `qlaudified/records.py`, and `traceback` (~15 ms) loads only when an error is logged. The floor
+  is ~117 ms of Git Bash plus the `py` launcher before any of our code runs.
+- **Wait-for-pending race fixed:** Stop's wait could stat a job file its finished job had just
+  deleted and raise (seen once as a failing unit test under load).
+- **Sidecar step (NFR-4, p95 <= 10 s): met on the evidence so far.** `scripts/bench_sidecar.py`
+  replays the 14 recorded sessions with a fake backend: 24 of 31 tool steps meet the threshold
+  (77%: the recordings are short and mostly reads), step prompts are 1.8k / 2.4k chars (p50 / p95),
+  and the handler adds 29 / 45 ms around the call. One live haiku call on the median prompt:
+  6.1 s, 4,317 input and 964 output tokens, $0.00135. Earlier `claude -p` probes ran 2.6–6.1 s, the
+  slow one being the first, uncached call. Estimate: 0.36 + 0.05 + 6.1 = ~6.5 s.
+- **Cost per qualifying step: ~$0.0013 on haiku** (one live call; the pilot measures it properly).
+  Most input tokens are `claude -p`'s own overhead, not the ~460-token prompt, and output tokens
+  (964 for a small JSON answer) cost more than input. A 20-step task at 77% qualifying is ~$0.02
+  of sidecar calls.
+
+## Live check and decay dry run (Oct 8)
+
+- **Live task (`decay-finance-d5`, Medium, haiku): the "Done when" line holds.** Four prompts in
+  one session, $0.023 for the agent. `provenance.csv` filled at steps 1–6 with origin, source
+  qualifiers, first use and impact; six sidecar step calls took 3.8–4.7 s and ~$0.0005 each. The
+  refeed reached Claude: its answer cited `[F1]` and `[F2, qualifier: pending]` and kept both
+  hedges. A report was written at every Stop; no errors were logged.
+- **Bug found live: digits in file names were figures.** "ops-1.md: Support closed 214 tickets in
+  week 3." restates its fact word for word, but the verifier read the 1 in `ops-1.md` as an
+  unsupported figure and called it contradicted (3 of 5 ops claims). The same digits turned the
+  prompt "Read ops-1.md, ops-2.md, ops-3.md…" into a User Prompt fact, which then "supported" a
+  claim through its 2. `text.clean` now drops bare file names that contain a digit, so the
+  verifier and capture both skip them (use tracking already skipped paths).
+- **The Stop report call is slow:** the Administrator's report call took 11–21 s (Stop p95 ~20 s
+  in the dry run). No NFR covers it; worth a look if users notice the wait.
+- **Decay dry run: 7 decay tasks × {low, medium} × natural × 1 repeat on haiku, ~$0.32 with sidecar calls, all 14
+  runs finished and scored.** Qualifiers kept in the final answer: Medium 14/14, Low 10/14 (+29
+  points, paired, over 7 tasks); kept at first use 8/14 vs 7/14. Low dropped one hedge at every
+  distance (3/4 at 0, ~5 and ~15 steps, 1/2 after `/compact`); Medium dropped none. Every
+  planted fact was in the ledger with the right qualifiers and origin, and the report flagged
+  every drop. One repeat with 2–4 tasks per distance proves only that the pipeline works; the
+  pilot decides whether the drop rate is high enough to study.
+- `eval/score.py` crashed printing "−" to a cp1252 Windows console; it now writes `--out` first
+  and prints UTF-8.
+
+### Decay dry run: scorer output
+
+`py -3 eval/score.py --runs <the 14 decay runs> --model haiku`, verbatim. No `off` runs, so no
+overhead column; Consults is n/a in Low because nothing tells Claude about the CSV there.
+
+#### haiku · natural prompts
+
+| Condition | Runs | Qualifiers kept | Kept at first use | Uncaught drops | Ledger: facts / qualifiers / origin | Verifier accuracy | Consults | Cost per run | Overhead vs off | Sidecar $/row | PostToolUse p95 | Stop p95 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| low | 7 | 71% (10/14) [57–86%] | 50% (7/14) | 0% (0/14) [0–0%] | 100% (14/14) / 100% (14/14) / 100% (14/14) | 100% (14/14) | n/a | $0.0226 | – | $0.00092 | 6392 ms | 20795 ms |
+| medium | 7 | 100% (14/14) [100–100%] | 57% (8/14) | 0% (0/14) [0–0%] | 100% (14/14) / 100% (14/14) / 100% (14/14) | 100% (14/14) | 0% (0/7) | $0.0229 | – | $0.00090 | 6472 ms | 19563 ms |
+
+Qualifiers kept by distance (decay tasks):
+
+| Condition | 0 steps | ~5 steps | ~15 steps | ~15 + /compact |
+| --- | --- | --- | --- | --- |
+| low | 75% (3/4) | 75% (3/4) | 75% (3/4) | 50% (1/2) |
+| medium | 100% (4/4) | 100% (4/4) | 100% (4/4) | 100% (2/2) |
+
+Paired by task (b − a, 95% bootstrap interval over tasks):
+
+- qualifiers kept, medium vs low on decay tasks at ~5 and ~15 steps: +30 points [+10, +50] over 5 tasks
+- qualifiers kept, medium vs low: +29 points [+14, +43] over 7 tasks
+- uncaught drops, medium vs low: +0 points [+0, +0] over 7 tasks

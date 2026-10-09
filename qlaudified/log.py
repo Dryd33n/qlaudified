@@ -3,12 +3,13 @@
 import json
 import os
 import time
-import traceback
 
 from qlaudified.paths import session_dir, store_root
 
 
 def log_error(event: str, payload: dict | None, elapsed_ms: float) -> None:
+    import traceback  # here, not at the top: ~15 ms on every hook call, needed only on errors
+
     root = store_root(payload)
     root.mkdir(parents=True, exist_ok=True)
     record = {

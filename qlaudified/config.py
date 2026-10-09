@@ -6,12 +6,12 @@ raises: a missing or broken file gives the defaults, and the problem is kept in 
 """
 
 import re
-from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 
 from qlaudified import NAME, lexicon
 from qlaudified.paths import ensure_gitignore, safe_name
+from qlaudified.records import record
 
 
 class Mode(StrEnum):
@@ -20,7 +20,7 @@ class Mode(StrEnum):
     HIGH = "high"
 
 
-@dataclass
+@record
 class Config:
     mode: Mode = Mode.MEDIUM
     backend: str = "claude-cli"  # claude-cli | ollama | none | fake (tests only)
@@ -28,11 +28,11 @@ class Config:
     inject_budget_chars: int = 600  # INJ-2, per PostToolUse call
     digest_budget_chars: int = 1200  # INJ-3, once after each compaction
     critical_threshold: float = 0.5  # CFG-2, tuned in Sprint 2
-    extra_hedges: dict[str, list[str]] = field(default_factory=dict)
+    extra_hedges: dict[str, list[str]] = {}  # noqa: RUF012 - @record copies it per instance
     retention_days: int = 30
     raw_cache_mb: int = 200
     mode_source: str = "default"  # default | config | session
-    problems: list[str] = field(default_factory=list)
+    problems: list[str] = []  # noqa: RUF012 - @record copies it per instance
 
     def lexicon(self) -> dict[str, list[str]]:
         return lexicon.merged(self.extra_hedges)

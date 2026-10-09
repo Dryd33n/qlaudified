@@ -8,26 +8,26 @@ High (VER-3). Each claim records which tier decided it.
 import json
 import re
 import time
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from qlaudified import text
 from qlaudified.config import Config, Mode
+from qlaudified.records import record
 from qlaudified.store import Claim, Span, Store, Turn
 
 # Claims the LLM tier gets a second look at; rule-decided problems stand as they are.
 FOR_LLM = {"unresolved", "partial", "inference", "unsupported"}
 
 
-@dataclass
+@record
 class TurnResult:
     turn: Turn
     claims: list[Claim]
     skipped: int  # non-critical claims left unchecked
-    spans: dict[str, Span] = field(default_factory=dict)
+    spans: dict[str, Span] = {}  # noqa: RUF012 - @record copies it per instance
     elapsed_ms: float = 0.0
-    usage: dict = field(default_factory=dict)  # the LLM call, if any
-    summary_issues: list[dict] = field(default_factory=list)  # WebFetch summary vs its page
+    usage: dict = {}  # noqa: RUF012 - the LLM call, if any
+    summary_issues: list[dict] = []  # noqa: RUF012 - WebFetch summary vs its page
 
 
 def threshold(cfg: Config) -> float:

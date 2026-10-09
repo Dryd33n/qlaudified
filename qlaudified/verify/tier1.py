@@ -9,9 +9,8 @@ A qualifier is dropped when the matched passage's strongest hedge class is missi
 covers wins, so restating an unhedged value never counts as dropping someone else's hedge.
 """
 
-from dataclasses import dataclass, field
-
 from qlaudified import indexer, lexicon, text
+from qlaudified.records import record
 from qlaudified.store import Span
 
 MIN_SPAN_OVERLAP = 0.25  # a number match also needs some shared words, unless the claim is tiny
@@ -20,13 +19,13 @@ PARTIAL_OVERLAP = 0.5
 CONTRADICTION_OVERLAP = 0.5
 
 
-@dataclass
+@record
 class Unit:
     span: Span
     text: str
     numbers: list[str]
     hedges: dict[str, list[str]]
-    tokens: set[str] = field(default_factory=set)
+    tokens: set[str] = set()  # noqa: RUF012 - @record copies it per instance
 
 
 _cache: dict[tuple[str, str, int], list[Unit]] = {}

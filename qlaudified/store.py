@@ -18,15 +18,15 @@ import os
 import sqlite3
 import stat
 import time
-from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
 from qlaudified.paths import ensure_gitignore
+from qlaudified.records import asdict, fields, record
 
 TEXT_CAP = 600  # a fact is one sentence or line; anything longer is cut
 
 
-@dataclass
+@record
 class Span:
     """One fact row. Named Span for continuity with revision 1; ``Fact`` is the same class."""
 
@@ -57,7 +57,7 @@ class Span:
 Fact = Span
 
 
-@dataclass
+@record
 class Claim:
     claim_id: str  # "C2.1": turn 2, first claim
     turn: str  # prompt_id
@@ -72,7 +72,7 @@ class Claim:
     critical: bool
 
 
-@dataclass
+@record
 class Turn:
     n: int
     prompt_id: str
@@ -80,8 +80,8 @@ class Turn:
     ts: str
 
 
-SPAN_FIELDS = [f.name for f in fields(Span)]
-CLAIM_FIELDS = [f.name for f in fields(Claim)]
+SPAN_FIELDS = list(fields(Span))
+CLAIM_FIELDS = list(fields(Claim))
 # provenance.csv as Claude and people see it: REQ-3.2 columns first.
 CSV_COLUMNS = [
     ("fact_id", "span_id"), ("claim", "text"), ("value", "numbers"), ("origin", "category"),
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS provided (source TEXT PRIMARY KEY, turn TEXT);
 """
 
 
-@dataclass
+@record
 class Source:
     source: str
     locator: str
@@ -309,7 +309,7 @@ class Store:
         return rows[0][0] or 0
 
     def add_sources(self, sources: list[Source]) -> None:
-        cols = [f.name for f in fields(Source)]
+        cols = list(fields(Source))
         with self._write() as con:
             con.executemany(
                 f"INSERT OR IGNORE INTO sources ({', '.join(cols)}, ts) "
@@ -317,7 +317,7 @@ class Store:
                 [(*(getattr(s, c) for c in cols), _now()) for s in sources])
 
     def sources(self) -> list[Source]:
-        cols = [f.name for f in fields(Source)]
+        cols = list(fields(Source))
         rows = self._query(f"SELECT {', '.join(cols)} FROM sources ORDER BY seq")
         return [Source(*r) for r in rows]
 

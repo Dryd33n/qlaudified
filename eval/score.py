@@ -387,9 +387,10 @@ def main(argv: list[str] | None = None) -> int:
         print("no finished runs found")
         return 1
     result = report(runs)
-    print(result, end="")
     if args.out:
         Path(args.out).write_text(result, encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8")  # a Windows console is cp1252; the report has "−"
+    print(result, end="")
     return 0
 
 

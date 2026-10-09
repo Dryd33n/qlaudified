@@ -108,7 +108,7 @@ The rebuild:
 - [x] Verification on facts plus source re-reads; the Administrator writes the report in one call at Stop (VER-1 to VER-4, REP-2)
 - [x] Decay tasks: hedged fact at step 1, question 0, ~5 and ~15 steps later, plus a `/compact` variant, with ground truth for REQ-3.2 fields where unambiguous
 - [x] Scorer: decay curve (qualifier at first use, later uses, final), ledger accuracy, consults, cost per row; protocol amendment before any study run
-- [ ] Tests and benchmarks: rule path p95 ≤ 300 ms; sidecar step p95 ≤ 10 s; cost per qualifying step measured with a fake backend and one live call
+- [x] Tests and benchmarks: rule path p95 ≤ 400 ms (NFR-3, revised from 300 ms); sidecar step p95 ≤ 10 s; cost per qualifying step measured with a fake backend and one live call (docs/findings/sprint-5.md, Benchmarks)
 
 **Done when:** a live task fills `provenance.csv` with REQ-3.2 rows step by step (record only in Low), Medium refeeds them, the report is written at Stop, and the decay tasks run end to end in a small dry run.
 
