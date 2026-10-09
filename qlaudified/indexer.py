@@ -156,6 +156,8 @@ def find_hedges(text: str, lexicon: dict[str, list[str]] | None = None) -> dict[
             pattern = r"(?<![\w-])" + re.escape(word).replace(r"\ ", r"\s+") + r"(?![\w-])"
             if word in NUMERIC_ONLY:
                 pattern += r"(?=\s*[$€£]?\d)"
+            if word == "may":  # the month ("a May 2027 opening", "May 4") is not a hedge
+                pattern = r"(?-i:(?<![\w-])may(?![\w-])|(?<![\w-])May(?![\w-])(?!\s+\d))"
             if re.search(pattern, text, re.IGNORECASE):
                 out.setdefault(cls, []).append(word)
     return out

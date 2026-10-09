@@ -1,0 +1,13 @@
+# Corpus task (single-hop), Sprint 4.
+id = "single-uptime"
+type = "single-hop"
+sandbox = "tests/sandbox/single-uptime"
+
+[[facts]]
+id = "uptime"
+source = "status.md"
+locator = "L3"
+value = "99.2 %"
+qualifiers = ["approximately", "according to"]
+kept = "According to the vendor dashboard, September uptime was approximately 99.2%."
+dropped = "September uptime was 99.2%."

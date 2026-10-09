@@ -1,6 +1,5 @@
 """WebFetch shadow re-fetch against saved pages on a local server (CAP-3, CAP-4)."""
 
-import json
 from pathlib import Path
 
 import pytest
@@ -43,20 +42,15 @@ def summary_span(url: str, text: str) -> Span:
     return Span("", "web-summary", url, "summary", text, "12 USD", "", hash="sum")
 
 
-def job(tmp_path, store: Store, url: str) -> Path:
+def job(tmp_path, store: Store, url: str) -> dict:
     [span_id] = store.add_spans([summary_span(url, "Pricing starts at $12 per seat per month.")])
-    pending = refetch.pending_dir(store.session_dir) / f"{span_id}.json"
-    pending.parent.mkdir(parents=True, exist_ok=True)
-    pending.write_text(json.dumps({"url": url, "summary_span_id": span_id, "agent_id": "main",
-                                   "turn": "p1", "session_dir": str(store.session_dir),
-                                   "project": str(tmp_path)}), encoding="utf-8")
-    return pending
+    return {"url": url, "summary_span_id": span_id, "agent_id": "main", "turn": "p1",
+            "session_dir": str(store.session_dir), "project": str(tmp_path)}
 
 
 def test_run_stores_the_page_and_links_the_summary(site, tmp_path):
     store = Store(tmp_path / "s")
-    pending = job(tmp_path, store, f"{site}/pricing.html")
-    assert refetch.run(pending) == "ok" and not pending.exists()
+    assert refetch.run(job(tmp_path, store, f"{site}/pricing.html")) == "ok"
     spans = store.spans()
     summary, raw = spans[0], spans[1:]
     assert {s.origin for s in raw} == {"web-raw"} and raw[0].locator == "p1"
@@ -82,12 +76,14 @@ def test_qualifiers_webfetch_dropped_are_flagged_and_the_page_is_the_evidence(si
     assert issue["text"] == "Pricing starts at $12 per seat per month."
 
 
-def test_wait_for_pending_returns_once_fetches_finish(tmp_path):
-    folder = refetch.pending_dir(tmp_path)
-    folder.mkdir()
-    (folder / "S1.json").write_text("{}")
+def test_wait_for_pending_returns_once_jobs_finish(tmp_path):
     import threading
 
-    threading.Timer(0.3, (folder / "S1.json").unlink).start()
-    refetch.wait_for_pending(tmp_path, max_s=5)
-    assert not (folder / "S1.json").exists()
+    from qlaudified import background
+
+    folder = background.pending_dir(tmp_path)
+    folder.mkdir()
+    (folder / "refetch-S1.json").write_text("{}")
+    threading.Timer(0.3, (folder / "refetch-S1.json").unlink).start()
+    background.wait_for_pending(tmp_path, max_s=5)
+    assert not (folder / "refetch-S1.json").exists()

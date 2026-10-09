@@ -69,11 +69,13 @@ def summary_issues(spans: list[Span], cfg: Config) -> list[dict]:
     return issues
 
 
-def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config,
-                  backend=None) -> tuple[list[Claim], int]:
+def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config, backend=None,
+                  extra_qualifiers: list[str] | None = None) -> tuple[list[Claim], int]:
     from qlaudified.verify import candidates, claims, classify, tier1, tier2_nli, tier3_llm
 
     lex = cfg.lexicon()
+    if extra_qualifiers:  # the High sidecar's finds count like lexicon hedges (SID-2)
+        lex["sidecar"] = [q for q in extra_qualifiers if q not in lex.get("sidecar", [])]
     limit = threshold(cfg)
     index = candidates.Index(evidence(spans))
     nli_ready: bool | None = None  # loaded on the first claim the rules leave undecided (~2 s)
@@ -86,6 +88,10 @@ def verify_answer(answer: str, spans: list[Span], turn: Turn, cfg: Config,
             skipped += 1
             continue
         found = index.top(claim_text, k=5)
+        kind = claims.code_claim_kind(claim_text, found[0][0].origin if found else None)
+        if kind == "value" and cfg.mode != Mode.HIGH:
+            skipped += 1  # code values (constants, config) are checked in High only
+            continue
         decided = tier1.check(claim_text, [s for s, _ in found], lex, context=sentence)
         if decided is None and found:
             if nli_ready is None:
@@ -119,7 +125,8 @@ def verify_turn(store: Store, turn: Turn, cfg: Config, backend=None) -> TurnResu
     """Verify a turn's answer against the session's spans and store the claims (VER-1..3)."""
     start = time.perf_counter()
     spans = store.spans()
-    found, skipped = verify_answer(turn.answer, spans, turn, cfg, backend)
+    found, skipped = verify_answer(turn.answer, spans, turn, cfg, backend,
+                                   store.sidecar_qualifiers())
     store.add_claims(turn.prompt_id, found)
     used = {i for c in found for i in c.span_ids}
     usage = dict(getattr(backend, "last_usage", {}) or {}) if backend is not None else {}

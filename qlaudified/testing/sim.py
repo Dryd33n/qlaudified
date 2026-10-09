@@ -43,8 +43,11 @@ class Replay:
     calls: list[tuple[str, int, str]] = field(default_factory=list)  # event, returncode, stdout
 
 
-def replay(session: Path, workdir: Path) -> Replay:
-    """Pipe every recorded event through hooks/run.py; the project is the first payload's cwd."""
+def replay(session: Path, workdir: Path, mode: str | None = None) -> Replay:
+    """Pipe every recorded event through hooks/run.py; the project is the first payload's cwd.
+
+    ``mode`` writes that mode to the project's config.toml first. Replays are always offline
+    (no re-fetch, no LLM backend), so High replays only the rule-based parts."""
     mapping = placeholders(workdir)
     sandbox = workdir / "sandbox"
     if (session / "sandbox").is_dir():
@@ -56,6 +59,10 @@ def replay(session: Path, workdir: Path) -> Replay:
     first: dict = next((r["payload"] for r in records if isinstance(r.get("payload"), dict)), {})
     project = Path(substitute(first.get("cwd") or "<SANDBOX>", mapping))
     project.mkdir(parents=True, exist_ok=True)
+    if mode:
+        store = project / ".claude" / ".qlaudified"
+        store.mkdir(parents=True, exist_ok=True)
+        (store / "config.toml").write_text(f'mode = "{mode}"\n', encoding="utf-8")
     env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project), "CLAUDE_PLUGIN_ROOT": str(REPO),
            "QLAUDIFIED_OFFLINE": "1"}  # a replayed WebFetch must not re-fetch the live page
 

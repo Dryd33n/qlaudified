@@ -1,0 +1,13 @@
+# Corpus task (single-hop), Sprint 4.
+id = "single-churn"
+type = "single-hop"
+sandbox = "tests/sandbox/single-churn"
+
+[[facts]]
+id = "churn"
+source = "metrics.md"
+locator = "L3"
+value = "3.1 %"
+qualifiers = ["roughly"]
+kept = "Monthly churn was roughly 3.1% in Q3."
+dropped = "Monthly churn was 3.1% in Q3."

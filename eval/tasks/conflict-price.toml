@@ -1,0 +1,22 @@
+# Corpus task (conflict), Sprint 4.
+id = "conflict-price"
+type = "conflict"
+sandbox = "tests/sandbox/conflict-price"
+
+[[facts]]
+id = "price-2026"
+source = "pricing-2026.md"
+locator = "L3"
+value = "12 USD"
+qualifiers = ["expected to"]
+kept = "Seats are expected to cost $12 per month from January 2026."
+dropped = "Seats cost $12 per month."
+
+[[facts]]
+id = "price-2025"
+source = "pricing-2025.md"
+locator = "L3"
+value = "10 USD"
+qualifiers = []
+superseded = true
+kept = "Seats cost $10 per month in 2025."

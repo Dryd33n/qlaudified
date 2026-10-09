@@ -1,0 +1,7 @@
+# Corpus task (no-source), Sprint 4.
+id = "nosource-margin"
+type = "no-source"
+sandbox = "tests/sandbox/nosource-margin"
+
+[[unsupported]]
+claim = "Fernwick Ledger's gross margin is 72%."

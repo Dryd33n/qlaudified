@@ -89,8 +89,9 @@ def test_repo_session_reports_each_clause(tmp_path):
     result = replay(Path(__file__).parent.parent / "sessions" / "repo-windows", tmp_path)
     [report] = (result.project / ".claude" / ".qlaudified" / "sessions").glob("*/reports/turn-1.md")
     text = report.read_text(encoding="utf-8")
-    assert "**supported** (rules): Ledger syncs every 900 seconds" in text
-    assert "**supported** (rules): which is 15 minutes." in text
+    # Medium checks what the code does; its values (900 seconds) are High-only.
+    assert "**supported** (rules): Ledger syncs" not in text and "(4 not checked)" in text
+    assert "`ledger/sync.py` uses it as `last_ts + SYNC_INTERVAL_S`" in text
     assert (report.parent / "turn-1.json").exists()
 
 
@@ -119,3 +120,14 @@ def test_seed_compaction_digest_brings_the_qualifiers_back(tmp_path):
     [digest] = [r["hookSpecificOutput"]["additionalContext"] for r in responses(result, "SessionStart")]
     assert "[S2 pricing.md L3]" in digest and "subject to change" in digest
     assert "[S4 offices.md L3]" in digest and "source says: may, pending" in digest
+
+
+def test_retry_demo_blocks_once_then_accepts_the_revision(tmp_path):
+    """Sprint 4 demo, live: "Q3 revenue was $4.2M." blocked once; the revision restored
+    "estimated" and passed. Replayed in High, offline."""
+    result = replay(Path(__file__).parent.parent / "sessions" / "retry-demo-windows", tmp_path,
+                    mode="high")
+    first, second = responses(result, "Stop")
+    assert first["decision"] == "block"
+    assert '"Q3 revenue was $4.2M." drops the source\'s qualifier "estimated"' in first["reason"]
+    assert "decision" not in second and second["systemMessage"].endswith("1 supported")

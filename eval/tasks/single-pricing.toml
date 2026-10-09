@@ -1,0 +1,13 @@
+# Corpus task (single-hop), Sprint 4.
+id = "single-pricing"
+type = "single-hop"
+sandbox = "tests/sandbox/single-pricing"
+
+[[facts]]
+id = "team-price"
+source = "pricing.md"
+locator = "L3"
+value = "15 USD"
+qualifiers = ["expected to"]
+kept = "The Team plan is expected to cost $15 per seat per month."
+dropped = "The Team plan costs $15 per seat per month."

@@ -1,0 +1,1 @@
+Read q3-update.md and reply with exactly one line in this form, with no caveats, parentheses or other words: Q3 revenue was <amount>.

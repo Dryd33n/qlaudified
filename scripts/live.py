@@ -59,6 +59,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--record", action="store_true",
                         help="keep the transcript and record our hook events (QLAUDIFIED_RECORD_DIR)")
+    parser.add_argument("--mode", choices=["low", "medium", "high"],
+                        help="write this mode to the sandbox's config.toml (default: medium)")
     parser.add_argument("--collect", metavar="NAME",
                         help="with --record: scrub the recording into tests/sessions/NAME-<os>/")
     args = parser.parse_args()
@@ -78,7 +80,7 @@ def main():
     plugin = [] if args.no_plugin else ["--plugin-dir", os.path.abspath(args.plugin_dir)]
     base = [*plugin,
             "--model", args.model,
-            "--max-turns", str(args.max_turns),
+            "--max-turns", str(args.max_turns + (1 if args.mode == "high" else 0)),
             "--allowedTools", "Read,Grep,Glob,Bash,WebFetch,WebSearch",
             "--permission-prompts", "none",
             "--output-format", "json"]
@@ -101,6 +103,11 @@ def main():
         return 0
 
     shutil.copytree(src, sandbox, ignore=shutil.ignore_patterns("prompt.txt"))
+    if args.mode:
+        store = os.path.join(sandbox, ".claude", ".qlaudified")
+        os.makedirs(store, exist_ok=True)
+        with open(os.path.join(store, "config.toml"), "w", encoding="utf-8") as f:
+            f.write(f'mode = "{args.mode}"\n')
 
     start = time.time()
     cost, turns, session_id, returncode, stderr = 0.0, 0, None, 0, b""

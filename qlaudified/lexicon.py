@@ -13,7 +13,7 @@ HEDGES: dict[str, list[str]] = {
     "likelihood": ["likely", "unlikely", "probably", "expected to", "usually", "typically"],
     "tentative": [
         "tentative", "tentatively", "provisional", "provisionally", "draft", "unconfirmed",
-        "subject to change", "pending", "to be confirmed",
+        "subject to change", "pending", "to be confirmed", "not yet confirmed", "not confirmed",
     ],
 }
 

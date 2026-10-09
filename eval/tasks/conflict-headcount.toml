@@ -1,0 +1,21 @@
+# Corpus task (conflict), Sprint 4.
+id = "conflict-headcount"
+type = "conflict"
+sandbox = "tests/sandbox/conflict-headcount"
+
+[[facts]]
+id = "hr-count"
+source = "hr.md"
+locator = "L3"
+value = "48"
+qualifiers = []
+kept = "Headcount was 48 on September 30, 2026."
+
+[[facts]]
+id = "finance-count"
+source = "finance.md"
+locator = "L3"
+value = "52"
+qualifiers = ["estimates"]
+kept = "Finance estimates headcount at 52, including contractors."
+dropped = "Finance puts headcount at 52, including contractors."

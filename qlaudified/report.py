@@ -37,7 +37,7 @@ def summary_line(claims: list[Claim], skipped: int = 0) -> str:
     noun = "claim" if len(claims) == 1 else "claims"
     head = f"qlaudified: {len(claims)} {noun} checked"
     if skipped:
-        head += f" ({skipped} non-critical skipped)"
+        head += f" ({skipped} not checked)"
     tail = " · /qlaudified report" if any(c.verdict in PROBLEMS for c in claims) else ""
     return " · ".join([head, *parts]) + tail
 

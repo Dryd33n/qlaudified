@@ -21,7 +21,8 @@ _COMPARISON = re.compile(
     re.IGNORECASE,
 )
 # A capitalized word past the first, not a short acronym (AI, URLs, IDs); or inline code.
-_ENTITY = re.compile(r"(?<!^)(?<![.!?]\s)\b(?![A-Z]{1,4}s?\b)[A-Z][a-zA-Z]+\b|`[^`]+`")
+_ENTITY = re.compile(r"(?<!^)(?<![.!?]\s)\b(?![A-Z]{1,4}s?\b)[A-Z][a-zA-Z]+\b|`[^`]+`"
+                     r"|\b[A-Za-z]+_\w+\b|\b\w+\(\)")  # code identifiers: SYNC_INTERVAL_S, run()
 # The assistant talking about itself or to the user, not about a source.
 _PERSONAL = re.compile(
     r"(?-i:\bI(?:'m|'ve|'ll|'d)?\b)|\b(?:me|my|you|your|you're|you'll|we|we've|we'll|let's|let me)\b"
@@ -105,6 +106,16 @@ def claims_in_context(answer: str) -> list[tuple[str, str]]:
 def _lead_in(claim: str) -> bool:
     """A short label that introduces a list or quote ("Whether to trust them:")."""
     return claim.rstrip().endswith(":") and len(claim.split()) <= 6
+
+
+def code_claim_kind(claim: str, best_source_origin: str | None) -> str | None:
+    """For a claim whose best candidate is code: "value" if it states a number or date (a config
+    value, a constant), else "behavior" (what the code does). None for claims about other sources.
+
+    Medium checks behavior claims only; High checks both (design.md, Code claims)."""
+    if best_source_origin != "code":
+        return None
+    return "value" if text.numbers(text.clean(claim)) else "behavior"
 
 
 def criticality(claim: str, lexicon: dict[str, list[str]] | None = None) -> float:

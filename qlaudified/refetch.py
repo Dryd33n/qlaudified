@@ -2,28 +2,20 @@
 
 WebFetch hands Claude a small model's summary, never the page (Sprint 0), so a qualifier the
 summary dropped is invisible without the page itself. PostToolUse calls ``start``, which writes a
-pending file and launches ``python -m qlaudified.refetch <pending>`` as a detached process: an
-``async`` hook would be killed when a ``claude -p`` session ends (hooks docs), and a detached
-process never holds up the agent loop (NFR-4). Stop waits a few seconds for pending fetches.
+job for ``python -m qlaudified.refetch`` as a detached process (background.py); Stop waits a few
+seconds for it.
 
 The summary span's ``derived_from`` then holds the raw span range (``S10-S24``), or
 ``summarized-only: <reason>`` for paywalls, JS-only pages, timeouts and non-HTML responses.
 A page that changed between two fetches gives new spans (spans are unique on their hash).
 """
 
-import contextlib
-import json
-import os
 import re
-import subprocess
 import sys
-import time
 from pathlib import Path
 
 TIMEOUT_S = 10.0
 MAX_BYTES = 5_000_000
-WAIT_S = 8.0  # Stop waits at most this long for pending fetches
-STALE_S = 60.0
 USER_AGENT = "Mozilla/5.0 (compatible; qlaudified-refetch/0.1; +local provenance check)"
 PAYWALL = re.compile(
     r"subscribe to (?:continue|read)|subscribers only|sign in to (?:continue|read)"
@@ -71,82 +63,35 @@ def fetch(url: str, timeout: float = TIMEOUT_S) -> tuple[list[str] | None, str]:
 
 # --- running it beside the hook -------------------------------------------------------------
 
-def pending_dir(session_dir: Path) -> Path:
-    return Path(session_dir) / "refetch"
-
-
 def start(session_dir: Path, project: Path, url: str, summary_span_id: str, agent_id: str,
           turn: str | None) -> Path | None:
-    """Queue a re-fetch and launch it detached; returns the pending file, or None offline
-    (``QLAUDIFIED_OFFLINE=1``: replays and benchmarks never touch the network)."""
-    if os.environ.get("QLAUDIFIED_OFFLINE"):
-        return None
-    folder = pending_dir(session_dir)
-    folder.mkdir(parents=True, exist_ok=True)
-    pending = folder / f"{summary_span_id}.json"
-    pending.write_text(json.dumps({
+    """Queue a re-fetch and launch it detached (background.py); None when offline."""
+    from qlaudified import background
+
+    return background.launch(session_dir, "qlaudified.refetch", f"refetch-{summary_span_id}", {
         "url": url, "summary_span_id": summary_span_id, "agent_id": agent_id, "turn": turn,
-        "session_dir": str(session_dir), "project": str(project), "started": time.time(),
-    }), encoding="utf-8")
-    root = Path(__file__).resolve().parent.parent
-    kwargs: dict = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL,
-                    "stderr": subprocess.DEVNULL, "cwd": str(root), "close_fds": True}
-    if sys.platform == "win32":
-        kwargs["creationflags"] = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-    else:
-        kwargs["start_new_session"] = True
-    subprocess.Popen([sys.executable, "-S", "-m", "qlaudified.refetch", str(pending)], **kwargs)
-    return pending
+        "project": str(project)})
 
 
-def run(pending: Path) -> str:
+def run(job: dict) -> str:
     """Fetch one queued page, store its spans and link the summary. Returns the outcome."""
     from qlaudified import capture, config
     from qlaudified.store import Store
 
-    job = json.loads(Path(pending).read_text(encoding="utf-8"))
     store = Store(job["session_dir"])
-    try:
-        paragraphs, reason = fetch(job["url"])
-        if paragraphs is None:
-            store.set_derived_from(job["summary_span_id"], f"summarized-only: {reason}")
-            return reason
-        lex = config.load(job["project"]).lexicon()
-        spans = [capture.indexed("web-raw", job["url"], f"p{i}", text, job["agent_id"],
-                                 job["turn"], lex) for i, text in enumerate(paragraphs, 1)]
-        ids = store.add_spans(spans)
-        nums = sorted(int(i[1:]) for i in ids)
-        store.set_derived_from(job["summary_span_id"], f"S{nums[0]}-S{nums[-1]}")
-        return "ok"
-    finally:
-        Path(pending).unlink(missing_ok=True)
-
-
-def wait_for_pending(session_dir: Path, max_s: float = WAIT_S) -> None:
-    """Let in-flight fetches finish before Stop verifies; stale ones are skipped."""
-    folder = pending_dir(session_dir)
-    deadline = time.time() + max_s
-    while folder.is_dir():
-        live = [p for p in folder.glob("*.json") if time.time() - p.stat().st_mtime < STALE_S]
-        if not live or time.time() > deadline:
-            return
-        time.sleep(0.1)
-
-
-def main(argv: list[str]) -> int:
-    pending = Path(argv[0])
-    try:
-        run(pending)
-    except Exception:  # noqa: BLE001 - detached: log, never raise
-        with contextlib.suppress(Exception):
-            from qlaudified.log import log_error
-
-            job = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else {}
-            log_error("Refetch", {"cwd": job.get("project")}, 0.0)
-            pending.unlink(missing_ok=True)
-    return 0
+    paragraphs, reason = fetch(job["url"])
+    if paragraphs is None:
+        store.set_derived_from(job["summary_span_id"], f"summarized-only: {reason}")
+        return reason
+    lex = config.load(job["project"]).lexicon()
+    spans = [capture.indexed("web-raw", job["url"], f"p{i}", text, job["agent_id"], job["turn"],
+                             lex) for i, text in enumerate(paragraphs, 1)]
+    nums = sorted(int(i[1:]) for i in store.add_spans(spans))
+    store.set_derived_from(job["summary_span_id"], f"S{nums[0]}-S{nums[-1]}")
+    return "ok"
 
 
 if __name__ == "__main__":
-    os.environ.setdefault("QLAUDIFIED_NESTED", "1")
-    sys.exit(main(sys.argv[1:]))
+    from qlaudified.background import run_job
+
+    sys.exit(run_job(sys.argv[1:], run, "Refetch"))

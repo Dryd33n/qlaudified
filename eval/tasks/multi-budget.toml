@@ -1,0 +1,13 @@
+# Corpus task (multi-hop), Sprint 4.
+id = "multi-budget"
+type = "multi-hop"
+sandbox = "tests/sandbox/multi-budget"
+
+[[facts]]
+id = "budget"
+source = "finance/budget.md"
+locator = "L3"
+value = "250000 USD"
+qualifiers = ["provisionally"]
+kept = "The Q4 marketing budget is provisionally set at $250,000."
+dropped = "The Q4 marketing budget is $250,000."

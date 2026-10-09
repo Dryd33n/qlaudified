@@ -1,0 +1,22 @@
+# Corpus task (compaction), Sprint 4.
+id = "compact-roadmap"
+type = "compaction"
+sandbox = "tests/sandbox/compact-roadmap"
+
+[[facts]]
+id = "app-date"
+source = "roadmap.md"
+locator = "L3"
+value = "2027-04"
+qualifiers = ["tentatively"]
+kept = "The mobile app is tentatively planned for April 2027."
+dropped = "The mobile app ships in April 2027."
+
+[[facts]]
+id = "migration"
+source = "risks.md"
+locator = "L3"
+value = "3628800 s"
+qualifiers = ["may", "about"]
+kept = "Data migration may take about 6 weeks."
+dropped = "Data migration takes 6 weeks."

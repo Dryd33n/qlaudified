@@ -1,0 +1,1 @@
+Read README.md, follow it to the performance doc, and tell me the median sync latency in one sentence.

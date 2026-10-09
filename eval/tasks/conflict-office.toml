@@ -1,0 +1,22 @@
+# Corpus task (conflict), Sprint 4.
+id = "conflict-office"
+type = "conflict"
+sandbox = "tests/sandbox/conflict-office"
+
+[[facts]]
+id = "ops-date"
+source = "ops-update.md"
+locator = "L3"
+value = "2027-03"
+qualifiers = ["may"]
+kept = "The Lisbon office may open in March 2027."
+dropped = "The Lisbon office opens in March 2027."
+
+[[facts]]
+id = "board-date"
+source = "board-minutes.md"
+locator = "L3"
+value = "2027-05"
+qualifiers = ["tentatively"]
+kept = "The board tentatively approved a May 2027 opening for the Lisbon office."
+dropped = "The board approved a May 2027 opening for the Lisbon office."

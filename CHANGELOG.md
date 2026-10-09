@@ -2,6 +2,12 @@
 
 Three lines per sprint, written at the Sunday demo.
 
+## Sprint 4 · High mode and eval harness (Nov 2–8, 2026; done Oct 8)
+
+- High mode works: a background sidecar finds qualifiers the lexicon misses, and Stop blocks once with a factual problem list; live, Claude turned "Q3 revenue was $4.2M." into "an estimated $4.2M, based on preliminary figures".
+- The eval is ready: 20 tasks (4 per type), a resumable runner (Off runs in Low mode), offline scoring; the 15-run haiku dry run produced the full results table for $0.07.
+- Misses and fixes: High's cost overhead is +38% on haiku (NFR-2 says ≤ 20%; recheck on Sonnet), the sidecar once called "due on" a qualifier (it can no longer block), and "May 2027" was read as the hedge "may".
+
 ## Sprint 3 · Web sources and model tiers (Oct 26–Nov 1, 2026; done Oct 8)
 
 - WebFetch pages are re-fetched in a detached process, so the raw text is the evidence; summary sentences that drop a page's qualifier are reported, and failures mark the source `summarized-only`.

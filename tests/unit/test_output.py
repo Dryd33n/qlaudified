@@ -45,7 +45,7 @@ def test_summary_line_puts_problems_first():
               "deterministic", 0.8, True),
     ]
     assert report.summary_line(claims, skipped=2) == (
-        "qlaudified: 2 claims checked (2 non-critical skipped) · 1 qualifier dropped (estimated)"
+        "qlaudified: 2 claims checked (2 not checked) · 1 qualifier dropped (estimated)"
         " · 1 supported · /qlaudified report")
     assert report.summary_line(claims[:1]) == "qlaudified: 1 claim checked · 1 supported"
 

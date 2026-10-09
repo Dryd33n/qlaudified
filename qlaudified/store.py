@@ -76,6 +76,10 @@ CREATE TABLE IF NOT EXISTS claims (
 CREATE TABLE IF NOT EXISTS turns (
     n INTEGER PRIMARY KEY AUTOINCREMENT, prompt_id TEXT UNIQUE, answer TEXT, ts TEXT
 );
+CREATE TABLE IF NOT EXISTS sidecar (
+    span_id TEXT, sentence TEXT, criticality REAL, qualifiers TEXT, agent_id TEXT,
+    injected INTEGER DEFAULT 0, PRIMARY KEY (span_id, sentence)
+);
 """
 
 
@@ -96,7 +100,7 @@ class Store:
             try:
                 if con.execute("PRAGMA journal_mode").fetchone()[0] != "wal":
                     con.execute("PRAGMA journal_mode = WAL")
-                if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'turns'").fetchone():
+                if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'sidecar'").fetchone():
                     con.executescript(SCHEMA)
                 return con
             except sqlite3.OperationalError as e:
@@ -182,6 +186,38 @@ class Store:
             con.execute("UPDATE spans SET derived_from = ? WHERE span_id = ?", (value, span_id))
         finally:
             con.close()
+
+    def add_sidecar(self, rows: list[dict]) -> None:
+        """High sidecar results per flagged sentence: criticality and extra qualifiers (SID-2)."""
+        con = self._connect()
+        try:
+            con.executemany(
+                "INSERT OR REPLACE INTO sidecar (span_id, sentence, criticality, qualifiers, "
+                "agent_id) VALUES (?, ?, ?, ?, ?)",
+                [(r["span_id"], r["sentence"], r["criticality"], "; ".join(r["qualifiers"]),
+                  r["agent_id"]) for r in rows])
+        finally:
+            con.close()
+
+    def take_sidecar(self, agent_id: str) -> list[dict]:
+        """Sidecar rows with extra qualifiers not yet injected for this agent; marks them injected."""
+        con = self._connect()
+        try:
+            con.execute("BEGIN IMMEDIATE")
+            rows = con.execute(
+                "SELECT span_id, sentence, qualifiers FROM sidecar WHERE agent_id = ? "
+                "AND injected = 0 AND qualifiers != ''", (agent_id,)).fetchall()
+            con.execute("UPDATE sidecar SET injected = 1 WHERE agent_id = ? AND injected = 0",
+                        (agent_id,))
+            con.execute("COMMIT")
+        finally:
+            con.close()
+        return [{"span_id": a, "sentence": b, "qualifiers": c.split("; ")} for a, b, c in rows]
+
+    def sidecar_qualifiers(self) -> list[str]:
+        """Every qualifier the sidecar found in this session: an extra lexicon class at Stop."""
+        rows = self._query("SELECT qualifiers FROM sidecar WHERE qualifiers != ''")
+        return sorted({w for (q,) in rows for w in q.split("; ") if w})
 
     def start_turn(self, prompt_id: str, answer: str) -> Turn:
         """Record a turn's final answer; a second Stop in the same turn updates it and keeps its n."""

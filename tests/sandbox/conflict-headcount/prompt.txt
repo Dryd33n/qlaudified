@@ -1,0 +1,1 @@
+Read hr.md and finance.md and tell me in one sentence Fernwick's headcount on September 30, 2026, and why the files differ.

@@ -84,3 +84,11 @@ def test_month_and_day_without_a_year():
     assert extract_dates("It replaces the earlier November 18 date.") == ["--11-18"]
     assert extract_dates("Due 14 Nov, then November 18, 2026.") == ["--11-14", "2026-11-18"]
     assert number_match("--11-18", "2026-11-18") and not number_match("--11-18", "2026-11")
+
+
+def test_may_before_a_number_is_the_month():
+    assert find_hedges("The board approved a May 2027 opening.") == {}
+    assert find_hedges("Opens May 4, 2027.") == {}
+    assert find_hedges("It may open in 2027.") == {"modal": ["may"]}
+    assert find_hedges("May open in 2027, pending review.")["modal"] == ["may"]
+    assert find_hedges("The mayor said so.") == {}

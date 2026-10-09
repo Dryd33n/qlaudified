@@ -1,0 +1,1 @@
+Read metrics.md and tell me Q3 monthly churn in one short sentence.

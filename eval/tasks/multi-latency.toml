@@ -1,0 +1,13 @@
+# Corpus task (multi-hop), Sprint 4.
+id = "multi-latency"
+type = "multi-hop"
+sandbox = "tests/sandbox/multi-latency"
+
+[[facts]]
+id = "latency"
+source = "docs/perf.md"
+locator = "L3"
+value = "0.12 s"
+qualifiers = ["reportedly"]
+kept = "Median sync latency is reportedly 120 ms."
+dropped = "Median sync latency is 120 ms."

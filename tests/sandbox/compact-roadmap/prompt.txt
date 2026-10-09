@@ -1,0 +1,5 @@
+Read roadmap.md and risks.md, then reply with just the word: done
+---
+/compact
+---
+From the files you read earlier, tell me in two short sentences when the mobile app ships and how long data migration takes.

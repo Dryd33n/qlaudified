@@ -80,13 +80,13 @@ Goal: cover web sources and add the two smarter verifier tiers, both optional an
 
 Goal: finish High mode and get the evaluation ready to run, so Sprint 5 is only running and writing.
 
-- [ ] In-loop sidecar on flagged sentences only (SID-1, SID-2)
-- [ ] Stop retry, capped at once per turn, with a factual issue list (VER-4)
-- [ ] Code-claim levels: behavior claims in Medium; doc facts, numbers and config values in High
-- [ ] Expand the corpus to about 20 tasks, four of each task type, with ground-truth TOML
-- [ ] Eval runner: tasks × 3 live conditions × 2 repeats, post-hoc scored offline, via `claude -p --output-format json`, resumable after interruptions
-- [ ] Scoring: qualifier preservation, attribution precision and recall, verifier accuracy, cost, latency
-- [ ] Dry run of 5 tasks under all conditions to shake out the harness
+- [x] In-loop sidecar on flagged sentences only (SID-1, SID-2)
+- [x] Stop retry, capped at once per turn, with a factual issue list (VER-4)
+- [x] Code-claim levels, minimal: behavior vs value claims on code sources; Medium checks behavior, High both (README drift is out of v1)
+- [x] Expand the corpus to about 20 tasks, four of each task type, with ground-truth TOML (local docs and code only)
+- [x] Eval runner: tasks × 3 live conditions (Off runs in Low) × 2 repeats, post-hoc scored offline, via `claude -p --output-format json`, resumable after interruptions
+- [x] Scoring: qualifier preservation, attribution precision and recall, verifier accuracy, cost, latency
+- [x] Dry run of 5 tasks under all conditions (haiku) to shake out the harness
 
 **Done when:** a High-mode run forces one retry that fixes a dropped qualifier, and the dry run produces a scored results table.
 

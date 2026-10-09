@@ -1,0 +1,22 @@
+# Corpus task (compaction), Sprint 4.
+id = "compact-security"
+type = "compaction"
+sandbox = "tests/sandbox/compact-security"
+
+[[facts]]
+id = "audit-date"
+source = "audit.md"
+locator = "L3"
+value = "2027-02"
+qualifiers = ["provisionally"]
+kept = "The security audit is provisionally scheduled for February 2027."
+dropped = "The security audit is in February 2027."
+
+[[facts]]
+id = "fixed"
+source = "findings.md"
+locator = "L3"
+value = "2"
+qualifiers = ["reportedly"]
+kept = "2 critical issues were reportedly fixed in October 2026."
+dropped = "2 critical issues were fixed in October 2026."

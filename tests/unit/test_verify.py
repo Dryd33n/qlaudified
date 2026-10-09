@@ -99,3 +99,16 @@ def test_a_hedge_later_in_the_sentence_still_qualifies_an_earlier_clause():
 def test_a_date_without_a_year_matches_the_same_day():
     spans = spans_from("seed-conflict", "launch-plan-v1.md")
     assert check("The older plan tentatively said November 18.", spans)["verdict"] == "supported"
+
+
+def test_code_values_are_checked_in_high_only():
+    from qlaudified.config import Mode
+
+    spans = spans_from("repo", "ledger/config.py", "ledger/sync.py")
+    answer = ("SYNC_INTERVAL_S is 900 seconds. The next sync is scheduled from last_ts plus "
+              "SYNC_INTERVAL_S.")
+    medium, skipped = verify_answer(answer, spans, Turn(1, "p", answer, ""), Config())
+    assert [c.text for c in medium] == [
+        "The next sync is scheduled from last_ts plus SYNC_INTERVAL_S."] and skipped == 1
+    high, _ = verify_answer(answer, spans, Turn(1, "p", answer, ""), Config(mode=Mode.HIGH))
+    assert len(high) == 2

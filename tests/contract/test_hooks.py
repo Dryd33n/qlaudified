@@ -169,7 +169,7 @@ def test_webfetch_refetches_the_page_and_stop_flags_the_summarys_dropped_hedge(
         url = f"{site}/pricing.html"
         post["tool_input"]["url"] = url
         post["tool_response"].update(url=url, result="Pricing starts at $12 per seat per month.")
-        assert run_hook("PostToolUse", post, project=sandbox).returncode == 0
+        assert run_hook("PostToolUse", post, project=sandbox, offline=False).returncode == 0
         stop = same_session(post, payload("stop"))
         stop["last_assistant_message"] = "Fernwick Ledger costs $12 per seat per month."
         proc = run_hook("Stop", stop, project=sandbox)  # waits for the detached re-fetch
@@ -181,3 +181,61 @@ def test_webfetch_refetches_the_page_and_stop_flags_the_summarys_dropped_hedge(
     assert "## WebFetch summaries that changed their page" in md
     assert "(dropped: subject to change, expected to)" in md
     assert not (sandbox / ".claude" / ".qlaudified" / "errors.log").exists()
+
+
+def test_high_blocks_once_with_the_problems_then_lets_the_revision_stop(
+        run_hook, payload, sandbox, monkeypatch):
+    from qlaudified import config
+
+    config.config_path(sandbox).parent.mkdir(parents=True, exist_ok=True)
+    config.config_path(sandbox).write_text('mode = "high"\nbackend = "none"\n', encoding="utf-8")
+    post = payload("post_read")
+    run_hook("PostToolUse", post, project=sandbox)
+    stop = same_session(post, payload("stop"))
+    stop["last_assistant_message"] = "Q3 revenue was $4.2M. Headcount grew to 48."
+    out = json.loads(run_hook("Stop", stop, project=sandbox).stdout)
+    assert out["decision"] == "block"
+    assert out["reason"].splitlines()[1] == (
+        '1. "Q3 revenue was $4.2M." drops the source\'s qualifier "estimated", "preliminary".')
+    assert '[S2 q3-update.md L3] "Q3 revenue is estimated at $4.2M' in out["reason"]
+    assert "Headcount" not in out["reason"]
+    stop.update(stop_hook_active=True,
+                last_assistant_message="Q3 revenue was an estimated $4.2M (preliminary).")
+    out = json.loads(run_hook("Stop", stop, project=sandbox).stdout)
+    assert "decision" not in out and out["systemMessage"].endswith("1 supported")
+    assert Store(store_dir(sandbox)).last_turn().n == 1  # the revision replaced the same turn
+    stop["last_assistant_message"] = "Q3 revenue was $4.2M."  # still wrong: never blocks twice
+    assert "decision" not in json.loads(run_hook("Stop", stop, project=sandbox).stdout)
+
+
+def test_high_post_tool_use_injects_earlier_sidecar_finds(run_hook, payload, sandbox):
+    from qlaudified import config
+
+    config.save_mode(sandbox, config.Mode.HIGH)
+    post = payload("post_read")
+    run_hook("PostToolUse", post, project=sandbox)  # offline: the sidecar job isn't launched
+    Store(store_dir(sandbox)).add_sidecar([{
+        "span_id": "S3", "sentence": "Headcount grew to 48 by September 30, 2026.",
+        "criticality": 0.8, "qualifiers": ["grew to"], "agent_id": "main"}])
+    nxt = payload("post_read_subagent")
+    nxt.update(session_id=post["session_id"], cwd=post["cwd"], agent_id=None)
+    context = json.loads(run_hook("PostToolUse", nxt, project=sandbox).stdout)[
+        "hookSpecificOutput"]["additionalContext"]
+    assert context.splitlines()[0].startswith("[S3] source also qualifies: grew to")
+    assert "launch is tentatively scheduled" in context and len(context) <= 600
+
+
+def test_sidecar_only_drops_are_reported_but_never_block(run_hook, payload, sandbox):
+    from qlaudified import config
+
+    config.config_path(sandbox).parent.mkdir(parents=True, exist_ok=True)
+    config.config_path(sandbox).write_text('mode = "high"\nbackend = "none"\n', encoding="utf-8")
+    post = payload("post_read")
+    run_hook("PostToolUse", post, project=sandbox)
+    Store(store_dir(sandbox)).add_sidecar([{
+        "span_id": "S3", "sentence": "Headcount grew to 48 by September 30, 2026.",
+        "criticality": 0.8, "qualifiers": ["grew to"], "agent_id": "main"}])
+    stop = same_session(post, payload("stop"))
+    stop["last_assistant_message"] = "Headcount reached 48 by September 30, 2026."
+    out = json.loads(run_hook("Stop", stop, project=sandbox).stdout)
+    assert "decision" not in out and "qualifier dropped (grew to)" in out["systemMessage"]

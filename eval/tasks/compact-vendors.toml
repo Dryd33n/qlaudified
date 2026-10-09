@@ -1,0 +1,22 @@
+# Corpus task (compaction), Sprint 4.
+id = "compact-vendors"
+type = "compaction"
+sandbox = "tests/sandbox/compact-vendors"
+
+[[facts]]
+id = "renewal"
+source = "vendors.md"
+locator = "L3"
+value = "2027-01-15"
+qualifiers = ["expected to"]
+kept = "The hosting contract is expected to renew on January 15, 2027."
+dropped = "The hosting contract renews on January 15, 2027."
+
+[[facts]]
+id = "response"
+source = "support.md"
+locator = "L3"
+value = "14400 s"
+qualifiers = ["usually"]
+kept = "Support response time is usually under 4 hours."
+dropped = "Support response time is under 4 hours."

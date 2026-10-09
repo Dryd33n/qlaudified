@@ -1,0 +1,13 @@
+# Corpus task (multi-hop), Sprint 4.
+id = "multi-headcount"
+type = "multi-hop"
+sandbox = "tests/sandbox/multi-headcount"
+
+[[facts]]
+id = "target"
+source = "people/forecast.md"
+locator = "L3"
+value = "60"
+qualifiers = ["likely"]
+kept = "Headcount will likely reach 60 by June 2027."
+dropped = "Headcount will reach 60 by June 2027."

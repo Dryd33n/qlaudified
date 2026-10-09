@@ -42,13 +42,17 @@ def payload(tmp_path, sandbox):
 def run_hook(repo, tmp_path):
     """Pipe a payload into hooks/run.py exactly as Claude Code would; returns the completed process."""
 
-    def _run(event: str, payload: dict | str, project: Path | None = None) -> subprocess.CompletedProcess:
+    def _run(event: str, payload: dict | str, project: Path | None = None,
+             offline: bool = True) -> subprocess.CompletedProcess:
         data = payload if isinstance(payload, str) else json.dumps(payload)
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project or tmp_path)}
+        if not offline:
+            env.pop("QLAUDIFIED_OFFLINE", None)
         return subprocess.run(
             [sys.executable, str(repo / "hooks" / "run.py"), event],
             input=data.encode("utf-8"),
             capture_output=True,
-            env={**os.environ, "CLAUDE_PROJECT_DIR": str(project or tmp_path)},
+            env=env,
             timeout=30,
             check=False,
         )
@@ -60,6 +64,8 @@ REAL_CACHE = os.environ.get("QLAUDIFIED_CACHE") or str(Path.home() / ".cache" / 
 
 
 @pytest.fixture(autouse=True)
-def no_nli_model(tmp_path_factory, monkeypatch):
-    """Tests run without the NLI model, as CI does; tests/unit/test_nli.py opts back in."""
+def no_nli_model_and_offline(tmp_path_factory, monkeypatch):
+    """Tests run without the NLI model, as CI does (test_tiers.py opts back in), and offline: no
+    background jobs and no LLM backend, so no test can make a real model call by accident."""
     monkeypatch.setenv("QLAUDIFIED_CACHE", str(tmp_path_factory.mktemp("cache")))
+    monkeypatch.setenv("QLAUDIFIED_OFFLINE", "1")

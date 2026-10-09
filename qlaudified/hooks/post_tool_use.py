@@ -19,7 +19,8 @@ def handle(payload: dict) -> dict | None:
     if not spans:
         return None
     folder = paths.session_dir(payload["session_id"], payload)
-    new = Store(folder).add_new_spans(spans)
+    store = Store(folder)
+    new = store.add_new_spans(spans)
     if cfg.mode == config.Mode.LOW:
         return None
     for span in new:
@@ -27,7 +28,16 @@ def handle(payload: dict) -> dict | None:
             from qlaudified import refetch
 
             refetch.start(folder, project, span.source, span.span_id, span.agent_id, span.turn)
-    delta = inject.build_delta(new, cfg.inject_budget_chars)
+    extra: list[str] = []
+    if cfg.mode == config.Mode.HIGH:
+        from qlaudified import sidecar  # SID-1, SID-2: in the background, results come next call
+
+        sidecar.start(folder, project, new)
+        for line in sidecar.format_lines(store.take_sidecar(payload.get("agent_id") or "main")):
+            if sum(len(x) + 1 for x in extra) + len(line) <= cfg.inject_budget_chars // 2:
+                extra.append(line)
+    budget = cfg.inject_budget_chars - sum(len(x) + 1 for x in extra)
+    delta = "\n".join([*extra, inject.build_delta(new, budget)]).strip()
     if not delta:
         return None
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": delta}}

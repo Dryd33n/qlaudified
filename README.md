@@ -3,16 +3,17 @@
 A Claude Code plugin that tracks where each claim in Claude's answer came from, and whether the source's
 qualifiers ("estimated", "may", "tentative") survived the trip.
 
-**Status:** pre-alpha. Sprints 0–3 are done: Medium mode records each retrieval, feeds new
-facts and their qualifiers back to Claude, marks the displayed answer with source IDs, and verifies
-each answer at Stop. WebFetch pages are re-fetched so their raw text is the evidence; an optional
-NLI model and an on-request LLM check settle what the rules can't. Sprint 4 (High mode, eval
-harness) is next.
+**Status:** pre-alpha. Sprints 0–4 are done. Medium mode records each retrieval, feeds new facts
+and their qualifiers back to Claude, marks the displayed answer with source IDs, and verifies each
+answer at Stop; WebFetch pages are re-fetched so their raw text is the evidence, and an optional
+NLI model and an on-request LLM check settle what the rules can't. High mode also checks sources
+in the background as Claude works and asks Claude to revise once when an answer drops a
+qualifier. A 20-task eval harness is ready; Sprint 5 (the full ablation and v1) is next.
 
 - Design and requirements: [docs/design.md](docs/design.md)
 - Sprint plan: [docs/sprint-plan.md](docs/sprint-plan.md)
 - Testing and dev workflow: [docs/testing.md](docs/testing.md)
-- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · [Sprint 3](docs/findings/sprint-3.md) · spike runbook: [spike/README.md](spike/README.md)
+- Findings: [Sprint 0](docs/findings/sprint-0.md) · [Sprint 1](docs/findings/sprint-1.md) · [Sprint 2](docs/findings/sprint-2.md) · [Sprint 3](docs/findings/sprint-3.md) · [Sprint 4](docs/findings/sprint-4.md) · spike runbook: [spike/README.md](spike/README.md)
 
 ## Try it
 
@@ -40,8 +41,8 @@ Then:
 | 1 · Oct 12–18 | Plugin skeleton, mode command, capture into the store | Done: [results](docs/findings/sprint-1.md) |
 | 2 · Oct 19–25 | Medium mode end to end | Done: [results](docs/findings/sprint-2.md) |
 | 3 · Oct 26–Nov 1 | Web sources, NLI and LLM tiers | Done: [results](docs/findings/sprint-3.md) |
-| 4 · Nov 2–8 | High mode and the eval harness | Next |
-| 5 · Nov 9–15 | Ablation results, README, v1 tag | |
+| 4 · Nov 2–8 | High mode and the eval harness | Done: [results](docs/findings/sprint-4.md) |
+| 5 · Nov 9–15 | Ablation results, README, v1 tag | Next |
 
 What Sprint 0 settled:
 - Hooks use one command for both OSes: `py -3` on Windows, `python3` on macOS. Python 3.11+ is
