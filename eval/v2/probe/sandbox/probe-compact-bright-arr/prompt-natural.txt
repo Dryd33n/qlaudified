@@ -1,0 +1,15 @@
+Read revenue.md and tell me in one line that you have read it.
+---
+Read design-system.md and docs-site.md and tell me each file's main point in one line.
+---
+Read hiring.md and office.md and tell me each file's main point in one line.
+---
+Read offsite.md and open-source.md and tell me each file's main point in one line.
+---
+Read security-cert.md and support-tooling.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+/compact
+---
+From what you read earlier, give me a quick read on Brightwater's recurring revenue and churn.

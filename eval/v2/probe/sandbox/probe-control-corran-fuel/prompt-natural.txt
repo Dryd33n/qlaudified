@@ -1,0 +1,13 @@
+Read ops-review.md and tell me in one line that you have read it.
+---
+Read compliance.md and customer-desk.md and tell me each file's main point in one line.
+---
+Read cyber.md and driver-survey.md and tell me each file's main point in one line.
+---
+Read fleet-maintenance.md and social-club.md and tell me each file's main point in one line.
+---
+Read sustainability.md and training-academy.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+From what you read earlier, summarise Corran's fuel costs and delivery performance for the quarter.

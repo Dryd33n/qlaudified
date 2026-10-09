@@ -1,0 +1,82 @@
+{
+  "id": "probe-derived-corran-fuel",
+  "family": "corran-fuel",
+  "org": "Corran Logistics",
+  "scope": "sentence",
+  "format": "slide",
+  "distance": "far",
+  "distance_tokens": 1519,
+  "manipulation": "derived",
+  "sources": [
+    "ops-review.md"
+  ],
+  "read": [
+    "ops-review.md"
+  ],
+  "distractors": [
+    "compliance.md",
+    "customer-desk.md",
+    "cyber.md",
+    "driver-survey.md",
+    "fleet-maintenance.md",
+    "social-club.md",
+    "sustainability.md",
+    "training-academy.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "q3-fuel",
+      "label": "Q3 fuel spend",
+      "value": 3100000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "q4-fuel",
+      "label": "Q4 fuel spend",
+      "value": 3400000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "forecast, about, if diesel prices stay where they are"
+    },
+    {
+      "id": "on-time",
+      "label": "Q3 on-time delivery rate",
+      "value": 93.5,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "q3-delivery-hours",
+      "label": "Q3 average delivery time (hours)",
+      "value": 26.4,
+      "unit": "hours",
+      "hedged": false
+    },
+    {
+      "id": "q4-delivery-hours",
+      "label": "Q4 average delivery time (hours)",
+      "value": 24,
+      "unit": "hours",
+      "hedged": true,
+      "cue": "early data suggest, could, not modelled in detail"
+    },
+    {
+      "id": "fuel-change",
+      "label": "Q4 minus Q3 fuel spend",
+      "value": 300000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "forecast"
+    },
+    {
+      "id": "fuel-change-pct",
+      "label": "percentage rise in fuel spend, Q3 to Q4",
+      "value": 10,
+      "unit": "%",
+      "hedged": true,
+      "cue": "forecast"
+    }
+  ]
+}

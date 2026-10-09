@@ -211,3 +211,23 @@ def test_found_in_the_first_real_answers():
     o = outcomes("A single $2.20 fare, indicatively from 1 February 2027, would replace zonal fares; "
                  "the fare depends on the bus grant settlement due in December.", "maple-transit-near")
     assert (o["fare"], o["fare-start"]) == ("kept", "kept")
+
+
+def test_difficulty_probe_tasks(tmp_path, monkeypatch):
+    """The probe (protocol v2 ceiling gate): five manipulations of three far families, off only."""
+    probe = importlib.import_module("probe")
+    monkeypatch.setattr(probe, "OUT", tmp_path)
+    assert probe.main() == 0
+    tasks = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (tmp_path / "tasks").glob("*.json")}
+    assert len(tasks) == 15
+    steps = (tmp_path / "sandbox" / "probe-compact-halden-trial" / "prompt-natural.txt").read_text(
+        encoding="utf-8").split("\n---\n")
+    assert steps[-2] == "/compact"
+    notes = (tmp_path / "sandbox" / "probe-notes-halden-trial" / "prompt-natural.txt").read_text(
+        encoding="utf-8").split("\n---\n")
+    assert "notes.md" in notes[0] and notes[-1].startswith("Using your notes in notes.md")
+    derived = tasks["probe-derived-bright-arr"]["facts"]
+    assert {f["id"] for f in derived} >= {"arr-growth", "arr-growth-pct"}
+    o = {s.fact: s.outcome for s in calib.score_answer(
+        "ARR grew about $3.7M (roughly 7.7%) to an unaudited $51.9M.", derived)}
+    assert (o["arr-growth"], o["arr-growth-pct"], o["q3-arr"]) == ("kept", "kept", "kept")

@@ -41,7 +41,10 @@ TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_t
 
 
 def load_task(task: str) -> dict:
-    return json.loads((HERE / "tasks" / f"{task}.json").read_text(encoding="utf-8"))
+    path = HERE / "tasks" / f"{task}.json"
+    if not path.exists():
+        path = HERE / "probe" / "tasks" / f"{task}.json"  # difficulty-probe tasks
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _jsonl(paths: list[Path]) -> list[dict]:

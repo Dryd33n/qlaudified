@@ -64,7 +64,9 @@ SUITES = {
     "v2": {"variants": {"natural": "prompt-natural.txt", "format": "prompt-format.txt",
                         "antihedge": "prompt-antihedge.txt"},
            "conditions": "off,prompt,rules,placebo,medium"},
+    "probe": {"variants": {"natural": "prompt-natural.txt"}, "conditions": "off"},
 }
+SUITE_DIRS = {"v2": V2, "probe": V2 / "probe"}
 VARIANTS = SUITES["v1"]["variants"]  # v1 names, kept for older callers
 SETS = ("dry", "pilot", "confirmatory")
 LIMITED = re.compile(r"usage limit|rate limit|limit reached|429|overloaded|quota|credit balance",
@@ -88,12 +90,14 @@ def done(folder: Path) -> bool:
 
 
 def sandbox_dir(task: str, suite: str = "v1") -> Path:
-    return (V2 / "sandbox" / task) if suite == "v2" else (REPO / "tests" / "sandbox" / task)
+    if suite in SUITE_DIRS:
+        return SUITE_DIRS[suite] / "sandbox" / task
+    return REPO / "tests" / "sandbox" / task
 
 
 def task_ids(suite: str) -> list[str]:
-    if suite == "v2":
-        return sorted(p.stem for p in (V2 / "tasks").glob("*.json"))
+    if suite in SUITE_DIRS:
+        return sorted(p.stem for p in (SUITE_DIRS[suite] / "tasks").glob("*.json"))
     return sorted(p.stem for p in TASKS.glob("*.toml"))
 
 
@@ -118,7 +122,9 @@ def _transcript(config_dir: str, session_id: str | None) -> Path | None:
 def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
             out: Path, suite: str = "v1") -> dict:
     """One isolated run: sandbox copy with the condition's config, every step, recording kept."""
-    work = Path(tempfile.mkdtemp(prefix="qlaudified-eval-"))
+    # resolve(): Windows hands out 8.3 short temp paths (DRYDEN~1), which Claude Code does not
+    # treat as inside its working folder, so acceptEdits would still deny writing notes.md.
+    work = Path(tempfile.mkdtemp(prefix="qlaudified-eval-")).resolve()
     sandbox = work / task
     shutil.copytree(sandbox_dir(task, suite), sandbox,
                     ignore=shutil.ignore_patterns("prompt*.txt", ".claude"))
@@ -136,7 +142,9 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     system = (["--append-system-prompt", SYSTEM_PROMPTS[condition]]
               if condition in SYSTEM_PROMPTS else [])
     base = [*plugin, *system, "--model", model, "--max-turns", str(turns_cap),
-            "--allowedTools", "Read,Grep,Glob,Bash", "--permission-prompts", "none",
+            "--allowedTools", "Read,Grep,Glob,Bash" + (",Write,Edit" if suite != "v1" else ""),
+            *(["--permission-mode", "acceptEdits"] if suite != "v1" else []),  # notes.md in the sandbox
+            "--permission-prompts", "none",
             "--output-format", "json"]
     start = time.time()
     cost, turns, session_id, returncode, data, stderr = 0.0, 0, None, 0, {}, b""
@@ -188,8 +196,8 @@ def runs_dir(suite: str, run_set: str | None) -> Path:
     if suite == "v1":
         return RUNS / run_set / "v1" if run_set else RUNS
     if run_set not in SETS:
-        raise SystemExit("v2 runs need --set dry, pilot or confirmatory")
-    return RUNS / run_set / "v2"
+        raise SystemExit(f"{suite} runs need --set dry, pilot or confirmatory")
+    return RUNS / run_set / suite
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -213,8 +221,8 @@ def main(argv: list[str] | None = None) -> int:
     runs = runs_dir(args.suite, args.run_set)
     tasks = args.tasks.split(",") if args.tasks else task_ids(args.suite)
     for task in tasks:  # fail early on typos
-        if args.suite == "v2":
-            json.loads((V2 / "tasks" / f"{task}.json").read_text(encoding="utf-8"))
+        if args.suite in SUITE_DIRS:
+            json.loads((SUITE_DIRS[args.suite] / "tasks" / f"{task}.json").read_text(encoding="utf-8"))
         else:
             tomllib.loads((TASKS / f"{task}.toml").read_text(encoding="utf-8"))
     conditions = (args.conditions or suite["conditions"]).split(",")

@@ -133,8 +133,14 @@ def _segments(unit: Unit, figs: list[figures.Figure]) -> list[tuple[int, int]]:
             # value, so cut before it, at the last break ahead of its colon.
             before = [m for m in breaks if m.start() < colon]
             cut = before[-1].start() if before else 0
+        elif breaks:
+            cut = breaks[-1].start()
         else:
-            cut = breaks[-1].start() if breaks else len(between) // 2
+            # No clause break ("about $3.7M (roughly 7.7%) to an unaudited $51.9M"): words before
+            # a figure modify it, so cut right after the left figure, keeping a figure-free
+            # parenthetical such as "(estimated)" with it.
+            paren = re.match(r"\s*\([^()]*\)", between)
+            cut = paren.end() if paren and not figures.extract(paren.group()) else 0
         cuts.append(left.end + cut)
     cuts.append(len(unit.text))
     return list(itertools.pairwise(cuts))

@@ -1,0 +1,82 @@
+{
+  "id": "probe-derived-halden-trial",
+  "family": "halden-trial",
+  "org": "Halden Biotech",
+  "scope": "sentence",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 2001,
+  "manipulation": "derived",
+  "sources": [
+    "hb204-update.md"
+  ],
+  "read": [
+    "hb204-update.md"
+  ],
+  "distractors": [
+    "community.md",
+    "facilities.md",
+    "hr-quarterly.md",
+    "it-migration.md",
+    "lab-safety.md",
+    "seminar.md",
+    "training.md",
+    "vendors.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "enrolment",
+      "label": "patients enrolled by September 30",
+      "value": 386,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "sites",
+      "label": "active trial sites",
+      "value": 31,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "q3-spend",
+      "label": "Q3 trial spending",
+      "value": 2700000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "estimated, subject to the finance team's quarter-end review"
+    },
+    {
+      "id": "q2-spend",
+      "label": "Q2 trial spending",
+      "value": 2300000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "lock-date",
+      "label": "database lock date",
+      "value": "2027-06-12",
+      "unit": "date",
+      "hedged": true,
+      "cue": "provisionally, depending on enrolment pace"
+    },
+    {
+      "id": "spend-change",
+      "label": "change in trial spending, Q2 to Q3",
+      "value": 400000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "estimated"
+    },
+    {
+      "id": "spend-change-pct",
+      "label": "percentage change in trial spending",
+      "value": 17,
+      "unit": "%",
+      "hedged": true,
+      "cue": "estimated"
+    }
+  ]
+}

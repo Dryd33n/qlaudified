@@ -1,0 +1,58 @@
+{
+  "id": "probe-compact-bright-arr",
+  "family": "bright-arr",
+  "org": "Brightwater Software",
+  "scope": "sentence",
+  "format": "slide",
+  "distance": "far",
+  "distance_tokens": 1203,
+  "manipulation": "compact",
+  "sources": [
+    "revenue.md"
+  ],
+  "read": [
+    "revenue.md"
+  ],
+  "distractors": [
+    "design-system.md",
+    "docs-site.md",
+    "hiring.md",
+    "office.md",
+    "offsite.md",
+    "open-source.md",
+    "security-cert.md",
+    "support-tooling.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "q2-arr",
+      "label": "ARR at end of Q2",
+      "value": 48200000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "q3-arr",
+      "label": "ARR at end of Q3",
+      "value": 51900000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "about, unaudited, expects to restate"
+    },
+    {
+      "id": "churn",
+      "label": "gross revenue churn",
+      "value": 6.1,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "nrr",
+      "label": "net revenue retention",
+      "value": 112,
+      "unit": "%",
+      "hedged": false
+    }
+  ]
+}
