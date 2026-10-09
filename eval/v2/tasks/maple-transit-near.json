@@ -1,0 +1,48 @@
+{
+  "id": "maple-transit-near",
+  "family": "maple-transit",
+  "org": "Maple Street Council",
+  "scope": "footnote",
+  "format": "slide",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "transit.md"
+  ],
+  "read": [
+    "transit.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "journeys",
+      "label": "passenger journeys this year",
+      "value": 1860000,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "last-year-journeys",
+      "label": "passenger journeys the year before",
+      "value": 1710000,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "fare",
+      "label": "proposed single fare",
+      "value": 2.2,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "proposed, depends on grant settlement"
+    },
+    {
+      "id": "fare-start",
+      "label": "single fare start date",
+      "value": "2027-02-01",
+      "unit": "date",
+      "hedged": true,
+      "cue": "indicative only"
+    }
+  ]
+}

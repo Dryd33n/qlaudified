@@ -1,7 +1,9 @@
 """Refeed: new ledger rows as compact factual lines, and where the ledger lives (RFD-1, RFD-2).
 
 Line format: ``[F3 q3-update.md L3] Q3 revenue is estimated at $4.2M...; source says: estimated,
-preliminary``. Plain facts only, never instructions. Rows are facts (a number, date or
+preliminary``. Plain facts only, never instructions. The study's placebo control (``refeed =
+"placebo"``) sends the same lines with the qualifiers masked out: ``[F3 q3-update.md L3] Q3 revenue
+is at $4.2M, based on figures.`` Rows are facts (a number, date or
 qualifier), so every row is worth refeeding except search titles. Overflow points to
 provenance.csv, which is always current (design revision 2).
 """
@@ -37,7 +39,20 @@ def snippet(span: Span, limit: int = SNIPPET_CHARS) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def format_line(span: Span) -> str:
+def mask_qualifiers(text: str, span: Span) -> str:
+    """The text without the span's qualifiers or any lexicon hedge word (placebo refeed)."""
+    words = {w for w in span.qualifiers.split("; ") if w}
+    words |= {w for ws in lexicon.HEDGES.values() for w in ws}
+    for word in sorted(words, key=len, reverse=True):
+        text = re.sub(rf"(?<!\w){re.escape(word)}(?!\w)", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\(\s*[,;]?\s*\)|\[\s*\]", "", text)  # "(expected)" leaves "()"
+    text = re.sub(r"\s+([,.;:])", r"\1", re.sub(r"\s{2,}", " ", text))
+    return re.sub(r"[,;:]+(?=[.!?]?$)", "", text.strip()).strip()
+
+
+def format_line(span: Span, placebo: bool = False) -> str:
+    if placebo:
+        return f"[{span.span_id} {span.source} {span.locator}] {mask_qualifiers(snippet(span), span)}"
     line = f"[{span.span_id} {span.source} {span.locator}] {snippet(span)}"
     if span.qualifiers:
         line += "; source says: " + ", ".join(span.qualifiers.split("; "))
@@ -82,13 +97,13 @@ def _overflow(rest: list[Span], csv_path: str = "") -> str:
 
 
 def build_delta(spans: list[Span], budget_chars: int = 600, header: str = "",
-                csv_path: str = "") -> str:
+                csv_path: str = "", placebo: bool = False) -> str:
     """Fit lines into the budget; overflow is a count plus the CSV's path (RFD-2)."""
     picked = _order([s for s in spans if worth_injecting(s)])
     lines = [header] if header else []
     used = len(header)
     for i, span in enumerate(picked):
-        line = format_line(span)
+        line = format_line(span, placebo)
         rest = picked[i + 1:]
         tail = len(_overflow(rest, csv_path)) + 1 if rest else 0
         if used + len(line) + 1 + tail > budget_chars:

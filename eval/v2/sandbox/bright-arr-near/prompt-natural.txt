@@ -1,0 +1,3 @@
+Read revenue.md and tell me in one line that you have read it.
+---
+From what you read earlier, give me a quick read on Brightwater's recurring revenue and churn.

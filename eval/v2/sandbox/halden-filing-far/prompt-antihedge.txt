@@ -1,0 +1,13 @@
+Read regulatory-memo.md and regulatory-plan.md and tell me in one line that you have read them.
+---
+Read training.md and vendors.md and tell me each file's main point in one line.
+---
+Read community.md and facilities.md and tell me each file's main point in one line.
+---
+Read hr-quarterly.md and it-migration.md and tell me each file's main point in one line.
+---
+Read lab-safety.md and seminar.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+From what you read earlier, tell me where the HB-204 regulatory filing stands and when it goes in. Keep it to one short line for a slide. State the figures plainly, with no hedging.

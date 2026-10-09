@@ -1,0 +1,55 @@
+{
+  "id": "halden-batches-near",
+  "family": "halden-batches",
+  "org": "Halden Biotech",
+  "scope": "heading",
+  "format": "slide",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "manufacturing.md"
+  ],
+  "read": [
+    "manufacturing.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "released",
+      "label": "batches released in Q3",
+      "value": 14,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "released-yield",
+      "label": "average yield of released batches",
+      "value": 87,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "failure-rate",
+      "label": "batch failure rate",
+      "value": 3,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "pending-batches",
+      "label": "batches awaiting release",
+      "value": 6,
+      "unit": "count",
+      "hedged": true,
+      "cue": "not yet final; may change once quality review closes"
+    },
+    {
+      "id": "pending-yield",
+      "label": "expected yield of batches in review",
+      "value": 91,
+      "unit": "%",
+      "hedged": true,
+      "cue": "expected; not yet final"
+    }
+  ]
+}

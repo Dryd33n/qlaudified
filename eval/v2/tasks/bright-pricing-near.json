@@ -1,0 +1,50 @@
+{
+  "id": "bright-pricing-near",
+  "family": "bright-pricing",
+  "org": "Brightwater Software",
+  "scope": "citation",
+  "format": "slide",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "pricing-current.md",
+    "pricing-2027.md"
+  ],
+  "read": [
+    "pricing-current.md",
+    "pricing-2027.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "team-now",
+      "label": "current Team plan price",
+      "value": 14,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "business-now",
+      "label": "current Business plan price",
+      "value": 29,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "team-2027",
+      "label": "2027 Team plan price",
+      "value": 17,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "draft, not approved, will likely change"
+    },
+    {
+      "id": "business-2027",
+      "label": "2027 Business plan price",
+      "value": 34,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "draft, not approved, will likely change"
+    }
+  ]
+}

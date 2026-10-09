@@ -146,17 +146,17 @@ Even a clean result here would be a claim about one harness, one model family an
 
 Do items 1–7 before spending any confirmatory budget; they are mostly writing and task design, not runs. Then rerun the haiku pilot (about $0.50–1.00) to check the new design works, and only then freeze and go.
 
-- [ ] **1. Add conditions:** prompt-only, rules-only refeed, placebo refeed, and Off under pressure. Drop High from the primary analysis until there are tasks where Medium drops.
-- [ ] **2. Split pressure prompts** into format pressure and explicit anti-hedging; score instruction compliance on both.
-- [ ] **3. Change the outcome** from hedge presence to calibration: kept / inflated / deflated / omitted, per stated fact.
-- [ ] **4. Add firm facts and competitors** to every task: same-type figures, some hedged and some not; hedges scoped by headings, footnotes and citation chains; open questions that don't name the fact.
-- [ ] **5. Make distance real:** longer, plausible distractor documents; report distance in tokens.
-- [ ] **6. Build an independent scorer** (separate hedge-cue list plus a different-family LLM judge, blind to condition) and keep the plugin's rules as a secondary score.
+- [x] **1. Add conditions:** prompt-only, rules-only refeed, placebo refeed, and Off under pressure. Drop High from the primary analysis until there are tasks where Medium drops.
+- [x] **2. Split pressure prompts** into format pressure and explicit anti-hedging; score instruction compliance on both.
+- [x] **3. Change the outcome** from hedge presence to calibration: kept / inflated / deflated / omitted, per stated fact.
+- [x] **4. Add firm facts and competitors** to every task: same-type figures, some hedged and some not; hedges scoped by headings, footnotes and citation chains; open questions that don't name the fact.
+- [x] **5. Make distance real:** longer, plausible distractor documents; report distance in tokens.
+- [x] **6. Build an independent scorer** (separate hedge-cue list plus a different-family LLM judge, blind to condition) and keep the plugin's rules as a secondary score.
 - [ ] **7. Freeze and timestamp** the protocol on OSF: one primary endpoint (calibration kept on decay and competitor tasks), one primary contrast (Medium vs prompt-only), a power estimate, exclusion rules, and the scoring rules.
 - [ ] **8. Scale:** enough task families for ~20+ clusters, at least 3 repeats, analysed with a mixed-effects logistic model; pilot data excluded.
 - [ ] **9. Validate:** 100–150 blind human labels, κ against each scorer.
 - [ ] **10. Generalize:** a held-out task set written by someone else, a few real-document tasks, and one non-Claude model.
-- [ ] **11. Report harms next to benefits:** over-hedging rate, compliance, latency, cost in tokens, in the same table as the headline.
+- [x] **11. Report harms next to benefits:** over-hedging rate, compliance, latency, cost in tokens, in the same table as the headline.
 
 If Medium beats prompt-only and rules-only on calibration without inflating firm facts, you have a real result. If prompt-only matches it, that's the more useful finding, and it tells you to ship the deterministic tier and drop the sidecar.
 
@@ -228,4 +228,24 @@ plugin, harder tasks, and more task families and repeats. The decisions above ar
 | Held-out tasks by someone else | Dropped | All new tasks written before any condition runs on them; a few real-document tasks; author-written corpus stated as a limitation |
 | Human labels | Downsized | 40–60 blind labels (~45 min) as a sanity check on the scorers, not a precise accuracy figure |
 | Schedule | Open | Not a validity question |
+
+## Redesign status (Oct 9)
+
+Phase A is built. The design is in [protocol-v2.md](protocol-v2.md); nothing has run under it yet.
+
+| Fix | Status | Where |
+| --- | --- | --- |
+| 1. Conditions | Done: prompt, rules (`backend = "none"`), placebo (`refeed = "placebo"`); Off runs under every prompt style; High exploratory | `eval/run.py`, `qlaudified/inject.py` |
+| 2. Split pressure | Done: natural, format and antihedge prompts, analysed separately; compliance scored | `eval/v2/build.py`, `calib.complies` |
+| 3. Calibration outcome | Done: kept / inflated / deflated / omitted per fact; plugin citations stripped first | `eval/v2/calib.py` |
+| 4. Firm facts and competitors | Done: 16 families, 77 facts (33 hedged); hedges in sentences, headings, footnotes, tables and cited documents; open questions | `eval/v2/families/` |
+| 5. Real distance | Done: 8 distractor documents plus a ~700-word operating report; distance measured in tokens from transcripts | `eval/v2/transcript.py` |
+| 6. Independent scorer | Done with the triage's change: own cue list and figure parser (a test forbids plugin imports), plus a condition-blind Claude judge | `eval/v2/cues.py`, `figures.py`, `judge.py` |
+| 7. Freeze | Drafted; git tag instead of OSF (triage); parameters set after the pilot | `protocol-v2.md` |
+| 8. Scale and analysis | Partly: family-level sign-flip test, Holm, McNemar, simulated power. 16 families, not 20+; repeats set by power | `eval/v2/stats.py`, `power.py` |
+| 9. Validate | Tooling done; 40–60 labels pending (triage) | `eval/v2/labels.py` |
+| 10. Generalize | Not done: stated as limitations (no held-out set, no real documents, no non-Claude model) | |
+| 11. Harms with benefits | Done: over-hedging, compliance, latency and tokens in the same table | `eval/v2/score.py` |
+
+Next: the v2 pilot (about 64 runs), human labels, power, then freeze and tag.
 

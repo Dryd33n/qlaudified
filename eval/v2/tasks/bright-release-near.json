@@ -1,0 +1,48 @@
+{
+  "id": "bright-release-near",
+  "family": "bright-release",
+  "org": "Brightwater Software",
+  "scope": "heading",
+  "format": "table",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "releases.md"
+  ],
+  "read": [
+    "releases.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "release-date",
+      "label": "version 7.4 release date",
+      "value": "2026-09-16",
+      "unit": "date",
+      "hedged": false
+    },
+    {
+      "id": "page-load",
+      "label": "median page load time after 7.4 (seconds)",
+      "value": 1.3,
+      "unit": "seconds",
+      "hedged": false
+    },
+    {
+      "id": "v8-date",
+      "label": "version 8.0 release date",
+      "value": "2027-01-26",
+      "unit": "date",
+      "hedged": true,
+      "cue": "tentative, not a commitment"
+    },
+    {
+      "id": "offline-price",
+      "label": "offline add-on price per user per month",
+      "value": 9,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "tentative, not a commitment"
+    }
+  ]
+}

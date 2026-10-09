@@ -87,7 +87,8 @@ def handle(payload: dict) -> dict | None:
         return None
     current = {s.span_id: s for s in store.spans()}  # after the Administrator's changes
     kept = [current[s.span_id] for s in new if s.span_id in current]
-    delta = inject.build_delta(kept, cfg.inject_budget_chars, csv_path=inject.csv_hint(folder, project))
+    delta = inject.build_delta(kept, cfg.inject_budget_chars, csv_path=inject.csv_hint(folder, project),
+                               placebo=cfg.refeed == "placebo")
     if not delta:
         return None
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": delta}}

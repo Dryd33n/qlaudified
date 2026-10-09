@@ -4,7 +4,8 @@ Protocol: [sprint-5.md](sprint-5.md) (measures, pre-registered hypotheses, budge
 
 > **Methods critique (Oct 9):** the study design has known gaps (no prompt-only or rules-only
 > baseline, a scorer built from the plugin's own parts, no firm facts, too few tasks). Read the pilot
-> below as exploratory. Critique and redesign plan: [methods-critique.md](methods-critique.md).
+> below as exploratory. Critique and redesign plan: [methods-critique.md](methods-critique.md);
+> the redesigned study: [protocol-v2.md](protocol-v2.md).
 
 ## Pilot (Oct 9, haiku)
 

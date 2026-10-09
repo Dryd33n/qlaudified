@@ -1,0 +1,315 @@
+# Brightwater Software: a SaaS company. Study v2 task families (methods critique, fixes 4, 5).
+
+org = "Brightwater Software"
+
+[distractors]
+"design-system.md" = """
+# Design system update
+
+Version 4 of the component library shipped in September with 38 updated components and a new
+dark theme. Adoption across product teams is at 70% of screens; the billing and admin areas will
+move over in Q4.
+
+Accessibility checks now run in every pull request. The team fixed 112 colour-contrast issues and
+added keyboard support to the date picker, which was the most requested fix in the user survey.
+"""
+"offsite.md" = """
+# Engineering offsite
+
+Eighty-four engineers met in Lisbon for two days in September. Sessions covered the platform
+roadmap, on-call health and a hack day that produced 19 prototypes. Three of the prototypes are
+being considered for the next planning cycle, including a command palette for the admin console.
+
+Feedback scores averaged 4.5 out of 5. People asked for more time with the product managers next
+time.
+"""
+"support-tooling.md" = """
+# Support tooling
+
+The support team moved to a new help-desk tool in August. Median first response time is now 47
+minutes, and 62% of tickets are solved without escalation. The knowledge base gained 85 new
+articles, mostly about single sign-on and data exports.
+
+A chatbot pilot answered about a quarter of simple billing questions without an agent. The team will
+decide in November whether to extend it to account settings.
+"""
+"open-source.md" = """
+# Open source
+
+Brightwater's open-source SDK passed 4,300 stars on GitHub. Outside contributors opened 57 pull
+requests in Q3, and 41 were merged. The maintainers moved the release process to a monthly
+schedule and published a contribution guide.
+
+A talk about the SDK was accepted at a developer conference in Berlin in March.
+"""
+"hiring.md" = """
+# Hiring
+
+Brightwater hired 27 people in Q3: 15 in engineering, 6 in sales, 4 in customer success and two in
+finance. The offer acceptance rate was 83%. The recruiting team added structured interview guides
+for all engineering roles and trained 40 interviewers.
+
+Open roles at the end of September: 18.
+"""
+"security-cert.md" = """
+# Security certification
+
+The annual Type II security audit fieldwork finished in September with no exceptions noted by the
+auditors. Penetration testing of the API found two medium-severity issues, both fixed within 12 days.
+
+Single sign-on is now enabled for 91% of enterprise customers, and the team added hardware-key
+support for administrator accounts.
+"""
+"docs-site.md" = """
+# Documentation site
+
+The developer documentation had 212,000 page views in Q3. The new search, launched in July, cut
+"no results" searches from 18% to 7%. The docs team rewrote the getting-started guide and added 26
+code samples in Python and TypeScript.
+
+Readers rated pages helpful 78% of the time.
+"""
+"office.md" = """
+# Office news
+
+The Dublin office moved to its new floor in August, with space for 120 people. Bike storage was
+doubled, and the kitchen now has a second coffee machine after many requests.
+
+The holiday party is on December 12 at the harbour venue. Remote staff will get a travel budget to
+attend.
+"""
+
+"operating-report.md" = """
+# Brightwater Software: quarterly operating report
+
+## Customers
+
+Brightwater ended the quarter with 6,840 paying customers, including 412 on enterprise contracts.
+The company added 530 new customers in the quarter, most of them through the self-serve sign-up
+flow. Average contract value for new enterprise deals was $88,000 a year.
+
+Expansion revenue, from existing customers buying more seats or add-ons, was $3.6M in the quarter.
+The largest expansion came from a logistics customer that rolled the product out to 2,100 more
+users.
+
+## Product usage
+
+Weekly active users reached 386,000 at the end of September. The share of customers using the API
+rose to 44%. Mobile app sessions grew 21% year on year after the redesigned mobile editor shipped in
+June. The most used new feature was shared templates, adopted by 1,950 customers within six weeks.
+
+## Go-to-market
+
+Sales and marketing spend was $11.4M. The sales team closed 63 enterprise deals, with an average
+sales cycle of 74 days. Marketing-sourced pipeline was $27.5M. Website traffic was 1.15 million
+visits a month on average, with organic search bringing in just over half.
+
+## Finance
+
+Revenue recognised in the quarter was $12.7M. Gross margin was 79.6%. Operating loss narrowed to
+$2.05M from $3.8M a year earlier. Cash at the end of the quarter was $96.3M, with no debt. Free cash
+flow was negative $1.1M, an improvement on the previous quarter.
+
+## Infrastructure
+
+Cloud hosting costs were $1.74M, or 13.7% of revenue, after the move to reserved capacity in the
+main region. The platform team migrated the search cluster to a new version with no customer-facing
+downtime. Average API response time was 182 milliseconds.
+
+## People
+
+Employee count was 497 at the end of the quarter. Engagement survey results showed 81% favourable
+responses, and voluntary attrition over the last twelve months was 9.3%.
+
+## Outlook
+
+Management will present next year's operating plan to the board in December.
+"""
+
+[[family]]
+id = "bright-arr"
+scope = "sentence"
+format = "slide"
+ask = "give me a quick read on Brightwater's recurring revenue and churn"
+[family.docs]
+"revenue.md" = """
+# Revenue snapshot
+
+Annual recurring revenue (ARR) at the end of Q2 was $48.2M, as reported in the audited half-year
+accounts.
+
+ARR at the end of Q3 is about $51.9M, based on unaudited figures that finance expects to restate
+slightly after the quarter close.
+
+Gross revenue churn was 6.1% over the last twelve months. Net revenue retention was 112%.
+"""
+[[family.facts]]
+id = "q2-arr"
+label = "ARR at end of Q2"
+value = 48200000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "q3-arr"
+label = "ARR at end of Q3"
+value = 51900000
+unit = "USD"
+hedged = true
+cue = "about, unaudited, expects to restate"
+[[family.facts]]
+id = "churn"
+label = "gross revenue churn"
+value = 6.1
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "nrr"
+label = "net revenue retention"
+value = 112
+unit = "%"
+hedged = false
+
+[[family]]
+id = "bright-release"
+scope = "heading"
+format = "table"
+ask = "tell me what shipped in the last release and what is coming next"
+[family.docs]
+"releases.md" = """
+# Release notes and roadmap
+
+## Shipped: version 7.4 (released September 16, 2026)
+
+Version 7.4 added audit logs and cut median page load time to 1.3 seconds.
+
+## Roadmap (tentative, dates can move)
+
+The roadmap below is our current thinking and is not a commitment.
+
+Version 8.0 with offline mode: January 26, 2027. Price for the offline add-on: $9 per user per month.
+"""
+[[family.facts]]
+id = "release-date"
+label = "version 7.4 release date"
+value = "2026-09-16"
+unit = "date"
+hedged = false
+[[family.facts]]
+id = "page-load"
+label = "median page load time after 7.4 (seconds)"
+value = 1.3
+unit = "seconds"
+hedged = false
+[[family.facts]]
+id = "v8-date"
+label = "version 8.0 release date"
+value = "2027-01-26"
+unit = "date"
+hedged = true
+cue = "tentative, not a commitment"
+[[family.facts]]
+id = "offline-price"
+label = "offline add-on price per user per month"
+value = 9
+unit = "USD"
+hedged = true
+cue = "tentative, not a commitment"
+
+[[family]]
+id = "bright-uptime"
+scope = "table"
+format = "table"
+ask = "tell me how reliable the Brightwater platform has been in recent months"
+[family.docs]
+"reliability.md" = """
+# Platform reliability
+
+| Month | Uptime | Major incidents |
+| --- | --- | --- |
+| July | 99.95% | 1 |
+| August | 99.97% | 0 |
+| September | 99.82% (preliminary, incident review still open) | 2 (one may be reclassified as minor) |
+
+The SLA promises 99.5% monthly uptime.
+"""
+[[family.facts]]
+id = "july-uptime"
+label = "July uptime"
+value = 99.95
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "august-uptime"
+label = "August uptime"
+value = 99.97
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "september-uptime"
+label = "September uptime"
+value = 99.82
+unit = "%"
+hedged = true
+cue = "preliminary, incident review still open"
+[[family.facts]]
+id = "september-incidents"
+label = "September major incidents"
+value = 2
+unit = "count"
+hedged = true
+cue = "one may be reclassified"
+[[family.facts]]
+id = "sla"
+label = "SLA monthly uptime"
+value = 99.5
+unit = "%"
+hedged = false
+
+[[family]]
+id = "bright-pricing"
+scope = "citation"
+format = "slide"
+ask = "tell me what Brightwater's plans cost now and what the new pricing will be"
+[family.docs]
+"pricing-current.md" = """
+# Current pricing
+
+Team plan: $14 per user per month. Business plan: $29 per user per month. Both are billed annually.
+
+The new prices for next year are in pricing-2027.md.
+"""
+"pricing-2027.md" = """
+# Pricing 2027 (draft for discussion)
+
+These are draft prices. They have not been approved by the pricing committee and will likely change
+after customer interviews.
+
+Team plan: $17 per user per month. Business plan: $34 per user per month.
+"""
+read = ["pricing-current.md", "pricing-2027.md"]
+[[family.facts]]
+id = "team-now"
+label = "current Team plan price"
+value = 14
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "business-now"
+label = "current Business plan price"
+value = 29
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "team-2027"
+label = "2027 Team plan price"
+value = 17
+unit = "USD"
+hedged = true
+cue = "draft, not approved, will likely change"
+[[family.facts]]
+id = "business-2027"
+label = "2027 Business plan price"
+value = 34
+unit = "USD"
+hedged = true
+cue = "draft, not approved, will likely change"

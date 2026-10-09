@@ -32,6 +32,7 @@ class Config:
     retention_days: int = 30
     raw_cache_mb: int = 200
     mode_source: str = "default"  # default | config | session
+    refeed: str = "full"  # full | placebo (study control: refeed lines without qualifiers)
     problems: list[str] = []  # noqa: RUF012 - @record copies it per instance
 
     def lexicon(self) -> dict[str, list[str]]:
@@ -55,8 +56,9 @@ raw_cache_mb = 200
 
 _TYPES: dict[str, type | tuple[type, ...]] = {
     "backend": str, "backend_model": str, "inject_budget_chars": int, "digest_budget_chars": int,
-    "critical_threshold": (int, float), "retention_days": int, "raw_cache_mb": int,
+    "critical_threshold": (int, float), "retention_days": int, "raw_cache_mb": int, "refeed": str,
 }
+REFEED = ("full", "placebo")
 
 
 def store_dir(project_dir) -> Path:
@@ -102,6 +104,9 @@ def load(project_dir, session_id: str | None = None) -> Config:
                 setattr(cfg, key, data[key])
             else:
                 cfg.problems.append(f"{key}: expected {kind}, got {data[key]!r}")
+    if cfg.refeed not in REFEED:
+        cfg.problems.append(f"refeed: expected one of {', '.join(REFEED)}, got {cfg.refeed!r}")
+        cfg.refeed = "full"
     hedges = data.get("hedges", {})
     if isinstance(hedges, dict):
         cfg.extra_hedges = {

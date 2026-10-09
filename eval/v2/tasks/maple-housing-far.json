@@ -1,0 +1,67 @@
+{
+  "id": "maple-housing-far",
+  "family": "maple-housing",
+  "org": "Maple Street Council",
+  "scope": "citation",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 1342,
+  "sources": [
+    "housing-summary.md",
+    "housing-trajectory.md"
+  ],
+  "read": [
+    "housing-summary.md",
+    "housing-trajectory.md"
+  ],
+  "distractors": [
+    "planning-appeals.md",
+    "street-lighting.md",
+    "twinning.md",
+    "waste.md",
+    "customer-contact.md",
+    "elections.md",
+    "leisure.md",
+    "parks.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "permissions",
+      "label": "homes granted permission",
+      "value": 1430,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "affordable-permitted",
+      "label": "affordable homes permitted",
+      "value": 390,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "completions",
+      "label": "completions this year",
+      "value": 612,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "forecast-completions",
+      "label": "forecast completions next year",
+      "value": 840,
+      "unit": "count",
+      "hedged": true,
+      "cue": "forecast, consultation draft, may be revised"
+    },
+    {
+      "id": "forecast-affordable",
+      "label": "forecast affordable completions next year",
+      "value": 260,
+      "unit": "count",
+      "hedged": true,
+      "cue": "forecast, consultation draft, may be revised"
+    }
+  ]
+}

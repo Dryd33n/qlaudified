@@ -1,0 +1,3 @@
+Read housing-summary.md and housing-trajectory.md and tell me in one line that you have read them.
+---
+From what you read earlier, tell me how many homes the council approved and expects to see built.

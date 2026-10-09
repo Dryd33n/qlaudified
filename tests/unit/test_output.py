@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from qlaudified import inject, markers, report
 from qlaudified.store import Claim, Span
 
@@ -78,3 +80,34 @@ def test_markers_leave_code_tables_and_unmatched_sentences_alone():
     # A fence opened in an earlier batch is still open.
     assert markers.add_markers("Q3 revenue was $4.2M.", [REVENUE], in_fence=True) == (
         "Q3 revenue was $4.2M.", True)
+
+
+@pytest.mark.parametrize("text, extra, line", [
+    ("Q3 revenue is estimated at $4.2M, based on preliminary figures.", "",
+     "[F1 x.md L3] Q3 revenue is at $4.2M, based on figures."),
+    ("The launch is tentatively set for March 3, 2027, subject to board approval.",
+     "subject to board approval", "[F1 x.md L3] The launch is set for March 3, 2027."),
+    ("Price: $15 per seat (expected)", "", "[F1 x.md L3] Price: $15 per seat"),
+])
+def test_placebo_lines_keep_the_fact_and_mask_its_qualifiers(text, extra, line):
+    """Study control (methods critique): the same refeed, minus the hedge."""
+    from qlaudified.capture import indexed
+
+    span = indexed("local-doc", "x.md", "L3", text)
+    span.span_id = "F1"
+    if extra:
+        span.qualifiers += "; " + extra
+    assert inject.format_line(span, placebo=True) == line
+    assert "source says" not in inject.build_delta([span], placebo=True)
+
+
+def test_refeed_setting_is_validated(tmp_path):
+    from qlaudified import config
+
+    store = config.store_dir(tmp_path)
+    store.mkdir(parents=True)
+    (store / "config.toml").write_text('refeed = "placebo"\n', encoding="utf-8")
+    assert config.load(tmp_path).refeed == "placebo"
+    (store / "config.toml").write_text('refeed = "none"\n', encoding="utf-8")
+    cfg = config.load(tmp_path)
+    assert cfg.refeed == "full" and cfg.problems

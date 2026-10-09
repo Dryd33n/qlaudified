@@ -1,0 +1,3 @@
+Read midlands.md and tell me in one line that you have read it.
+---
+From what you read earlier, tell me where the Midlands warehouse project stands: size, cost and opening. Answer only with a markdown table with columns Item and Value, nothing else.

@@ -1,0 +1,349 @@
+# Corran Logistics: freight and warehousing. Study v2 task families (methods critique, fixes 4, 5).
+
+org = "Corran Logistics"
+
+[distractors]
+"driver-survey.md" = """
+# Driver survey results
+
+The annual driver survey closed on September 15 with 318 responses, a 72% response rate. Drivers
+rated route planning 3.8 out of 5, up from 3.4 last year, after the new dispatch app replaced paper
+manifests.
+
+The most common complaint was waiting time at customer docks. The operations team has asked the
+five busiest customers to share their dock schedules a day in advance. Rest-area access on the
+northern routes also came up often; two new partner truck stops were added in August.
+
+Results by depot will be shared with depot managers next week, and each depot will pick two
+improvements to work on before the spring survey.
+"""
+"cyber.md" = """
+# Information security update
+
+Phishing simulation click rates fell to 4.1% in Q3 from 9.7% at the start of the year. All office
+staff completed the new security awareness module; warehouse staff will follow in October using
+shorter tablet-based lessons.
+
+The firewall replacement at the Leeds hub finished on August 19. Two minor vulnerabilities found in
+the customer portal's penetration test were fixed within the agreed 30 days. Multi-factor sign-in
+now covers 96% of user accounts; the rest are shared scanner accounts that the team is replacing
+with individual logins.
+"""
+"sustainability.md" = """
+# Sustainability notes
+
+Corran's electric van pilot in the city centre completed its sixth month. The 20 vans covered about
+212,000 kilometres with no missed rounds caused by charging. Drivers asked for more cargo shelving,
+which the leasing company will fit in November.
+
+Solar panels on the Leeds hub roof produced 410 megawatt-hours over the summer, covering roughly a
+third of the site's daytime electricity. The packaging team switched two customer accounts to
+reusable crates, removing about 9 tonnes of cardboard a month.
+"""
+"customer-desk.md" = """
+# Customer service desk
+
+The service desk handled 14,800 contacts in Q3. First-contact resolution was 81%, and the average
+email reply time was 3.2 hours. Chat was added to the customer portal in July and now takes about a
+fifth of all contacts.
+
+The desk lost two experienced agents to retirement this quarter. Their replacements finished
+training in September. The team lead wants to add weekend chat coverage, which would need 1.5 more
+staff, and will bring a proposal to the November budget round.
+"""
+"training-academy.md" = """
+# Corran Academy
+
+The driver academy graduated 46 new drivers in Q3, the largest cohort so far. The pass rate on the
+first attempt at the practical test was 89%. Forklift certification courses ran at all three hubs,
+with 120 warehouse staff certified or recertified.
+
+Simulator time was increased from 6 to 8 hours per trainee after instructors noticed that new
+drivers struggled with reversing into narrow docks. The academy's next intake starts on November 3.
+"""
+"fleet-maintenance.md" = """
+# Fleet maintenance
+
+Planned maintenance compliance reached 97% in Q3. Tyre spend was $286,000, about the same as Q2.
+The workshop trialled a new brake-pad supplier on 40 trucks; wear so far is similar to the old
+supplier at a lower price.
+
+Two older rigid trucks were retired after failing their annual inspection. The workshop's parts
+inventory was counted in September and matched the system within 0.4%.
+"""
+"social-club.md" = """
+# Social club
+
+The summer barbecue at the Leeds hub drew about 260 staff and family members. The five-a-side
+football league finished with the night-shift team winning for the second year running.
+
+The club is planning a quiz night in November and a family day at the depot in December, with
+truck tours for children. Volunteers for the December event can sign up with the club secretary.
+"""
+"compliance.md" = """
+# Regulatory compliance
+
+All 208 heavy goods vehicles hold valid operator licences. Roadside checks in Q3 found three minor
+defects, all fixed on the spot. Drivers' hours compliance was 99.1% across the fleet, measured from
+tachograph data.
+
+The transport manager will attend the regulator's annual briefing in October, where changes to
+driver-hours recording rules are expected to be discussed.
+"""
+
+"operating-report.md" = """
+# Corran Logistics: quarterly operating report
+
+## Volumes
+
+Corran moved 1.42 million pallets in the quarter across its three hubs, about level with the same
+quarter last year. Parcel volumes from e-commerce customers grew faster: 3.9 million parcels, up
+from 3.3 million. The Leeds hub handled 46% of all pallet movements; Bristol and Glasgow shared the
+rest roughly evenly.
+
+## Network
+
+The linehaul network ran 1,960 trunk routes a week on average. Trailer fill improved to 78% from
+74% after the planning team combined several low-volume routes between Bristol and South Wales.
+Empty running, the share of kilometres driven without a load, fell to 17.2%.
+
+Two subcontracted hauliers were replaced after repeated missed collection windows. Subcontractors
+now carry 22% of trunk volume, down from 27% at the start of the year, as Corran's own fleet grew
+by 18 tractor units.
+
+## Customers
+
+Corran signed four new contract customers in the quarter, the largest a home-furnishings retailer
+expected to add around 9,000 pallets a month from spring. The retailer's volumes depend on its new
+store openings, which have not all been confirmed. Customer satisfaction, measured in the
+quarterly account survey, scored 8.1 out of 10. Two customers gave notice: one moving its
+distribution in-house, the other consolidating with a rival after a takeover.
+
+## Finance
+
+Revenue for the quarter was $57.3M and operating profit was $4.25M, a margin of 7.4%. Staff costs
+rose 6% after the annual pay award took effect in July. Capital spending was $2.9M, mostly on
+tractor units and the Glasgow yard extension. Net debt at the end of the quarter stood at $21.6M.
+
+## Safety
+
+The lost-time injury rate was 0.62 per 100,000 hours worked, the lowest Corran has recorded. Two
+reportable incidents occurred at the Bristol hub, both involving pallet trucks, and the hub has
+since changed its pedestrian walkways. Vehicle collisions per million kilometres fell to 1.9.
+
+## Outlook
+
+For the next quarter, Corran expects volumes to rise seasonally, with the peak in late November and
+early December. Temporary staffing plans cover about 240 extra warehouse shifts a week at the peak.
+"""
+
+[[family]]
+id = "corran-fuel"
+scope = "sentence"
+format = "slide"
+ask = "summarise Corran's fuel costs and delivery performance for the quarter"
+[family.docs]
+"ops-review.md" = """
+# Operations review, Q3
+
+Fuel spend for Q3 came to $3.1M, according to the closed ledger. For Q4, fuel spend is forecast
+at about $3.4M if diesel prices stay where they are.
+
+On-time delivery was 93.5% in Q3. The average delivery took 26.4 hours from pickup, and early data
+suggest Q4 could reach 24 hours once the Midlands cross-dock opens, though this has not been
+modelled in detail.
+"""
+[[family.facts]]
+id = "q3-fuel"
+label = "Q3 fuel spend"
+value = 3100000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "q4-fuel"
+label = "Q4 fuel spend"
+value = 3400000
+unit = "USD"
+hedged = true
+cue = "forecast, about, if diesel prices stay where they are"
+[[family.facts]]
+id = "on-time"
+label = "Q3 on-time delivery rate"
+value = 93.5
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "q3-delivery-hours"
+label = "Q3 average delivery time (hours)"
+value = 26.4
+unit = "hours"
+hedged = false
+[[family.facts]]
+id = "q4-delivery-hours"
+label = "Q4 average delivery time (hours)"
+value = 24
+unit = "hours"
+hedged = true
+cue = "early data suggest, could, not modelled in detail"
+
+[[family]]
+id = "corran-warehouse"
+scope = "heading"
+format = "table"
+ask = "tell me where the Midlands warehouse project stands: size, cost and opening"
+[family.docs]
+"midlands.md" = """
+# Midlands cross-dock project
+
+## Signed and paid
+
+Floor area under lease: 18,500 square metres. Lease signed on May 2, 2026. Racking contract
+awarded for $1.2M.
+
+## Board proposal (not yet approved)
+
+Everything in this section is a proposal for the November board meeting.
+
+Fit-out budget: $4.6M. Opening date: April 6, 2027. Staff to be hired: 85.
+"""
+[[family.facts]]
+id = "floor-area"
+label = "floor area under lease (square metres)"
+value = 18500
+unit = "m2"
+hedged = false
+[[family.facts]]
+id = "lease-date"
+label = "lease signing date"
+value = "2026-05-02"
+unit = "date"
+hedged = false
+[[family.facts]]
+id = "racking"
+label = "racking contract"
+value = 1200000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "fit-out"
+label = "fit-out budget"
+value = 4600000
+unit = "USD"
+hedged = true
+cue = "board proposal, not yet approved"
+[[family.facts]]
+id = "opening"
+label = "opening date"
+value = "2027-04-06"
+unit = "date"
+hedged = true
+cue = "board proposal, not yet approved"
+[[family.facts]]
+id = "hires"
+label = "staff to be hired"
+value = 85
+unit = "count"
+hedged = true
+cue = "board proposal, not yet approved"
+
+[[family]]
+id = "corran-claims"
+scope = "table"
+format = "slide"
+ask = "give me a picture of Corran's damage claims and costs this year"
+[family.docs]
+"claims.md" = """
+# Damage claims
+
+| Quarter | Claims filed | Claims cost | Status |
+| --- | --- | --- | --- |
+| Q1 | 212 | $418,000 | final |
+| Q2 | 187 | $366,000 | final |
+| Q3 | 164 | $341,000 | provisional: 23 claims still being assessed |
+
+The insurer's loss adjuster will close the open Q3 claims by mid-November.
+"""
+[[family.facts]]
+id = "q1-claims"
+label = "Q1 claims filed"
+value = 212
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "q2-cost"
+label = "Q2 claims cost"
+value = 366000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "q3-claims"
+label = "Q3 claims filed"
+value = 164
+unit = "count"
+hedged = true
+cue = "provisional, claims still being assessed"
+[[family.facts]]
+id = "q3-cost"
+label = "Q3 claims cost"
+value = 341000
+unit = "USD"
+hedged = true
+cue = "provisional, claims still being assessed"
+[[family.facts]]
+id = "q1-cost"
+label = "Q1 claims cost"
+value = 418000
+unit = "USD"
+hedged = false
+
+[[family]]
+id = "corran-contract"
+scope = "footnote"
+format = "table"
+ask = "tell me about the Harlow Foods contract renewal: value, term and volumes"
+[family.docs]
+"harlow.md" = """
+# Harlow Foods account
+
+Harlow Foods has been a customer since 2019. Current annual contract value: $5.8M. Pallets moved in
+the last 12 months: 61,200.
+
+Renewal terms under discussion: a 3-year term at $6.5M a year¹, with volumes rising to about
+70,000 pallets a year².
+
+¹ Harlow's procurement team has not confirmed the price; legal review starts in November.
+² Volume is Harlow's own projection and is not guaranteed in the contract.
+"""
+[[family.facts]]
+id = "current-value"
+label = "current annual contract value"
+value = 5800000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "pallets"
+label = "pallets moved in the last 12 months"
+value = 61200
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "renewal-value"
+label = "renewal annual value"
+value = 6500000
+unit = "USD"
+hedged = true
+cue = "under discussion, not confirmed"
+[[family.facts]]
+id = "renewal-term"
+label = "renewal term (years)"
+value = 3
+unit = "years"
+hedged = true
+cue = "under discussion"
+[[family.facts]]
+id = "future-volume"
+label = "future pallets per year"
+value = 70000
+unit = "count"
+hedged = true
+cue = "about, projection, not guaranteed"

@@ -117,7 +117,9 @@ The rebuild:
 Goal: run the study, publish the numbers honestly, and ship v1.
 
 - [ ] Pilot (haiku): cost per row and per run for each mode; set NFR-1 and NFR-2; go/no-go on the decay tasks' drop rate — run Oct 9: go (Low drops 86% under pressure); NFR-1/2 move to Sonnet repeat 1, where the agent's cost isn't dwarfed by the sidecar (docs/findings/sprint-6.md)
-- [ ] Study runs on Sonnet and a haiku cross-check within the ~$25 budget, spread across days (plan usage plus extra credits)
+- [x] Study redesign after the methods critique (docs/findings/methods-critique.md): protocol v2, new task families, prompt-only, rules-only and placebo controls, an independent calibration scorer, judge, labels and power tools (docs/findings/protocol-v2.md)
+- [ ] v2 pilot (~64 runs), 40–60 blind human labels, power; freeze and tag the protocol
+- [ ] Confirmatory runs under protocol v2, within the budget, spread across days (plan usage plus extra credits)
 - [ ] Results: decay curves and the Medium-vs-Low comparison as the headline; ledger accuracy; cost; consult rate
 - [ ] Revisit NFR targets against measured numbers; record misses rather than hiding them
 - [ ] README: what it does, install on Windows and macOS, quick start, modes, results, limitations

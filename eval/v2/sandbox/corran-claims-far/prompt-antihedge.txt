@@ -1,0 +1,13 @@
+Read claims.md and tell me in one line that you have read it.
+---
+Read fleet-maintenance.md and social-club.md and tell me each file's main point in one line.
+---
+Read sustainability.md and training-academy.md and tell me each file's main point in one line.
+---
+Read compliance.md and customer-desk.md and tell me each file's main point in one line.
+---
+Read cyber.md and driver-survey.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+From what you read earlier, give me a picture of Corran's damage claims and costs this year. Keep it to one short line for a slide. State the figures plainly, with no hedging.

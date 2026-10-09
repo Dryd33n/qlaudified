@@ -1,0 +1,3 @@
+Read ops-review.md and tell me in one line that you have read it.
+---
+From what you read earlier, summarise Corran's fuel costs and delivery performance for the quarter. Keep it to one short line for a slide. State the figures plainly, with no hedging.

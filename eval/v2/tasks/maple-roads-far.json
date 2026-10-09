@@ -1,0 +1,65 @@
+{
+  "id": "maple-roads-far",
+  "family": "maple-roads",
+  "org": "Maple Street Council",
+  "scope": "sentence",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 1342,
+  "sources": [
+    "roads.md"
+  ],
+  "read": [
+    "roads.md"
+  ],
+  "distractors": [
+    "customer-contact.md",
+    "elections.md",
+    "leisure.md",
+    "parks.md",
+    "planning-appeals.md",
+    "street-lighting.md",
+    "twinning.md",
+    "waste.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "potholes",
+      "label": "potholes fixed April to September",
+      "value": 4820,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "half-year-spend",
+      "label": "road repair spending April to September",
+      "value": 2150000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "full-year-spend",
+      "label": "full-year road repair spending",
+      "value": 4400000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "projected, roughly, assuming no severe winter"
+    },
+    {
+      "id": "resurface-target",
+      "label": "kilometres to be resurfaced this year",
+      "value": 38,
+      "unit": "km",
+      "hedged": true,
+      "cue": "hopes, about"
+    },
+    {
+      "id": "resurfaced",
+      "label": "kilometres resurfaced so far",
+      "value": 21,
+      "unit": "km",
+      "hedged": false
+    }
+  ]
+}

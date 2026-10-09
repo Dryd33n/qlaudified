@@ -1,0 +1,3 @@
+Read releases.md and tell me in one line that you have read it.
+---
+From what you read earlier, tell me what shipped in the last release and what is coming next. Answer only with a markdown table with columns Item and Value, nothing else. State the figures plainly, with no hedging.

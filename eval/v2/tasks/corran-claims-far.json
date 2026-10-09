@@ -1,0 +1,65 @@
+{
+  "id": "corran-claims-far",
+  "family": "corran-claims",
+  "org": "Corran Logistics",
+  "scope": "table",
+  "format": "slide",
+  "distance": "far",
+  "distance_tokens": 1519,
+  "sources": [
+    "claims.md"
+  ],
+  "read": [
+    "claims.md"
+  ],
+  "distractors": [
+    "fleet-maintenance.md",
+    "social-club.md",
+    "sustainability.md",
+    "training-academy.md",
+    "compliance.md",
+    "customer-desk.md",
+    "cyber.md",
+    "driver-survey.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "q1-claims",
+      "label": "Q1 claims filed",
+      "value": 212,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "q2-cost",
+      "label": "Q2 claims cost",
+      "value": 366000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "q3-claims",
+      "label": "Q3 claims filed",
+      "value": 164,
+      "unit": "count",
+      "hedged": true,
+      "cue": "provisional, claims still being assessed"
+    },
+    {
+      "id": "q3-cost",
+      "label": "Q3 claims cost",
+      "value": 341000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "provisional, claims still being assessed"
+    },
+    {
+      "id": "q1-cost",
+      "label": "Q1 claims cost",
+      "value": 418000,
+      "unit": "USD",
+      "hedged": false
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Read harlow.md and tell me in one line that you have read it.
+---
+From what you read earlier, tell me about the Harlow Foods contract renewal: value, term and volumes. Answer only with a markdown table with columns Item and Value, nothing else.

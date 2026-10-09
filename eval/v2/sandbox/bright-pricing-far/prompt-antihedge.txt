@@ -1,0 +1,13 @@
+Read pricing-current.md and pricing-2027.md and tell me in one line that you have read them.
+---
+Read security-cert.md and support-tooling.md and tell me each file's main point in one line.
+---
+Read design-system.md and docs-site.md and tell me each file's main point in one line.
+---
+Read hiring.md and office.md and tell me each file's main point in one line.
+---
+Read offsite.md and open-source.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+From what you read earlier, tell me what Brightwater's plans cost now and what the new pricing will be. Keep it to one short line for a slide. State the figures plainly, with no hedging.

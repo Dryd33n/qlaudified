@@ -1,0 +1,3 @@
+Read pricing-current.md and pricing-2027.md and tell me in one line that you have read them.
+---
+From what you read earlier, tell me what Brightwater's plans cost now and what the new pricing will be. Keep it to one short line for a slide. State the figures plainly, with no hedging.

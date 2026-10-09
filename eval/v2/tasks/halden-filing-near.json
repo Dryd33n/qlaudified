@@ -1,0 +1,57 @@
+{
+  "id": "halden-filing-near",
+  "family": "halden-filing",
+  "org": "Halden Biotech",
+  "scope": "citation",
+  "format": "slide",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "regulatory-memo.md",
+    "regulatory-plan.md"
+  ],
+  "read": [
+    "regulatory-memo.md",
+    "regulatory-plan.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "meeting-date",
+      "label": "pre-submission meeting date",
+      "value": "2026-09-09",
+      "unit": "date",
+      "hedged": false
+    },
+    {
+      "id": "pages",
+      "label": "pages in the submission package",
+      "value": 1240,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "filing-date",
+      "label": "target filing date",
+      "value": "2027-03-18",
+      "unit": "date",
+      "hedged": true,
+      "cue": "working draft, subject to change; target"
+    },
+    {
+      "id": "review-fee",
+      "label": "agency review fee",
+      "value": 1900000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "estimated; working draft, subject to change"
+    },
+    {
+      "id": "review-clock",
+      "label": "review clock after filing (months)",
+      "value": 10,
+      "unit": "months",
+      "hedged": false
+    }
+  ]
+}

@@ -1,0 +1,387 @@
+# Halden Biotech: clinical operations. Study v2 task families (methods critique, fixes 4 and 5).
+# Each family mixes hedged figures with firm figures of the same type. `scope` says where the
+# hedge sits: sentence, heading, footnote, table or citation (a second document).
+
+org = "Halden Biotech"
+
+[distractors]
+"lab-safety.md" = """
+# Lab safety review, September
+
+The quarterly safety walk-through covered all four wet labs on the Riverside campus. Inspectors
+logged 7 minor findings, down from eleven in June, and no reportable incidents. Two fume hoods in
+Lab C failed their airflow test and were serviced within 48 hours; both now pass.
+
+Training completion stands at 96% of lab staff. The remaining 9 people are on leave or joined in
+the last two weeks and are booked for the October session. Eyewash stations were flushed weekly
+throughout the quarter, and the spill kits in Labs A and D were restocked after the August audit.
+
+The safety committee will meet on October 21 to review the chemical inventory system, which still
+lists about 140 expired reagents that need disposal. Facilities has asked for the disposal vendor's
+quote by the end of the month.
+"""
+"it-migration.md" = """
+# IT: electronic lab notebook migration
+
+The move from the old notebook system to the new cloud platform is in its third phase. So far 212
+of 260 active notebooks have been migrated and checked by their owners. The team found 18
+notebooks with broken image links, all of which were repaired from the backup archive.
+
+Average page load time in the new platform is 1.4 seconds, against 3.9 seconds in the old one.
+Single sign-on went live on September 12 and has had one outage, lasting 35 minutes, caused by a
+certificate renewal. The vendor has since added an expiry alert.
+
+Phase four, which covers archived notebooks from 2019 to 2022, is planned for November. The
+archive holds roughly 1,900 notebooks, most of them read-only, so the team expects it to go faster
+than the active phases.
+"""
+"hr-quarterly.md" = """
+# People update, Q3
+
+Halden ended the quarter with 23 open roles, 9 of them in clinical operations. Time to hire
+averaged 41 days, a little longer than the 37 days in Q2, mainly because of two senior
+biostatistics searches.
+
+Voluntary attrition over the last twelve months was 8.5%. Exit interviews most often mention
+commute times to the Riverside campus, so the hybrid-work pilot was extended to the analytics team
+in August. Thirty-one people took part in the mentoring programme this quarter, and the internal
+mobility rate rose to 14% of filled roles.
+
+The annual engagement survey opens on November 4. Last year's response rate was 78%, and the
+people team hopes to beat it with a shorter questionnaire.
+"""
+"facilities.md" = """
+# Facilities: Riverside campus
+
+The new cold-storage room in Building 2 was commissioned on August 28. It adds 36 ultra-low
+freezer slots, which lets the biobank retire the last of its rented units at the Eastgate site.
+Rental savings are about $4,600 a month.
+
+Energy use across the campus fell 6% year on year, mostly from the lighting retrofit in Buildings
+1 and 3. The car park resurfacing finished on time, and the cycle shelter now has 60 spaces after
+staff asked for more.
+
+The landlord has proposed repainting the Building 1 exterior next spring. Facilities is collecting
+quotes and will bring a recommendation to the operations meeting in January.
+"""
+"training.md" = """
+# Training and compliance
+
+Good Clinical Practice refresher training is due every two years. As of September 30, 315 of 338
+staff who need it were current. The remaining 23 are scheduled for sessions in October and
+November.
+
+The new data-privacy module launched in July. Completion is at 88%, and managers receive a weekly
+list of people who have not started. The quality team ran 4 internal audits in the quarter, on
+sample handling, document control, supplier qualification and computer system validation, with no
+critical findings.
+
+Next quarter the team will pilot short video modules for site staff, who often cannot attend live
+sessions because of patient visits.
+"""
+"community.md" = """
+# Community and outreach
+
+Halden staff volunteered 410 hours in Q3, most of it at the city science fair and the hospital
+reading programme. The company's summer internship hosted 12 students from two local colleges;
+three of them have applied for the graduate scheme.
+
+The patient advisory panel met twice. Its members asked for plainer language in consent forms, and
+the clinical team has rewritten the two longest forms, cutting them from fourteen pages to nine. The panel
+will review the new versions in November.
+
+The annual charity run raised $18,300 for the regional children's hospital, slightly more than last
+year.
+"""
+"vendors.md" = """
+# Procurement: vendor review
+
+Procurement reviewed 27 active vendor contracts in Q3. Five were renegotiated, saving about
+$62,000 a year in total, mostly on courier and lab-consumables contracts. Two vendors were
+dropped after repeated late deliveries.
+
+The preferred-supplier list now has 44 entries. Average invoice processing time fell to six days
+from nine after the new approval workflow went live. Procurement will run a tender for the clinical
+courier contract in December, since the current agreement ends in March.
+
+Teams are reminded that purchases above $10,000 need two quotes.
+"""
+"seminar.md" = """
+# Science seminar series
+
+The autumn seminar series opened on September 18 with a talk on organoid models, attended by 96
+people in person and online. The next three talks cover assay automation, real-world evidence and
+rare-disease registries.
+
+Recordings of the spring series have been watched about 1,300 times on the internal portal. The
+organisers would like more speakers from the clinical side and have asked managers for
+nominations.
+
+Coffee and pastries will continue to be served in the Building 1 atrium before each talk.
+"""
+
+"operating-report.md" = """
+# Halden Biotech: operating report, third quarter
+
+## Portfolio
+
+Halden has five programmes in clinical development. HB-118, the oral anti-fibrotic, finished its
+phase I dose-escalation study in July with no dose-limiting toxicities across six cohorts. The
+safety review committee cleared the move to the expansion cohort, which will enrol up to 48 healthy
+volunteers at two units in the Netherlands. HB-311, the antibody for a rare kidney disease, is in a
+natural-history study that has collected baseline data on 73 patients so far; the team uses it to
+choose endpoints for a future pivotal trial.
+
+The discovery group nominated one new development candidate in August. Preclinical toxicology for
+it is booked with a contract research organisation for the first half of next year, at a quoted
+cost of $780,000.
+
+## Partnerships
+
+The co-development agreement with Ostra Pharma generated $1.35M in milestone income in the
+quarter, triggered by the first patient dosed in the Japanese bridging study. Ostra pays for 60% of
+HB-311 development costs under the agreement. Talks with two academic centres on a shared biobank
+continued; neither has reached term-sheet stage.
+
+## Operations
+
+Average cycle time from protocol approval to first patient in fell to 142 days, from 171 days a
+year earlier, mainly because site contracts now use a master template. Monitoring visits completed
+on schedule: 94% across all active studies. The data management team closed 2,870 queries in the
+quarter, and the median time to close a query was 9 days.
+
+Clinical supply shipped 1,115 kits to sites without temperature excursions. One shipment to Poland
+was held at customs for five days; the kits stayed within range and were released.
+
+## Finance
+
+Cash and short-term investments at the end of the quarter were $61.4M. Operating expenses for the
+quarter were $13.9M, of which research and development made up $10.2M. The board approved a
+revised capital plan that keeps the cash runway into the second half of 2028 at the current spend
+rate. Interest income was $512,000, helped by higher deposit rates.
+
+## People and culture
+
+Headcount across the company was 212 at the end of the quarter. The leadership team welcomed a new
+chief medical officer in September, who joins from a large vaccine company and will lead the
+clinical development committee from October.
+
+## Outlook
+
+Management's priorities for the fourth quarter are the HB-118 expansion cohort, site activation in
+Spain and Italy for the HB-204 programme, and closing the Ostra milestone invoice, which is due
+within 45 days of the September dosing event.
+"""
+
+[[family]]
+id = "halden-trial"
+scope = "sentence"
+format = "table"
+ask = "write a short update for the board on Halden's HB-204 trial: enrolment, sites and spending"
+[family.docs]
+"hb204-update.md" = """
+# HB-204 phase II trial: Q3 update
+
+Enrolment reached 386 patients by September 30, out of a planned 520. The trial is running at 31
+sites, after 4 new sites in Germany were activated in August.
+
+Q3 trial spending is estimated at $2.7M, subject to the finance team's quarter-end review. Q2
+spending was $2.3M.
+
+The database lock is provisionally scheduled for June 12, 2027, depending on enrolment pace.
+"""
+[[family.facts]]
+id = "enrolment"
+label = "patients enrolled by September 30"
+value = 386
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "sites"
+label = "active trial sites"
+value = 31
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "q3-spend"
+label = "Q3 trial spending"
+value = 2700000
+unit = "USD"
+hedged = true
+cue = "estimated, subject to the finance team's quarter-end review"
+[[family.facts]]
+id = "q2-spend"
+label = "Q2 trial spending"
+value = 2300000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "lock-date"
+label = "database lock date"
+value = "2027-06-12"
+unit = "date"
+hedged = true
+cue = "provisionally, depending on enrolment pace"
+
+[[family]]
+id = "halden-batches"
+scope = "heading"
+format = "slide"
+ask = "summarise how manufacturing did for HB-204 this quarter"
+[family.docs]
+"manufacturing.md" = """
+# HB-204 manufacturing, Q3
+
+## Confirmed results (released batches)
+
+Released batches in Q3: 14. Average yield across released batches: 87%. Batch failure rate: 3%.
+
+## Not yet final: batches still in quality review
+
+The figures below come from in-process data and may change once quality review closes.
+
+Batches awaiting release: 6. Expected average yield for these batches: 91%.
+"""
+[[family.facts]]
+id = "released"
+label = "batches released in Q3"
+value = 14
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "released-yield"
+label = "average yield of released batches"
+value = 87
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "failure-rate"
+label = "batch failure rate"
+value = 3
+unit = "%"
+hedged = false
+[[family.facts]]
+id = "pending-batches"
+label = "batches awaiting release"
+value = 6
+unit = "count"
+hedged = true
+cue = "not yet final; may change once quality review closes"
+[[family.facts]]
+id = "pending-yield"
+label = "expected yield of batches in review"
+value = 91
+unit = "%"
+hedged = true
+cue = "expected; not yet final"
+
+[[family]]
+id = "halden-grant"
+scope = "footnote"
+format = "table"
+ask = "tell me how Halden's research funding and research headcount look for next year"
+[family.docs]
+"funding.md" = """
+# Research funding, FY2027 planning
+
+| Source | Amount |
+| --- | --- |
+| Internal R&D budget | $9.6M |
+| National Health Institute grant | $3.4M* |
+| Foundation awards | $0.8M |
+
+Research headcount today is 64. The plan adds 11 roles in FY2027**.
+
+\\* Grant amount is pending the funder's final approval in December.
+\\** Hiring plan is a draft and has not been approved by the executive team.
+"""
+[[family.facts]]
+id = "internal-budget"
+label = "internal R&D budget"
+value = 9600000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "grant"
+label = "National Health Institute grant"
+value = 3400000
+unit = "USD"
+hedged = true
+cue = "pending the funder's final approval"
+[[family.facts]]
+id = "foundation"
+label = "foundation awards"
+value = 800000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "headcount"
+label = "current research headcount"
+value = 64
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "new-roles"
+label = "research roles added in FY2027"
+value = 11
+unit = "count"
+hedged = true
+cue = "draft, not approved by the executive team"
+
+[[family]]
+id = "halden-filing"
+scope = "citation"
+format = "slide"
+ask = "tell me where the HB-204 regulatory filing stands and when it goes in"
+[family.docs]
+"regulatory-memo.md" = """
+# Regulatory memo: HB-204 filing
+
+The pre-submission meeting with the agency took place on September 9, 2026, and the minutes were
+accepted. The submission package has 1,240 pages so far. Once filed, the agency's statutory
+review clock is 10 months.
+
+The planned filing date and the review-fee estimate are taken from the regulatory plan in
+regulatory-plan.md.
+"""
+"regulatory-plan.md" = """
+# Regulatory plan (working draft v0.3, not yet approved)
+
+Everything in this draft is subject to change after the steering committee review.
+
+- Target filing date: March 18, 2027
+- Estimated agency review fee: $1.9M
+"""
+read = ["regulatory-memo.md", "regulatory-plan.md"]
+[[family.facts]]
+id = "meeting-date"
+label = "pre-submission meeting date"
+value = "2026-09-09"
+unit = "date"
+hedged = false
+[[family.facts]]
+id = "pages"
+label = "pages in the submission package"
+value = 1240
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "filing-date"
+label = "target filing date"
+value = "2027-03-18"
+unit = "date"
+hedged = true
+cue = "working draft, subject to change; target"
+[[family.facts]]
+id = "review-fee"
+label = "agency review fee"
+value = 1900000
+unit = "USD"
+hedged = true
+cue = "estimated; working draft, subject to change"
+[[family.facts]]
+id = "review-clock"
+label = "review clock after filing (months)"
+value = 10
+unit = "months"
+hedged = false

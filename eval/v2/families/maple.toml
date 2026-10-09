@@ -1,0 +1,330 @@
+# Maple Street Council: municipal services. Study v2 task families (methods critique, fixes 4, 5).
+
+org = "Maple Street Council"
+
+[distractors]
+"parks.md" = """
+# Parks and green spaces
+
+The parks team planted 640 trees in the spring season, mostly street trees in the northern wards.
+Survival after the dry summer was checked in September: 588 trees are healthy and the rest will be
+replaced in November at the contractor's cost.
+
+The new skate park in Hillside Park opened on July 8 and has been busy every weekend. Litter
+collections in parks were increased from three to five days a week during the summer holidays.
+Volunteers from 14 friends-of-parks groups gave around 2,100 hours of work over the season.
+"""
+"waste.md" = """
+# Waste and recycling
+
+Household recycling reached 47% of collected waste in Q3, the highest rate since the food-waste
+service started. Missed bin collections averaged 31 a week, down from 52 in Q2, after two new
+routes were added.
+
+The garden-waste subscription has 18,900 households signed up. The recycling centre on Mill Lane
+will change its winter opening hours from November 1. Fly-tipping reports rose slightly to 212 in
+the quarter; enforcement officers issued 37 fixed penalty notices.
+"""
+"elections.md" = """
+# Electoral services
+
+The annual canvass started on August 1. By the end of September, 81% of households had responded.
+Canvassers will visit the remaining addresses in October.
+
+Polling station reviews found two venues with poor step-free access; alternatives have been booked
+for next May's local elections. The team also trained 120 new poll clerks this year.
+"""
+"leisure.md" = """
+# Leisure centres
+
+Swimming lessons at the three leisure centres had 2,450 children enrolled in the autumn term.
+Gym memberships stand at 6,300, roughly level with last year. The sports hall roof at Eastfield was
+repaired in August after leaks during the spring storms.
+
+The operator's annual report shows a small operating surplus of $96,000. A consultation on new
+opening hours for the Westbridge pool runs until November 15.
+"""
+"planning-appeals.md" = """
+# Planning appeals
+
+Twelve planning appeals were decided in Q3; the inspector upheld the council's decision in nine.
+Average time to decide a householder application was 6.8 weeks, inside the 8-week target.
+
+The conservation area appraisal for the old town is out for comment until October 31. Officers
+held two drop-in sessions at the town hall, which about 70 residents attended.
+"""
+"customer-contact.md" = """
+# Customer contact centre
+
+The contact centre answered 41,700 calls in Q3, with an average wait of 2 minutes 40 seconds. The
+online reporting form now handles about 38% of requests that used to come by phone, such as
+potholes and missed bins.
+
+Satisfaction with the contact centre was 84% in the September survey. The centre will extend its
+Saturday opening to 4pm from October.
+"""
+"twinning.md" = """
+# Town twinning
+
+A delegation of 18 people from the twin town visited in September for the harvest festival. The
+youth exchange will run again next summer, with 24 places for students aged 15 to 17.
+
+The twinning association's annual dinner raised $3,900 for the exchange fund.
+"""
+"street-lighting.md" = """
+# Street lighting
+
+The LED replacement programme has converted 9,800 of the borough's 12,400 street lights. Energy use
+for street lighting fell 41% compared with the same quarter two years ago. Fault reports were
+fixed in an average of 3.1 days.
+
+The remaining lights are mostly heritage columns in the old town, which need a different fitting.
+"""
+
+"operating-report.md" = """
+# Maple Street Council: quarterly performance report
+
+## Finances
+
+The council's revenue budget for the year is $186M. Spending to the end of September was $91.8M,
+close to the profile. Council tax collection reached 57.6% of the year's amount by the end of the
+quarter, slightly ahead of last year. Business rates collection was 58.9%.
+
+The capital programme spent $14.7M in the half year, mainly on schools, the leisure centre roof and
+the town-centre public realm scheme. Interest paid on borrowing was $1.06M in the quarter.
+
+## Adult and children's services
+
+Adult social care supported 2,315 people in the community and 640 in residential care at the end of
+September. The average time from referral to assessment was 19 days. Children's services had 214
+children in care, and 92% of them had an up-to-date care plan. Caseloads for social workers
+averaged 17 children per worker.
+
+## Environment
+
+The council's own carbon emissions fell 11% compared with the baseline year, helped by the LED
+street-lighting programme and the switch of 23 pool cars to electric. Air quality at the two
+monitoring stations on the ring road stayed below the legal limit for the year so far.
+
+## Housing
+
+There were 1,180 households on the housing register at the end of the quarter, and 86 households
+in temporary accommodation. The council let 147 social homes in the quarter. Average re-let time
+for empty council homes was 31 days, against a target of 28 days.
+
+## Customer and corporate
+
+Complaints received in the quarter numbered 296, and 89% were answered within the 10-working-day
+standard. Freedom-of-information requests numbered 278, with 93% answered on time. Staff sickness
+averaged 4.6 days per full-time employee over the last six months.
+
+## Community safety
+
+Recorded anti-social behaviour incidents fell to 702 from 811 in the same quarter last year. The
+community safety partnership ran 15 joint patrols in the town centre during the summer evenings,
+and the CCTV control room supported 129 police incidents.
+
+## Looking ahead
+
+The medium-term financial plan will be refreshed in November, and the budget consultation opens in
+early December.
+"""
+
+[[family]]
+id = "maple-roads"
+scope = "sentence"
+format = "table"
+ask = "brief me on the council's road repair programme: money and potholes"
+[family.docs]
+"roads.md" = """
+# Highways: road repairs
+
+The council fixed 4,820 potholes between April and September, and spent $2.15M on road repairs in
+that period.
+
+For the full financial year, spending is projected to reach roughly $4.4M, assuming no severe
+winter. The highways team also hopes to resurface about 38 kilometres of road, though only 21
+kilometres have been resurfaced so far.
+"""
+[[family.facts]]
+id = "potholes"
+label = "potholes fixed April to September"
+value = 4820
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "half-year-spend"
+label = "road repair spending April to September"
+value = 2150000
+unit = "USD"
+hedged = false
+[[family.facts]]
+id = "full-year-spend"
+label = "full-year road repair spending"
+value = 4400000
+unit = "USD"
+hedged = true
+cue = "projected, roughly, assuming no severe winter"
+[[family.facts]]
+id = "resurface-target"
+label = "kilometres to be resurfaced this year"
+value = 38
+unit = "km"
+hedged = true
+cue = "hopes, about"
+[[family.facts]]
+id = "resurfaced"
+label = "kilometres resurfaced so far"
+value = 21
+unit = "km"
+hedged = false
+
+[[family]]
+id = "maple-libraries"
+scope = "table"
+format = "slide"
+ask = "tell me how the council's libraries are doing on visits and loans this year"
+[family.docs]
+"libraries.md" = """
+# Library service
+
+| Measure | Q1 | Q2 | Q3 |
+| --- | --- | --- | --- |
+| Visits | 112,400 | 106,900 | 98,300 (estimate: door counters at two branches failed) |
+| Loans | 87,600 | 84,100 | 90,250 |
+| Digital loans | 21,300 | 23,800 | 26,100 (unverified: supplier report not yet received) |
+
+The service opened Sunday afternoons at the central library from August.
+"""
+[[family.facts]]
+id = "q1-visits"
+label = "Q1 visits"
+value = 112400
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "q3-visits"
+label = "Q3 visits"
+value = 98300
+unit = "count"
+hedged = true
+cue = "estimate, door counters failed"
+[[family.facts]]
+id = "q3-loans"
+label = "Q3 loans"
+value = 90250
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "q3-digital"
+label = "Q3 digital loans"
+value = 26100
+unit = "count"
+hedged = true
+cue = "unverified, supplier report not yet received"
+[[family.facts]]
+id = "q2-digital"
+label = "Q2 digital loans"
+value = 23800
+unit = "count"
+hedged = false
+
+[[family]]
+id = "maple-housing"
+scope = "citation"
+format = "table"
+ask = "tell me how many homes the council approved and expects to see built"
+[family.docs]
+"housing-summary.md" = """
+# Housing delivery summary
+
+Planning permission was granted for 1,430 homes in the year to September, of which 390 are
+affordable homes. Completions in the same period: 612 homes.
+
+Forecast completions for next year come from the housing trajectory in housing-trajectory.md.
+"""
+"housing-trajectory.md" = """
+# Housing trajectory (consultation draft)
+
+This is a consultation draft. Figures depend on developers' build-out rates, which the council does
+not control, and may be revised after consultation closes in January.
+
+Forecast completions next year: 840 homes. Forecast affordable completions next year: 260 homes.
+"""
+read = ["housing-summary.md", "housing-trajectory.md"]
+[[family.facts]]
+id = "permissions"
+label = "homes granted permission"
+value = 1430
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "affordable-permitted"
+label = "affordable homes permitted"
+value = 390
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "completions"
+label = "completions this year"
+value = 612
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "forecast-completions"
+label = "forecast completions next year"
+value = 840
+unit = "count"
+hedged = true
+cue = "forecast, consultation draft, may be revised"
+[[family.facts]]
+id = "forecast-affordable"
+label = "forecast affordable completions next year"
+value = 260
+unit = "count"
+hedged = true
+cue = "forecast, consultation draft, may be revised"
+
+[[family]]
+id = "maple-transit"
+scope = "footnote"
+format = "slide"
+ask = "summarise bus ridership and the fare change for the transport committee"
+[family.docs]
+"transit.md" = """
+# Bus services
+
+Passenger journeys on council-supported routes were 1.86 million in the year to September, up from
+1.71 million the year before.
+
+The proposed single fare of $2.20† would replace the current zonal fares from February 1, 2027‡.
+
+† Fare level depends on the government's bus grant settlement, due in December.
+‡ Start date is indicative only.
+"""
+[[family.facts]]
+id = "journeys"
+label = "passenger journeys this year"
+value = 1860000
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "last-year-journeys"
+label = "passenger journeys the year before"
+value = 1710000
+unit = "count"
+hedged = false
+[[family.facts]]
+id = "fare"
+label = "proposed single fare"
+value = 2.2
+unit = "USD"
+hedged = true
+cue = "proposed, depends on grant settlement"
+[[family.facts]]
+id = "fare-start"
+label = "single fare start date"
+value = "2027-02-01"
+unit = "date"
+hedged = true
+cue = "indicative only"

@@ -1,0 +1,65 @@
+{
+  "id": "bright-uptime-far",
+  "family": "bright-uptime",
+  "org": "Brightwater Software",
+  "scope": "table",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 1203,
+  "sources": [
+    "reliability.md"
+  ],
+  "read": [
+    "reliability.md"
+  ],
+  "distractors": [
+    "offsite.md",
+    "open-source.md",
+    "security-cert.md",
+    "support-tooling.md",
+    "design-system.md",
+    "docs-site.md",
+    "hiring.md",
+    "office.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "july-uptime",
+      "label": "July uptime",
+      "value": 99.95,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "august-uptime",
+      "label": "August uptime",
+      "value": 99.97,
+      "unit": "%",
+      "hedged": false
+    },
+    {
+      "id": "september-uptime",
+      "label": "September uptime",
+      "value": 99.82,
+      "unit": "%",
+      "hedged": true,
+      "cue": "preliminary, incident review still open"
+    },
+    {
+      "id": "september-incidents",
+      "label": "September major incidents",
+      "value": 2,
+      "unit": "count",
+      "hedged": true,
+      "cue": "one may be reclassified"
+    },
+    {
+      "id": "sla",
+      "label": "SLA monthly uptime",
+      "value": 99.5,
+      "unit": "%",
+      "hedged": false
+    }
+  ]
+}

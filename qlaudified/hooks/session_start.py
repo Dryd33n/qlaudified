@@ -20,7 +20,8 @@ def handle(payload: dict) -> dict | None:
     store = Store(folder)
     csv_path = inject.csv_hint(folder, project)
     if payload.get("source") == "compact":
-        text = digest.build_digest(store, cfg.digest_budget_chars, csv_path)
+        text = digest.build_digest(store, cfg.digest_budget_chars, csv_path,
+                                   placebo=cfg.refeed == "placebo")
         text = text or inject.session_line(csv_path)
     else:
         if not store.csv_path.exists():

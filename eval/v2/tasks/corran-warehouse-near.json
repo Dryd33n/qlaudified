@@ -1,0 +1,63 @@
+{
+  "id": "corran-warehouse-near",
+  "family": "corran-warehouse",
+  "org": "Corran Logistics",
+  "scope": "heading",
+  "format": "table",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "midlands.md"
+  ],
+  "read": [
+    "midlands.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "floor-area",
+      "label": "floor area under lease (square metres)",
+      "value": 18500,
+      "unit": "m2",
+      "hedged": false
+    },
+    {
+      "id": "lease-date",
+      "label": "lease signing date",
+      "value": "2026-05-02",
+      "unit": "date",
+      "hedged": false
+    },
+    {
+      "id": "racking",
+      "label": "racking contract",
+      "value": 1200000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "fit-out",
+      "label": "fit-out budget",
+      "value": 4600000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "board proposal, not yet approved"
+    },
+    {
+      "id": "opening",
+      "label": "opening date",
+      "value": "2027-04-06",
+      "unit": "date",
+      "hedged": true,
+      "cue": "board proposal, not yet approved"
+    },
+    {
+      "id": "hires",
+      "label": "staff to be hired",
+      "value": 85,
+      "unit": "count",
+      "hedged": true,
+      "cue": "board proposal, not yet approved"
+    }
+  ]
+}

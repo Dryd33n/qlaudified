@@ -1,0 +1,66 @@
+{
+  "id": "corran-contract-far",
+  "family": "corran-contract",
+  "org": "Corran Logistics",
+  "scope": "footnote",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 1519,
+  "sources": [
+    "harlow.md"
+  ],
+  "read": [
+    "harlow.md"
+  ],
+  "distractors": [
+    "sustainability.md",
+    "training-academy.md",
+    "compliance.md",
+    "customer-desk.md",
+    "cyber.md",
+    "driver-survey.md",
+    "fleet-maintenance.md",
+    "social-club.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "current-value",
+      "label": "current annual contract value",
+      "value": 5800000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "pallets",
+      "label": "pallets moved in the last 12 months",
+      "value": 61200,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "renewal-value",
+      "label": "renewal annual value",
+      "value": 6500000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "under discussion, not confirmed"
+    },
+    {
+      "id": "renewal-term",
+      "label": "renewal term (years)",
+      "value": 3,
+      "unit": "years",
+      "hedged": true,
+      "cue": "under discussion"
+    },
+    {
+      "id": "future-volume",
+      "label": "future pallets per year",
+      "value": 70000,
+      "unit": "count",
+      "hedged": true,
+      "cue": "about, projection, not guaranteed"
+    }
+  ]
+}

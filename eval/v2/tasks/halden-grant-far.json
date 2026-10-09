@@ -1,0 +1,65 @@
+{
+  "id": "halden-grant-far",
+  "family": "halden-grant",
+  "org": "Halden Biotech",
+  "scope": "footnote",
+  "format": "table",
+  "distance": "far",
+  "distance_tokens": 2001,
+  "sources": [
+    "funding.md"
+  ],
+  "read": [
+    "funding.md"
+  ],
+  "distractors": [
+    "lab-safety.md",
+    "seminar.md",
+    "training.md",
+    "vendors.md",
+    "community.md",
+    "facilities.md",
+    "hr-quarterly.md",
+    "it-migration.md",
+    "operating-report.md"
+  ],
+  "facts": [
+    {
+      "id": "internal-budget",
+      "label": "internal R&D budget",
+      "value": 9600000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "grant",
+      "label": "National Health Institute grant",
+      "value": 3400000,
+      "unit": "USD",
+      "hedged": true,
+      "cue": "pending the funder's final approval"
+    },
+    {
+      "id": "foundation",
+      "label": "foundation awards",
+      "value": 800000,
+      "unit": "USD",
+      "hedged": false
+    },
+    {
+      "id": "headcount",
+      "label": "current research headcount",
+      "value": 64,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "new-roles",
+      "label": "research roles added in FY2027",
+      "value": 11,
+      "unit": "count",
+      "hedged": true,
+      "cue": "draft, not approved by the executive team"
+    }
+  ]
+}

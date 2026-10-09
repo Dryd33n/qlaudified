@@ -20,9 +20,13 @@ also fed back into Claude's loop, so qualifiers survive long tasks.
 
 ## Preliminary findings
 
-> **Pilot, not results.** 48 runs on haiku, one repeat, Oct 9, 2026. These show direction only.
-> The pre-registered study (Sonnet, more repeats, intervals) runs in Sprint 6. Full numbers:
-> [docs/findings/sprint-6.md](docs/findings/sprint-6.md).
+> **Exploratory pilot, not results.** 48 runs on haiku, one repeat, Oct 9, 2026. A
+> [methods review](docs/findings/methods-critique.md) found that this design can't support a
+> claim that qlaudified makes answers more faithful. It has no prompt-only or placebo baseline,
+> its scorer shares the plugin's word list, and its tasks contain no firm facts, so over-hedging
+> would go unseen. The study has been redesigned ([protocol v2](docs/findings/protocol-v2.md))
+> and hasn't run yet. Read the numbers below as "refeeding made hedge words more frequent in
+> these answers", nothing more. Full numbers: [docs/findings/sprint-6.md](docs/findings/sprint-6.md).
 
 **Qualifiers kept in the final answer** (hedged facts stated with the source's hedge):
 
@@ -137,7 +141,7 @@ Measured on Windows 11 under ordinary background load ([sprint-5.md](docs/findin
 | 3 | Web sources, NLI and LLM tiers | ✅ [results](docs/findings/sprint-3.md) |
 | 4 | High mode and the eval harness | ✅ [results](docs/findings/sprint-4.md) |
 | 5 | The Provenance Administrator (design revision 2) | ✅ [results](docs/findings/sprint-5.md) |
-| 6 | Study, README, v1.0.0 (target Nov 22, 2026) | 🔄 pilot done: [notes](docs/findings/sprint-6.md) |
+| 6 | Study, README, v1.0.0 (target Nov 22, 2026) | 🔄 study redesigned: [protocol v2](docs/findings/protocol-v2.md); v2 pilot next |
 
 Sprints 0–4 built design revision 1 (rule-based capture and verification). On Oct 8 the design
 returned to its original idea: the sidecar's provenance record is the core, and feeding it back
@@ -147,8 +151,8 @@ is the hypothesis under test.
 
 - [Design and requirements](docs/design.md)
 - [Sprint plan](docs/sprint-plan.md)
-- [Evaluation report](docs/evaluation.md) (main study pending) and the
-  [study protocol](docs/findings/sprint-5.md)
+- [Evaluation report](docs/evaluation.md) (main study pending), the
+  [study protocol v2](docs/findings/protocol-v2.md) and the [methods critique](docs/findings/methods-critique.md)
 - [Testing and dev workflow](docs/testing.md)
 - Sprint findings: [0](docs/findings/sprint-0.md) · [1](docs/findings/sprint-1.md) ·
   [2](docs/findings/sprint-2.md) · [3](docs/findings/sprint-3.md) · [4](docs/findings/sprint-4.md) ·

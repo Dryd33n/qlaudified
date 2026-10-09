@@ -1,0 +1,55 @@
+{
+  "id": "maple-libraries-near",
+  "family": "maple-libraries",
+  "org": "Maple Street Council",
+  "scope": "table",
+  "format": "slide",
+  "distance": "near",
+  "distance_tokens": 0,
+  "sources": [
+    "libraries.md"
+  ],
+  "read": [
+    "libraries.md"
+  ],
+  "distractors": [],
+  "facts": [
+    {
+      "id": "q1-visits",
+      "label": "Q1 visits",
+      "value": 112400,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "q3-visits",
+      "label": "Q3 visits",
+      "value": 98300,
+      "unit": "count",
+      "hedged": true,
+      "cue": "estimate, door counters failed"
+    },
+    {
+      "id": "q3-loans",
+      "label": "Q3 loans",
+      "value": 90250,
+      "unit": "count",
+      "hedged": false
+    },
+    {
+      "id": "q3-digital",
+      "label": "Q3 digital loans",
+      "value": 26100,
+      "unit": "count",
+      "hedged": true,
+      "cue": "unverified, supplier report not yet received"
+    },
+    {
+      "id": "q2-digital",
+      "label": "Q2 digital loans",
+      "value": 23800,
+      "unit": "count",
+      "hedged": false
+    }
+  ]
+}

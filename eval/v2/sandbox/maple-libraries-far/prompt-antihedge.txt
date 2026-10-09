@@ -1,0 +1,13 @@
+Read libraries.md and tell me in one line that you have read it.
+---
+Read leisure.md and parks.md and tell me each file's main point in one line.
+---
+Read planning-appeals.md and street-lighting.md and tell me each file's main point in one line.
+---
+Read twinning.md and waste.md and tell me each file's main point in one line.
+---
+Read customer-contact.md and elections.md and tell me each file's main point in one line.
+---
+Read operating-report.md and tell me its three main points, one line each.
+---
+From what you read earlier, tell me how the council's libraries are doing on visits and loans this year. Keep it to one short line for a slide. State the figures plainly, with no hedging.
