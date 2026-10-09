@@ -66,13 +66,13 @@ Goal: the core loop works with zero model calls: inject deltas, verify with rule
 
 Goal: cover web sources and add the two smarter verifier tiers, both optional and both logged.
 
-- [ ] WebFetch shadow re-fetch in the background, main-text extraction, raw/summary span linking (CAP-3)
-- [ ] Fallback to `summarized-only` on paywalls, JS-only pages and timeouts (CAP-4); hash mismatch handling
-- [ ] WebSearch results stored as `search-snippet` (CAP-5)
-- [ ] Local web server for saved Fernwick pages, so web tests are reproducible
-- [ ] Tier 2: NLI as the `[nli]` extra, ONNX Runtime on CPU, borderline thresholds
-- [ ] Tier 3: one batched call with a JSON schema; `claude-cli`, `ollama` and `none` backends (CFG-1); `/qlaudified report --deep` (REP-2, moved from Sprint 2)
-- [ ] Recursion guard for nested `claude -p` (SID-3); `usage.jsonl` cost logging
+- [x] WebFetch shadow re-fetch in the background, main-text extraction, raw/summary span linking (CAP-3)
+- [x] Fallback to `summarized-only` on paywalls, JS-only pages and timeouts (CAP-4); hash mismatch handling
+- [x] WebSearch results stored as `search-snippet` (CAP-5)
+- [x] Local web server for saved Fernwick pages, so web tests are reproducible
+- [x] Tier 2: NLI as the `[nli]` extra, ONNX Runtime on CPU, borderline thresholds
+- [x] Tier 3: one batched call with a JSON schema; `claude-cli`, `ollama` and `none` backends (CFG-1); `/qlaudified report --deep` (REP-2, moved from Sprint 2)
+- [x] Recursion guard for nested `claude -p` (SID-3); `usage.jsonl` cost logging
 
 **Done when:** a WebFetch on a seed page records both the raw text and the summary, a qualifier dropped by WebFetch itself is flagged, and each tier's decisions are labelled in the report.
 

@@ -89,8 +89,8 @@ def test_repo_session_reports_each_clause(tmp_path):
     result = replay(Path(__file__).parent.parent / "sessions" / "repo-windows", tmp_path)
     [report] = (result.project / ".claude" / ".qlaudified" / "sessions").glob("*/reports/turn-1.md")
     text = report.read_text(encoding="utf-8")
-    assert "**supported:** Ledger syncs every 900 seconds" in text
-    assert "**supported:** which is 15 minutes." in text
+    assert "**supported** (rules): Ledger syncs every 900 seconds" in text
+    assert "**supported** (rules): which is 15 minutes." in text
     assert (report.parent / "turn-1.json").exists()
 
 

@@ -2,6 +2,12 @@
 
 Three lines per sprint, written at the Sunday demo.
 
+## Sprint 3 · Web sources and model tiers (Oct 26–Nov 1, 2026; done Oct 8)
+
+- WebFetch pages are re-fetched in a detached process, so the raw text is the evidence; summary sentences that drop a page's qualifier are reported, and failures mark the source `summarized-only`.
+- Two optional tiers: NLI (quantized DeBERTa, ~20 ms per pair) and one batched LLM call per turn (`report --deep` in Medium, automatic in High); every verdict is labelled rules, NLI or LLM.
+- Found: `async` hooks die with `claude -p`, WebFetch can't reach `http://localhost`, and replays must run offline.
+
 ## Sprint 2 · Medium mode end to end (Oct 19–25, 2026; done Oct 8)
 
 - Medium works end to end with no model calls: delta injection, a post-compaction digest, inline `[S3]` markers, and Stop verification with reports.

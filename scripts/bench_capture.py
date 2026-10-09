@@ -65,6 +65,8 @@ def main() -> int:
         project = workdir / "sandbox"
         project.mkdir(parents=True)
         env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project), "CLAUDE_PLUGIN_ROOT": str(REPO)}
+        # The WebFetch fixture points at a real site: time the launch, but fetch nothing.
+        env["QLAUDIFIED_OFFLINE"] = "1"
         if args.prime:
             primer = substitute(json.loads((REPO / "tests" / "fixtures" / "payloads" /
                                             f"{args.prime}.json").read_text(encoding="utf-8")),

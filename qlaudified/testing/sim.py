@@ -56,7 +56,8 @@ def replay(session: Path, workdir: Path) -> Replay:
     first: dict = next((r["payload"] for r in records if isinstance(r.get("payload"), dict)), {})
     project = Path(substitute(first.get("cwd") or "<SANDBOX>", mapping))
     project.mkdir(parents=True, exist_ok=True)
-    env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project), "CLAUDE_PLUGIN_ROOT": str(REPO)}
+    env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project), "CLAUDE_PLUGIN_ROOT": str(REPO),
+           "QLAUDIFIED_OFFLINE": "1"}  # a replayed WebFetch must not re-fetch the live page
 
     result = Replay(project=project)
     for rec in records:

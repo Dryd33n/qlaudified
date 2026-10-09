@@ -32,3 +32,39 @@ Stubs waiting for this sprint: `verify/tier2_nli.py`, `verify/tier3_llm.py`, `re
 - `live.py` steps (`---` in prompt.txt) need the transcript, so they keep prompt history on.
 - Clauses take hedges from their whole sentence; Tier 1 compares spans sentence by sentence.
 - WebSearch titles are stored but never injected.
+
+## Results (Oct 8)
+
+Built: tier 3 (one batched `claude -p --safe-mode` call with a JSON schema) with `claude-cli`,
+`ollama` and `none` backends, `/qlaudified report --deep`, the LLM tier at Stop in High,
+`usage.jsonl`, the NLI tier (`[nli]` extra, `/qlaudified nli install`), the WebFetch re-fetch
+with `summarized-only` fallbacks, the summary-vs-page check, a local page server, and tier labels
+in reports. 201 free tests pass; ruff and mypy are clean. Live spend: about $0.03.
+
+| Check | Result |
+| --- | --- |
+| WebFetch on a real page (sqlite3 docs) | Summary span plus 200 `web-raw` spans; summary `derived_from = S2-S201`; no errors |
+| Qualifier dropped by WebFetch itself | Flagged in tests (saved pricing page; the summary drops "expected to" and "subject to change"); the live summary kept its "may", so there was nothing to flag |
+| Tier labels in the report | `(rules)`, `(NLI)` and `(LLM)` on each claim, all seen live |
+| `report --deep`, live | 1 call, 2 claims, 3.4 s, $0.001 |
+| High-mode Stop, live | LLM tier ran automatically: 4.0 s call, Stop 5.7 s in total |
+| NLI tier | ~15–20 ms per pair; ~2.4 s to load, only when the rules leave a claim open |
+| PostToolUse p95 (NFR-3) | 234 ms on Read, 267 ms on WebFetch (launching the re-fetch) |
+
+Findings:
+- **Async hooks are killed when a `claude -p` session ends** (hooks docs), so the re-fetch is a
+  detached process started by the normal PostToolUse hook; Stop waits up to 8 s for it.
+- **WebFetch upgrades `http://` to HTTPS**, so it can't fetch a local server. The saved pages
+  serve the offline tests; live web tests use public pages. (In seed-web, Claude fell back to curl.)
+- **Hooks run with `-S`**, so the NLI tier adds site-packages itself, and only once the model exists.
+- **Replays and benchmarks run offline** (`QLAUDIFIED_OFFLINE=1`): no re-fetch and no LLM backend.
+  The first deep test showed a replayed WebFetch fetching the live page.
+- **NLI read a search title as a contradiction.** It now skips search snippets, and a
+  contradiction needs at least 30% word overlap. Paraphrases may share no words.
+- NLI treats a dropped "may" as neutral, not entailed, so qualifier checks stay with the rules
+  and the LLM.
+- The LLM labels claims about absence ("the file doesn't contain Q4 revenue") as unsupported,
+  since no passage states an absence.
+- The page cap is 200 paragraphs; longer pages are cut off (the sqlite3 docs hit it).
+
+Recordings added: `seed-web`, `web-refetch` and `seed-high` (`tests/sessions/*-windows`).

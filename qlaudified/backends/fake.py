@@ -7,6 +7,7 @@ class FakeBackend:
     def __init__(self, responses: list[dict] | None = None) -> None:
         self.responses = list(responses or [])
         self.prompts: list[str] = []
+        self.last_usage: dict = {}
 
     def complete_json(self, prompt: str, schema: dict) -> dict | None:
         self.prompts.append(prompt)

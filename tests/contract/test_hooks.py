@@ -137,7 +137,7 @@ def test_stop_reports_a_dropped_qualifier(run_hook, payload, sandbox):
         "qlaudified: 2 claims checked · 1 qualifier dropped (estimated) · 1 supported"
         " · /qlaudified report")}
     md = (store_dir(sandbox) / "reports" / "turn-1.md").read_text(encoding="utf-8")
-    assert "**qualifier dropped:** Q3 revenue was $4.2M." in md
+    assert "**qualifier dropped** (rules): Q3 revenue was $4.2M." in md
 
 
 def test_stop_without_sources_or_claims_leaves_no_store(run_hook, payload, sandbox):
@@ -157,3 +157,27 @@ def test_message_display_adds_markers(run_hook, payload, sandbox):
                    "displayContent": "Q3 revenue was $4.2M [S2, qualifier: estimated, preliminary].\n\n"}
     shown["delta"] = "Nothing to cite.\n"
     assert run_hook("MessageDisplay", shown, project=sandbox).stdout == b""
+
+
+def test_webfetch_refetches_the_page_and_stop_flags_the_summarys_dropped_hedge(
+        run_hook, payload, sandbox, repo):
+    from qlaudified.testing.webserver import serve
+
+    server, site = serve(repo / "tests" / "fixtures" / "web")
+    try:
+        post = payload("post_webfetch")
+        url = f"{site}/pricing.html"
+        post["tool_input"]["url"] = url
+        post["tool_response"].update(url=url, result="Pricing starts at $12 per seat per month.")
+        assert run_hook("PostToolUse", post, project=sandbox).returncode == 0
+        stop = same_session(post, payload("stop"))
+        stop["last_assistant_message"] = "Fernwick Ledger costs $12 per seat per month."
+        proc = run_hook("Stop", stop, project=sandbox)  # waits for the detached re-fetch
+    finally:
+        server.shutdown()
+    assert "qualifier dropped" in json.loads(proc.stdout)["systemMessage"]
+    md = (store_dir(sandbox) / "reports" / "turn-1.md").read_text(encoding="utf-8")
+    assert "**qualifier dropped** (rules): Fernwick Ledger costs $12" in md  # checked on the page
+    assert "## WebFetch summaries that changed their page" in md
+    assert "(dropped: subject to change, expected to)" in md
+    assert not (sandbox / ".claude" / ".qlaudified" / "errors.log").exists()

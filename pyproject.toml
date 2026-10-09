@@ -12,7 +12,7 @@ requires-python = ">=3.11"
 dependencies = []  # core is standard library only
 
 [project.optional-dependencies]
-web = []  # main-text extraction for shadow re-fetch; chosen in Sprint 3 (CAP-3)
+web = []  # Sprint 3: the re-fetch uses the standard library (urllib, html.parser), so this is empty
 nli = ["onnxruntime>=1.17", "tokenizers>=0.15", "numpy"]  # tier 2 verifier (VER-3)
 dev = ["pytest>=8", "ruff>=0.16,<0.17", "mypy>=1.10"]  # ruff capped: new minors change default rules
 

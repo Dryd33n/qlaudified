@@ -79,19 +79,22 @@ def spans_from_tool_result(
 
     agent = payload.get("agent_id") or "main"
     turn = payload.get("prompt_id")
-    out = []
-    for origin, source, locator, text in raw[:MAX_SPANS_PER_CALL]:
-        if not text.strip() or paths.is_store_path(source):
-            continue
-        hedges = indexer.find_hedges(text, lexicon)
-        out.append(Span(
-            span_id="", origin=origin, source=source, locator=locator, text=text,
-            numbers="; ".join(indexer.extract_numbers(text) + indexer.extract_dates(text)),
-            qualifiers="; ".join(w for words in hedges.values() for w in words),
-            agent_id=agent, turn=turn,
-            hash=hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
-        ))
-    return out
+    return [indexed(origin, source, locator, text, agent, turn, lexicon)
+            for origin, source, locator, text in raw[:MAX_SPANS_PER_CALL]
+            if text.strip() and not paths.is_store_path(source)]
+
+
+def indexed(origin: str, source: str, locator: str, text: str, agent: str = "main",
+            turn: str | None = None, lexicon: dict[str, list[str]] | None = None) -> Span:
+    """A span with its numbers, dates and hedge words filled in (CAP-2)."""
+    hedges = indexer.find_hedges(text, lexicon)
+    return Span(
+        span_id="", origin=origin, source=source, locator=locator, text=text,
+        numbers="; ".join(indexer.extract_numbers(text) + indexer.extract_dates(text)),
+        qualifiers="; ".join(w for words in hedges.values() for w in words),
+        agent_id=agent, turn=turn,
+        hash=hashlib.sha256(text.encode("utf-8")).hexdigest()[:16],
+    )
 
 
 RawSpan = tuple[str, str, str, str]  # origin, source, locator, text

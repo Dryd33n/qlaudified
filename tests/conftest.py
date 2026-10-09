@@ -54,3 +54,12 @@ def run_hook(repo, tmp_path):
         )
 
     return _run
+
+
+REAL_CACHE = os.environ.get("QLAUDIFIED_CACHE") or str(Path.home() / ".cache" / "qlaudified")
+
+
+@pytest.fixture(autouse=True)
+def no_nli_model(tmp_path_factory, monkeypatch):
+    """Tests run without the NLI model, as CI does; tests/unit/test_nli.py opts back in."""
+    monkeypatch.setenv("QLAUDIFIED_CACHE", str(tmp_path_factory.mktemp("cache")))

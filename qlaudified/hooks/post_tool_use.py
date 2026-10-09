@@ -2,7 +2,8 @@
 
 Every mode captures, Low included: Low means no injection or verification, not no trail. In Medium
 and High the spans this call added for this agent come back as ``additionalContext``; a subagent's
-payload carries its ``agent_id``, so its delta lands in its own context.
+payload carries its ``agent_id``, so its delta lands in its own context. A new WebFetch summary
+also starts the raw-page re-fetch (CAP-3).
 """
 
 from qlaudified import capture, config, inject, paths
@@ -17,9 +18,15 @@ def handle(payload: dict) -> dict | None:
     spans = capture.spans_from_tool_result(payload, project, cfg.lexicon())
     if not spans:
         return None
-    new = Store(paths.session_dir(payload["session_id"], payload)).add_new_spans(spans)
+    folder = paths.session_dir(payload["session_id"], payload)
+    new = Store(folder).add_new_spans(spans)
     if cfg.mode == config.Mode.LOW:
         return None
+    for span in new:
+        if span.origin == "web-summary":  # the page itself, in a detached process (CAP-3)
+            from qlaudified import refetch
+
+            refetch.start(folder, project, span.source, span.span_id, span.agent_id, span.turn)
     delta = inject.build_delta(new, cfg.inject_budget_chars)
     if not delta:
         return None

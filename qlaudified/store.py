@@ -175,6 +175,14 @@ class Store:
         rows = self._query(f"SELECT {', '.join(SPAN_FIELDS)} FROM spans{where} ORDER BY seq")
         return [Span(**dict(zip(SPAN_FIELDS, r, strict=True))) for r in rows]
 
+    def set_derived_from(self, span_id: str, value: str) -> None:
+        """Link a WebFetch summary to its raw page spans, or mark it ``summarized-only`` (CAP-3, 4)."""
+        con = self._connect()
+        try:
+            con.execute("UPDATE spans SET derived_from = ? WHERE span_id = ?", (value, span_id))
+        finally:
+            con.close()
+
     def start_turn(self, prompt_id: str, answer: str) -> Turn:
         """Record a turn's final answer; a second Stop in the same turn updates it and keeps its n."""
         ts = time.strftime("%Y-%m-%dT%H:%M:%S%z")

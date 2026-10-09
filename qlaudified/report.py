@@ -19,6 +19,7 @@ LABELS = {
     "inference": "inference", "supported": "supported",
 }
 PROBLEMS = {"contradicted", "qualifier-dropped", "unsupported"}
+TIERS = {"deterministic": "rules", "nli": "NLI", "llm": "LLM"}
 
 
 def summary_line(claims: list[Claim], skipped: int = 0) -> str:
@@ -41,10 +42,13 @@ def summary_line(claims: list[Claim], skipped: int = 0) -> str:
     return " · ".join([head, *parts]) + tail
 
 
-def render_markdown(n: int, claims: list[Claim], spans: dict[str, Span], skipped: int = 0) -> str:
+def render_markdown(n: int, claims: list[Claim], spans: dict[str, Span], skipped: int = 0,
+                    summary_issues: list[dict] | None = None) -> str:
     out = [f"# qlaudified report · turn {n}", "", summary_line(claims, skipped), ""]
     for i, claim in enumerate(claims, 1):
-        out.append(f"{i}. **{LABELS.get(claim.verdict, claim.verdict)}:** {claim.text}")
+        tier = TIERS.get(claim.decided_by)
+        by = f" ({tier})" if tier else ""
+        out.append(f"{i}. **{LABELS.get(claim.verdict, claim.verdict)}**{by}: {claim.text}")
         if claim.dropped_qualifiers:
             out.append(f"   - dropped: {', '.join(claim.dropped_qualifiers)}")
         unresolved = claim.verdict == "unresolved"
@@ -52,28 +56,46 @@ def render_markdown(n: int, claims: list[Claim], spans: dict[str, Span], skipped
             span = spans.get(span_id)
             if span is None:
                 continue
-            quote = " ".join(span.text.split())
-            quote = quote if len(quote) <= 160 else quote[:159] + "…"
             closest = "closest: " if unresolved else ""
-            out.append(f"   - {closest}[{span_id}] {span.source} {span.locator}: \"{quote}\"")
+            out.append(f"   - {closest}[{span_id}] {span.source} {span.locator}: "
+                       f"\"{_quote(span.text)}\"")
         if not claim.span_ids and claim.verdict == "unsupported":
             out.append("   - no source in this session states this")
     if not claims:
         out.append("No critical claims in this answer.")
+    if summary_issues:
+        out += ["", "## WebFetch summaries that changed their page", ""]
+        for issue in summary_issues:
+            what = LABELS.get(issue["verdict"], issue["verdict"])
+            dropped = issue["dropped_qualifiers"]
+            extra = f" (dropped: {', '.join(dropped)})" if dropped else ""
+            out.append(f"- **{what}**{extra}: [{issue['summary_span']}] the summary says "
+                       f"\"{issue['text']}\"")
+            for span_id in issue["span_ids"]:
+                span = spans.get(span_id)
+                if span is not None:
+                    out.append(f"  - page [{span_id}] {span.locator}: \"{_quote(span.text)}\"")
     return "\n".join(out) + "\n"
 
 
+def _quote(text: str) -> str:
+    quote = " ".join(text.split())
+    return quote if len(quote) <= 160 else quote[:159] + "…"
+
+
 def write_turn_report(session_dir: Path, n: int, prompt_id: str, claims: list[Claim],
-                      spans: dict[str, Span], skipped: int = 0, mode: str = "") -> Path:
+                      spans: dict[str, Span], skipped: int = 0, mode: str = "",
+                      summary_issues: list[dict] | None = None) -> Path:
     """Write reports/turn-<n>.md and .json; returns the markdown path."""
     folder = Path(session_dir) / "reports"
     folder.mkdir(exist_ok=True)
     md = folder / f"turn-{n}.md"
-    md.write_text(render_markdown(n, claims, spans, skipped), encoding="utf-8")
+    md.write_text(render_markdown(n, claims, spans, skipped, summary_issues), encoding="utf-8")
     data = {
         "turn": n, "prompt_id": prompt_id, "mode": mode, "skipped": skipped,
         "summary": summary_line(claims, skipped),
         "claims": [asdict(c) for c in claims],
+        "summary_issues": summary_issues or [],
         "spans": {k: {"source": s.source, "locator": s.locator, "text": s.text,
                       "qualifiers": s.qualifiers} for k, s in spans.items()},
     }

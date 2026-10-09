@@ -71,6 +71,7 @@ claude -p "<task prompt>"
   --output-format json
 ```
 
+- **Web tests:** `qlaudified.testing.webserver` serves saved pages from `tests/fixtures/web/` (plus `/paywall` and `/slow`). WebFetch itself won't fetch `http://localhost`, so live web tasks use public pages. Replays set `QLAUDIFIED_OFFLINE=1`: no re-fetch, no LLM.
 - **Recording and steps:** `--record` keeps the transcript and sets `QLAUDIFIED_RECORD_DIR`, so the plugin logs every event and its own response; `--collect NAME` scrubs that into `tests/sessions/NAME-<os>/`. A `prompt.txt` with `---` lines runs each step in one session via `--resume` (used for `/compact`). `--no-plugin` gives the cost baseline.
 - **One-time setup:** log in once inside the test config directory if Claude Code asks; after that, runs reuse it.
 - **What the test asserts:** rows in the sandbox's `.claude/.qlaudified/` store, the saved turn report, the injected lines in the session transcript, and `total_cost_usd` staying under a ceiling.

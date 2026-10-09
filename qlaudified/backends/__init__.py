@@ -4,6 +4,11 @@ from qlaudified.backends.base import Backend
 
 
 def get_backend(name: str, model: str | None = None) -> Backend:
+    """The configured backend; ``none`` when ``QLAUDIFIED_OFFLINE`` is set (replays, benchmarks)."""
+    import os
+
+    if os.environ.get("QLAUDIFIED_OFFLINE"):
+        name = "none"
     if name == "claude-cli":
         from qlaudified.backends.claude_cli import ClaudeCliBackend
 

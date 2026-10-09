@@ -1,0 +1,1 @@
+Use WebFetch on http://127.0.0.1:8765/pricing.html and tell me in one sentence what a Fernwick Ledger seat costs.

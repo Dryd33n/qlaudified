@@ -54,6 +54,8 @@ def main() -> int:
     payload = None
     try:
         raw = sys.stdin.buffer.read().decode("utf-8", "replace")
+        if os.environ.get("QLAUDIFIED_NESTED"):
+            return 0  # our own nested claude -p call (SID-3); --safe-mode should already skip us
         if sys.version_info < MIN_PYTHON:
             old_python(event, raw)
             return 0

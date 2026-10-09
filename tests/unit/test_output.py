@@ -56,7 +56,7 @@ def test_turn_report_is_saved_as_markdown_and_json(tmp_path):
     md = report.write_turn_report(tmp_path, 2, "p", [claim], {"S3": REVENUE}, mode="medium")
     text = md.read_text(encoding="utf-8")
     assert md.name == "turn-2.md"
-    assert "1. **qualifier dropped:** Q3 revenue was $4.2M." in text
+    assert "1. **qualifier dropped** (rules): Q3 revenue was $4.2M." in text
     assert "   - dropped: estimated, preliminary" in text
     assert '   - [S3] q3.md L3: "Q3 revenue is estimated' in text
     data = json.loads((tmp_path / "reports" / "turn-2.json").read_text(encoding="utf-8"))
