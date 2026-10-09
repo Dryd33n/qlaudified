@@ -116,7 +116,7 @@ The rebuild:
 
 Goal: run the study, publish the numbers honestly, and ship v1.
 
-- [ ] Pilot (haiku): cost per row and per run for each mode; set NFR-1 and NFR-2; go/no-go on the decay tasks' drop rate
+- [ ] Pilot (haiku): cost per row and per run for each mode; set NFR-1 and NFR-2; go/no-go on the decay tasks' drop rate — run Oct 9: go (Low drops 86% under pressure); NFR-1/2 move to Sonnet repeat 1, where the agent's cost isn't dwarfed by the sidecar (docs/findings/sprint-6.md)
 - [ ] Study runs on Sonnet and a haiku cross-check within the ~$25 budget, spread across days (plan usage plus extra credits)
 - [ ] Results: decay curves and the Medium-vs-Low comparison as the headline; ledger accuracy; cost; consult rate
 - [ ] Revisit NFR targets against measured numbers; record misses rather than hiding them
