@@ -19,15 +19,6 @@ closed by a provenance report at the end of every answer. In Medium and High mod
 also fed back into Claude's loop, so qualifiers survive long tasks.
 
 ## Preliminary findings
-
-> **Exploratory pilot, not results.** 48 runs on haiku, one repeat, Oct 9, 2026. A
-> [methods review](docs/findings/methods-critique.md) found that this design can't support a
-> claim that qlaudified makes answers more faithful. It has no prompt-only or placebo baseline,
-> its scorer shares the plugin's word list, and its tasks contain no firm facts, so over-hedging
-> would go unseen. The study has been redesigned ([protocol v2](docs/findings/protocol-v2.md))
-> and hasn't run yet. Read the numbers below as "refeeding made hedge words more frequent in
-> these answers", nothing more. Full numbers: [docs/findings/sprint-6.md](docs/findings/sprint-6.md).
->
 > **First look at the redesigned tasks (Oct 9, 14 runs, haiku):** without being told to drop
 > hedges, Claude kept every one, **with or without the plugin**, even ~8,000 tokens after reading
 > the source. It never over-hedged a firm figure either. So far the plugin's measurable effect is
