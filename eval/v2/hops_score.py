@@ -114,15 +114,29 @@ def score_run(folder: Path, task: dict) -> list[Cell]:
     return cells
 
 
+WRITES = ("Write", "Edit", "MultiEdit", "NotebookEdit")
+TARGETS = ("file_path", "path", "pattern", "command", "notebook_path")
+
+
+def _opens_sources(line: str) -> bool:
+    """A tool call in a transcript line that targets studies/ (not one whose text says "studies")."""
+    try:
+        content = (json.loads(line).get("message") or {}).get("content") or []
+    except (json.JSONDecodeError, AttributeError):
+        return False
+    for use in content if isinstance(content, list) else []:
+        if not isinstance(use, dict) or use.get("type") != "tool_use" or use.get("name") in WRITES:
+            continue
+        given = use.get("input") or {}
+        if any("studies" in str(given.get(k, "")).replace("\\", "/") for k in TARGETS):
+            return True
+    return False
+
+
 def rereads(folder: Path) -> int:
     """Hops after the first whose session opened studies/ (relay transcripts are per hop)."""
-    count = 0
-    for path in sorted(folder.glob("transcript-*.jsonl"))[1:]:
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if '"tool_use"' in line and "studies" in line.replace("\\\\", "/"):
-                count += 1
-                break
-    return count
+    return sum(any(_opens_sources(line) for line in path.read_text(encoding="utf-8").splitlines())
+               for path in sorted(folder.glob("transcript-*.jsonl"))[1:])
 
 
 def _rate(num: int, den: int) -> str:
@@ -211,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
     if not rows:
         print(f"no finished runs in {runs}")
         return 1
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]  # a Windows console is cp1252; the report has "→"
     print(report(rows, load_estimator() if args.estimator else None))
     return 0
 

@@ -173,6 +173,18 @@ def test_rereads_count_relay_hops_that_open_the_sources(tmp_path):
     assert hops_score.rereads(tmp_path) == 1  # hop 1 reads the sources by design
 
 
+def test_rereads_ignore_writes_whose_text_mentions_studies(tmp_path):
+    # Seen in the ceiling check: an email hop writing "these studies" counted as a re-read.
+    use = '{"type": "assistant", "message": {"content": [{"type": "tool_use", '
+    (tmp_path / "transcript-01.jsonl").write_text(use + '"input": {"file_path": "studies/S01.md"}}]}}\n')
+    (tmp_path / "transcript-02.jsonl").write_text(
+        use + '"name": "Write", "input": {"file_path": "hops/05-email.md", '
+        '"content": "S01: these studies suggest"}}]}}\n')
+    (tmp_path / "transcript-03.jsonl").write_text(
+        use + '"name": "Read", "input": {"file_path": "C:\\\\tmp\\\\studies\\\\S02.md"}}]}}\n')
+    assert hops_score.rereads(tmp_path) == 1  # hop 3 only
+
+
 def test_the_scorer_imports_nothing_from_the_plugin():
     for name in ("hops_score.py", "hops_select.py", "hops_build.py"):
         source = (V2 / name).read_text(encoding="utf-8")
