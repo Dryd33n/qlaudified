@@ -67,7 +67,9 @@ SUITES = {
     "probe": {"variants": {"natural": "prompt-natural.txt"}, "conditions": "off"},
     "hops": {"variants": {"relay": "prompt-relay.txt", "session": "prompt-session.txt"},
              "conditions": "off", "max_turns": 10, "keep": ("hops",)},
-    "gauntlet": {"variants": {"pipeline": "prompt-pipeline.txt"}, "conditions": "off",
+    "gauntlet": {"variants": {v: f"prompt-{v}.txt" for v in ("pipeline", "leaflet", "board",
+                                                                 "reply")},
+                 "conditions": "off",
                  "max_turns": 15, "snapshots": True,  # Windows lists PowerShell as the primary shell
                  "tools": "Read,Grep,Glob,Bash,PowerShell,Write,Edit",
                  "keep": ("data", "analysis", "src", "tests", "docs", "NOTES.md", "ingest.py",

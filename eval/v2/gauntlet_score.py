@@ -12,7 +12,9 @@ run.py keeps each step's files (``steps/NN/``) and the final answer. Per stage:
 - **report**, **lint**, **notes**, **answer**: docs/report.md before and after the linter,
   NOTES.md and the read-back answer, the focus interventions only. A stretch of fewer than four
   words is **omitted**.
-- **reopened**: sessions after the first whose tool calls targeted abstracts/ (non-write calls).
+- **reopened**: sessions after the first whose tool calls targeted abstracts/ (non-write calls),
+  split into **read** (Read, Grep showing lines, or a shell command that prints file text: cat,
+  grep, head, Get-Content, a python one-liner) and **listed** (ls, wc, grep -l/-c).
 
 The cue lexicon is hops_score.cues (study v2's list plus scientific hedges). It counts commentary
 and "about" as a preposition, so read cells by hand before trusting a number (see hop-study.md).
@@ -93,22 +95,52 @@ def score_text(text: str, task: dict, scope: str, prose: bool) -> list[tuple[str
     return [(i["kind"], outcome(i["kind"], segs.get(i["name"]), prose)) for i in items]
 
 
-def reopened(folder: Path) -> list[int]:
-    """Sessions after the first (1-based) whose non-write tool calls targeted abstracts/."""
-    out = []
+_SHELL_READ = re.compile(r"\b(cat|head|tail|grep|egrep|sed|awk|less|more|type|py|python|"
+                         r"Get-Content|gc|Select-String|sls)\b", re.IGNORECASE)
+_LIST_ONLY = re.compile(r"\bgrep\s+-[a-zA-Z]*[lLc]|\|\s*wc\b")
+
+
+def _abstract_access(use: dict) -> str | None:
+    """"read" if a tool call can show an abstract's text, "listed" if it only touches the folder."""
+    given = use.get("input") or {}
+    target = " ".join(str(given.get(k, "")) for k in hops_score.TARGETS).replace("\\", "/")
+    if "abstracts" not in target:
+        return None
+    name = use.get("name")
+    if name == "Read":
+        return "read"
+    if name == "Grep":
+        return "listed" if given.get("output_mode") in ("files_with_matches", "count") else "read"
+    if name in ("Bash", "PowerShell"):
+        # A pipeline reads text if its first command does: "ls abstracts | head" only lists.
+        parts = re.split(r"&&|\|\||;|\n", str(given.get("command", "")))
+        return ("read" if any("abstracts" in part and _SHELL_READ.match(part.split("|")[0].strip())
+                              and not _LIST_ONLY.search(part) for part in parts) else "listed")
+    return "listed"
+
+
+def access(folder: Path) -> dict[int, str]:
+    """Per session after the first (1-based): "read" or "listed" (abstracts/), absent if neither."""
+    out: dict[int, str] = {}
     for n, path in enumerate(sorted(folder.glob("transcript-*.jsonl"))[1:], 2):
         for line in path.read_text(encoding="utf-8").splitlines():
             try:
                 content = (json.loads(line).get("message") or {}).get("content") or []
             except (ValueError, AttributeError):
                 continue
-            uses = [c for c in content if isinstance(c, dict) and c.get("type") == "tool_use"
-                    and c.get("name") not in hops_score.WRITES] if isinstance(content, list) else []
-            if any("abstracts" in str((u.get("input") or {}).get(k, "")).replace("\\", "/")
-                   for u in uses for k in hops_score.TARGETS):
-                out.append(n)
-                break
+            for use in content if isinstance(content, list) else []:
+                if (not isinstance(use, dict) or use.get("type") != "tool_use"
+                        or use.get("name") in hops_score.WRITES):
+                    continue
+                kind = _abstract_access(use)
+                if kind == "read" or (kind and n not in out):
+                    out[n] = kind
     return out
+
+
+def reopened(folder: Path) -> list[int]:
+    """Sessions after the first (1-based) whose non-write tool calls targeted abstracts/."""
+    return sorted(access(folder))
 
 
 def score_run(folder: Path, task: dict) -> dict:
@@ -125,8 +157,13 @@ def score_run(folder: Path, task: dict) -> dict:
             stages[name] = {"cells": cells, "caveats": caveats}
         else:
             stages[name] = {"cells": score_text(text, task, scope, prose=scope == "focus")}
-    return {"task": result["task"], "cost": result.get("total_cost_usd", 0.0),
-            "turns": result.get("num_turns", 0), "stages": stages, "reopened": reopened(folder)}
+    seen = access(folder)
+    last = len(sorted(folder.glob("transcript-*.jsonl")))
+    return {"task": result["task"], "variant": result.get("variant", "?"),
+            "cost": result.get("total_cost_usd", 0.0), "turns": result.get("num_turns", 0),
+            "stages": stages, "reopened": sorted(seen),
+            "read": sorted(n for n, k in seen.items() if k == "read"),
+            "final": seen.get(last, "no") if last > 1 else "no"}
 
 
 def _rate(num: int, den: int) -> str:
@@ -147,8 +184,23 @@ def report(runs: list[dict]) -> str:
                if "caveats" in runs[0]["stages"][name] else "")
         out.append(f"| {name} | {_rate(kept, kept + infl)} | {_rate(defl, defl + plain)} | "
                    f"{_rate(om, len(cells))} | {cav} |")
-    out += ["", "| Run | Cost | Turns | Sessions that reopened abstracts/ |", "| --- | --- | --- | --- |"]
-    out += [f"| {r['task']} | ${r['cost']:.4f} | {r['turns']} | {r['reopened'] or 'none'} |"
+    out += ["", "## Final answer by read-back question", "",
+            ("| Variant | Runs | Hedged kept (of stated) | Firm deflated (of stated) | Omitted "
+             "| Last session read abstracts |"), "| --- | --- | --- | --- | --- | --- |"]
+    for variant in sorted({r["variant"] for r in runs}):
+        group = [r for r in runs if r["variant"] == variant]
+        cells = [c for r in group for c in r["stages"]["answer"]["cells"]]
+        kept, infl = (sum(o == k for _, o in cells) for k in ("kept", "inflated"))
+        defl, plain = (sum(o == k for _, o in cells) for k in ("deflated", "plain"))
+        reads = sum(r["final"] == "read" for r in group)
+        out.append(f"| {variant} | {len(group)} | {_rate(kept, kept + infl)} | "
+                   f"{_rate(defl, defl + plain)} | "
+                   f"{_rate(sum(o == 'omitted' for _, o in cells), len(cells))} | "
+                   f"{reads}/{len(group)} |")
+    out += ["", "| Run | Cost | Turns | Sessions that read abstracts/ | Only listed it |",
+            "| --- | --- | --- | --- | --- |"]
+    out += [f"| {r['task']} {r['variant']} | ${r['cost']:.4f} | {r['turns']} | "
+            f"{r['read'] or 'none'} | {sorted(set(r['reopened']) - set(r['read'])) or 'none'} |"
             for r in runs]
     return "\n".join(out) + "\n"
 

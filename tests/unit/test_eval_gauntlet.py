@@ -127,6 +127,24 @@ def test_reopened_counts_reads_of_abstracts_not_writes(tmp_path):
     assert score.reopened(tmp_path) == [3]
 
 
+def test_access_tells_reading_an_abstract_from_listing_the_folder():
+    def bash(command):
+        return {"name": "Bash", "input": {"command": command}}
+
+    assert score._abstract_access(bash("ls abstracts | wc -l")) == "listed"
+    assert score._abstract_access(bash('grep -l "Yoga" abstracts/*.md | wc -l')) == "listed"
+    # seen in a run: a count, then a cat of one abstract, in one command
+    assert score._abstract_access(bash('grep -l "x" abstracts/*.md | wc -l && cat abstracts/A001.md')) == "read"
+    assert score._abstract_access(bash("ls src && head abstracts/A002.md")) == "read"
+    assert score._abstract_access(bash("ls abstracts | head; cat focus.txt")) == "listed"
+    assert score._abstract_access(bash('cat "abstracts/$(ls abstracts | head -1)"')) == "read"
+    assert score._abstract_access(bash('grep -h "Results" abstracts/*.md | head -60')) == "read"
+    assert score._abstract_access({"name": "Read", "input": {"file_path": "C:\\t\\abstracts\\A1.md"}}) == "read"
+    assert score._abstract_access({"name": "Grep", "input": {"path": "abstracts",
+                                                             "output_mode": "count"}}) == "listed"
+    assert score._abstract_access(bash("cat data/findings.json")) is None
+
+
 def test_runner_keeps_each_steps_files(tmp_path, monkeypatch):
     spec = importlib.util.spec_from_file_location("eval_run", REPO / "eval" / "run.py")
     run = importlib.util.module_from_spec(spec)
