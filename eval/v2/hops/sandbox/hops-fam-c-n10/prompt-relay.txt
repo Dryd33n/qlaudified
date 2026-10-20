@@ -1,0 +1,37 @@
+Read every file in studies/ and write notes on each study's finding to hops/01-notes.md. Start each study's entry with its ID (S01, S02, ...).
+---
+/new
+---
+Read hops/01-notes.md and write hops/02-plain.md: a plain-language version for general readers, one short paragraph per study, each starting with the study's ID. Use only hops/01-notes.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/02-plain.md and write hops/03-takeaways.md: a list of key takeaways, one per study, each starting with the study's ID. Use only hops/02-plain.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/03-takeaways.md and write hops/04-faq.md: an FAQ with one question and answer per study, with the study's ID in each question. Use only hops/03-takeaways.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/04-faq.md and write hops/05-social.md: one social media post per study, each under 280 characters and starting with the study's ID. Use only hops/04-faq.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/05-social.md and write hops/06-table.csv: a CSV table with the columns id,finding and one row per study. Use only hops/05-social.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/06-table.csv and write hops/07-oneliners.md: one line per study of at most 15 words, each starting with the study's ID. Use only hops/06-table.csv (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/07-oneliners.md and write hops/08-slides.md: slide bullets for a short presentation, one bullet per study, each starting with the study's ID. Use only hops/07-oneliners.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/08-slides.md and write hops/09-email.md: a short email to a colleague summarising what each study found, naming each study by its ID. Use only hops/08-slides.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry.
+---
+/new
+---
+Read hops/09-email.md and write hops/10-briefing.md: a briefing for a science policy adviser, one short paragraph per study, each starting with the study's ID. Use only hops/09-email.md (do not open studies/ or any other file in hops/), and keep each study's ID with its entry. Then reply with the briefing.

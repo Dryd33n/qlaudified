@@ -53,3 +53,22 @@ v2 conditions: off, **prompt** (one system line asking to keep qualifiers), **ru
 no Administrator), **placebo** (Medium with qualifiers masked out of the refeed), medium; low and
 high are secondary. One full repeat is 480 runs (32 tasks × 3 styles × 5 conditions).
 
+
+## Hop study (docs/findings/hop-study.md)
+
+Real findings with human certainty labels (Pei & Jurgens, EMNLP 2021) relayed through 4, 6, 8 or
+10 hops; every hop's artifact is scored.
+
+```
+v2/hops_select.py  pool of hedged and firm findings from the Pei & Jurgens data (v2/hops/data/)
+v2/hops_build.py   builds v2/hops/sandbox/ and v2/hops/tasks/ (16 tasks; relay and session prompts)
+v2/hops_score.py   per-hop kept / inflated / omitted; survival by hop, loss by hop kind, re-reads;
+                   --estimator adds the certainty-estimator model
+```
+
+```
+py -3 eval/run.py --suite hops --set dry --repeats 1 --daily-cap <usd>
+py -3 eval/v2/hops_score.py --set dry
+```
+
+In the relay variant a `/new` step starts a fresh session, so each hop sees only its input file.

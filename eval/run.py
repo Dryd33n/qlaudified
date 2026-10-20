@@ -1,6 +1,6 @@
 """Eval runner: tasks × conditions × repeats via isolated `claude -p` runs; resumable and cost-capped.
 
-    py -3 eval/run.py [--suite v1|v2] [--set dry|pilot|confirmatory] [--tasks a,b]
+    py -3 eval/run.py [--suite v1|v2|probe|hops] [--set dry|pilot|confirmatory] [--tasks a,b]
                       [--variants ...] [--conditions ...] [--repeats 2] [--model haiku]
                       [--daily-cap 2.0] [--max-runs N] [--max-turns 6] [--dry-run]
 
@@ -65,8 +65,11 @@ SUITES = {
                         "antihedge": "prompt-antihedge.txt"},
            "conditions": "off,prompt,rules,placebo,medium"},
     "probe": {"variants": {"natural": "prompt-natural.txt"}, "conditions": "off"},
+    "hops": {"variants": {"relay": "prompt-relay.txt", "session": "prompt-session.txt"},
+             "conditions": "off", "max_turns": 10},
 }
-SUITE_DIRS = {"v2": V2, "probe": V2 / "probe"}
+SUITE_DIRS = {"v2": V2, "probe": V2 / "probe", "hops": V2 / "hops"}
+NEW_SESSION = "/new"  # a step of its own: the next step starts a fresh session (hops relay)
 VARIANTS = SUITES["v1"]["variants"]  # v1 names, kept for older callers
 SETS = ("dry", "pilot", "confirmatory")
 LIMITED = re.compile(r"usage limit|rate limit|limit reached|429|overloaded|quota|credit balance",
@@ -149,7 +152,11 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     start = time.time()
     cost, turns, session_id, returncode, data, stderr = 0.0, 0, None, 0, {}, b""
     usage_steps: list[dict] = []
+    sessions: list[str] = []
     for step in steps_for(task, variant, suite):
+        if step == NEW_SESSION:
+            session_id = None
+            continue
         resume = ["--resume", session_id] if session_id else []
         proc = subprocess.run(["claude", "-p", step, *resume, *base], cwd=sandbox, env=env,
                               stdin=subprocess.DEVNULL, capture_output=True, check=False,
@@ -163,6 +170,8 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
         usage = data.get("usage") or {}
         usage_steps.append({k: usage.get(k) or 0 for k in USAGE_KEYS})
         session_id = data.get("session_id") or session_id
+        if session_id and session_id not in sessions:
+            sessions.append(session_id)
         returncode, stderr = proc.returncode, proc.stderr
         if returncode != 0 or not session_id:
             break
@@ -171,6 +180,7 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
         "condition": condition, "suite": suite,
         "model": model, "returncode": returncode, "wall_s": round(time.time() - start, 1),
         "total_cost_usd": round(cost, 6), "num_turns": turns, "session_id": session_id,
+        "sessions": sessions,
         "usage_steps": usage_steps,
         "usage": {k: sum(s[k] for s in usage_steps) for k in USAGE_KEYS},
         "result": data.get("result") or "", "stderr": stderr.decode("utf-8", "replace")[-1000:],
@@ -187,6 +197,13 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     transcript = _transcript(env["CLAUDE_CONFIG_DIR"], session_id)
     if transcript:
         shutil.copy(transcript, out / "transcript.jsonl")
+    if len(sessions) > 1:  # hops relay: one transcript per session, in order
+        for n, sid in enumerate(sessions, 1):
+            path = _transcript(env["CLAUDE_CONFIG_DIR"], sid)
+            if path:
+                shutil.copy(path, out / f"transcript-{n:02d}.jsonl")
+    if (sandbox / "hops").is_dir():  # hops suite: every hop's artifact is scored
+        shutil.copytree(sandbox / "hops", out / "hops")
     (out / "result.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
     shutil.rmtree(work, ignore_errors=True)
     return record
@@ -211,13 +228,15 @@ def main(argv: list[str] | None = None) -> int:
                                              "v2 off,prompt,rules,placebo,medium")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--model", default="haiku")
-    parser.add_argument("--max-turns", type=int, default=6)
+    parser.add_argument("--max-turns", type=int,
+                        help="per step; default 6 (hops: 10, its first hop reads six files)")
     parser.add_argument("--daily-cap", type=float, default=2.0, help="USD estimate per day")
     parser.add_argument("--max-runs", type=int, help="stop after this many runs in this batch")
     parser.add_argument("--dry-run", action="store_true", help="list the runs, start nothing")
     args = parser.parse_args(argv)
 
     suite = SUITES[args.suite]
+    max_turns = args.max_turns or suite.get("max_turns", 6)
     runs = runs_dir(args.suite, args.run_set)
     tasks = args.tasks.split(",") if args.tasks else task_ids(args.suite)
     for task in tasks:  # fail early on typos
@@ -249,10 +268,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"--max-runs {args.max_runs} reached; rerun to resume")
             return 0
         rid = run_id(task, variant, condition, repeat, args.model)
-        record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid,
+        record = run_one(task, variant, condition, args.model, max_turns, runs / rid,
                          args.suite)
         if record["returncode"] == 0 and not record["result"].strip():
-            record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid,
+            record = run_one(task, variant, condition, args.model, max_turns, runs / rid,
                              args.suite)  # protocol v2: one immediate retry of an empty answer
             if record["returncode"] == 0 and not record["result"].strip():
                 record["invalid"] = True
