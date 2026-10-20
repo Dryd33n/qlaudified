@@ -149,6 +149,8 @@ def test_runner_keeps_each_steps_files(tmp_path, monkeypatch):
     record = run.run_one(TASK, "pipeline", "off", "haiku", 15, tmp_path / "out", "gauntlet")
     out = tmp_path / "out"
     assert len(calls) == 8 and len(record["sessions"]) == 6
+    tools = calls[0][calls[0].index("--allowedTools") + 1].split(",")
+    assert "PowerShell" in tools and "Bash" in tools  # a denied PowerShell call lost a step
     assert (out / "steps" / "03" / "docs" / "report.md").read_text() == "step 3\n"
     assert (out / "docs" / "report.md").read_text() == "step 8\n"
     assert not (out / "abstracts").exists()

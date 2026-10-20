@@ -68,7 +68,8 @@ SUITES = {
     "hops": {"variants": {"relay": "prompt-relay.txt", "session": "prompt-session.txt"},
              "conditions": "off", "max_turns": 10, "keep": ("hops",)},
     "gauntlet": {"variants": {"pipeline": "prompt-pipeline.txt"}, "conditions": "off",
-                 "max_turns": 15, "snapshots": True,
+                 "max_turns": 15, "snapshots": True,  # Windows lists PowerShell as the primary shell
+                 "tools": "Read,Grep,Glob,Bash,PowerShell,Write,Edit",
                  "keep": ("data", "analysis", "src", "tests", "docs", "NOTES.md", "ingest.py",
                           "validate.py")},
 }
@@ -160,7 +161,8 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     system = (["--append-system-prompt", SYSTEM_PROMPTS[condition]]
               if condition in SYSTEM_PROMPTS else [])
     base = [*plugin, *system, "--model", model, "--max-turns", str(turns_cap),
-            "--allowedTools", "Read,Grep,Glob,Bash" + (",Write,Edit" if suite != "v1" else ""),
+            "--allowedTools", SUITES[suite].get(
+                "tools", "Read,Grep,Glob,Bash" + (",Write,Edit" if suite != "v1" else "")),
             *(["--permission-mode", "acceptEdits"] if suite != "v1" else []),  # notes.md in the sandbox
             "--permission-prompts", "none",
             "--output-format", "json"]
