@@ -31,9 +31,9 @@ Each step names one input and one output, so the optimal solution takes exactly 
 | 2..N-1 | N-2 re-encodings: CSV table, one-liners (<= 15 words), slide bullets, email, plain language, takeaways, FAQ, social post (<= 280 chars) | `hops/NN-<kind>.*` |
 | N | briefing for a science policy adviser (always the final genre) | `hops/NN-briefing.md` |
 
-N = 4 (baseline), 6, 8, 10. Four families of six studies (three hedged, three firm); the menu is
+N = 4 (baseline), 6, 8, 10, 20 (past ten the menu repeats). Four families of six studies (three hedged, three firm); the menu is
 rotated two places per family so a hop kind isn't tied to a position, and longer chains extend
-shorter ones. 16 tasks, built by `eval/v2/hops_build.py`.
+shorter ones. 20 tasks, built by `eval/v2/hops_build.py`.
 
 **Variants** (same steps, different session boundaries):
 

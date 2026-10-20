@@ -1,0 +1,200 @@
+{
+  "id": "hops-fam-a-n20",
+  "family": "fam-a",
+  "hops": 20,
+  "chain": [
+    {
+      "hop": 1,
+      "kind": "notes",
+      "file": "hops/01-notes.md"
+    },
+    {
+      "hop": 2,
+      "kind": "table",
+      "file": "hops/02-table.csv"
+    },
+    {
+      "hop": 3,
+      "kind": "oneliners",
+      "file": "hops/03-oneliners.md"
+    },
+    {
+      "hop": 4,
+      "kind": "slides",
+      "file": "hops/04-slides.md"
+    },
+    {
+      "hop": 5,
+      "kind": "email",
+      "file": "hops/05-email.md"
+    },
+    {
+      "hop": 6,
+      "kind": "plain",
+      "file": "hops/06-plain.md"
+    },
+    {
+      "hop": 7,
+      "kind": "takeaways",
+      "file": "hops/07-takeaways.md"
+    },
+    {
+      "hop": 8,
+      "kind": "faq",
+      "file": "hops/08-faq.md"
+    },
+    {
+      "hop": 9,
+      "kind": "social",
+      "file": "hops/09-social.md"
+    },
+    {
+      "hop": 10,
+      "kind": "table",
+      "file": "hops/10-table.csv"
+    },
+    {
+      "hop": 11,
+      "kind": "oneliners",
+      "file": "hops/11-oneliners.md"
+    },
+    {
+      "hop": 12,
+      "kind": "slides",
+      "file": "hops/12-slides.md"
+    },
+    {
+      "hop": 13,
+      "kind": "email",
+      "file": "hops/13-email.md"
+    },
+    {
+      "hop": 14,
+      "kind": "plain",
+      "file": "hops/14-plain.md"
+    },
+    {
+      "hop": 15,
+      "kind": "takeaways",
+      "file": "hops/15-takeaways.md"
+    },
+    {
+      "hop": 16,
+      "kind": "faq",
+      "file": "hops/16-faq.md"
+    },
+    {
+      "hop": 17,
+      "kind": "social",
+      "file": "hops/17-social.md"
+    },
+    {
+      "hop": 18,
+      "kind": "table",
+      "file": "hops/18-table.csv"
+    },
+    {
+      "hop": 19,
+      "kind": "oneliners",
+      "file": "hops/19-oneliners.md"
+    },
+    {
+      "hop": 20,
+      "kind": "briefing",
+      "file": "hops/20-briefing.md"
+    }
+  ],
+  "studies": [
+    {
+      "id": "S01",
+      "kind": "firm",
+      "finding": "Mouse wolffian ducts (wds), precursors of ureteric buds, gradually matured and gained branching capacity between embryogenesis day (e) 8.75 and e11.5.",
+      "sentence_certainty": 5.0,
+      "aspects": {
+        "Number": "Certain",
+        "Extent": "NotPresent",
+        "Probability": "Certain",
+        "Condition": "NotPresent",
+        "Suggestion": "NotPresent",
+        "Framing": "NotPresent"
+      },
+      "pei_id": 965
+    },
+    {
+      "id": "S02",
+      "kind": "hedged",
+      "finding": "Middle-aged people may have experienced more hardship during the recession, the study authors said.",
+      "sentence_certainty": 2.5,
+      "aspects": {
+        "Number": "NotPresent",
+        "Extent": "NotPresent",
+        "Probability": "Uncertain",
+        "Condition": "NotPresent",
+        "Suggestion": "NotPresent",
+        "Framing": "Certain"
+      },
+      "pei_id": 168
+    },
+    {
+      "id": "S03",
+      "kind": "firm",
+      "finding": "More exercise was not always better for psychological wellbeing, with people who exercise every day reporting lower levels of mental health.",
+      "sentence_certainty": 5.0,
+      "aspects": {
+        "Number": "NotPresent",
+        "Extent": "Certain",
+        "Probability": "Certain",
+        "Condition": "NotPresent",
+        "Suggestion": "NotPresent",
+        "Framing": "NotPresent"
+      },
+      "pei_id": 897
+    },
+    {
+      "id": "S04",
+      "kind": "hedged",
+      "finding": "Arctic warming can disrupt certain atmospheric circulation patterns in ways that may disrupt the weather elsewhere in the northern hemisphere.",
+      "sentence_certainty": 2.0,
+      "aspects": {
+        "Number": "NotPresent",
+        "Extent": "NotPresent",
+        "Probability": "Uncertain",
+        "Condition": "NotPresent",
+        "Suggestion": "NotPresent",
+        "Framing": "NotPresent"
+      },
+      "pei_id": 77
+    },
+    {
+      "id": "S05",
+      "kind": "firm",
+      "finding": "Even when ultra-processed and unprocessed meals are similar in terms of calories, protein, fat, carbohydrates, and other nutrients, the ultra-processed foods lead people to take in more calories and gain weight.",
+      "sentence_certainty": 6.0,
+      "aspects": {
+        "Number": "NotPresent",
+        "Extent": "NotPresent",
+        "Probability": "Certain",
+        "Condition": "NotPresent",
+        "Suggestion": "NotPresent",
+        "Framing": "NotPresent"
+      },
+      "pei_id": 1575
+    },
+    {
+      "id": "S06",
+      "kind": "hedged",
+      "finding": "Practicing yoga may help slash symptoms like fatigue and inflammation in former breast cancer patients, illuminating a rehabilitative strategy that may bring survivors back on track in as little as three months.",
+      "sentence_certainty": 3.0,
+      "aspects": {
+        "Number": "Certain",
+        "Extent": "NotPresent",
+        "Probability": "Uncertain",
+        "Condition": "NotPresent",
+        "Suggestion": "Uncertain",
+        "Framing": "NotPresent"
+      },
+      "pei_id": 735
+    }
+  ],
+  "source": "Pei & Jurgens (EMNLP 2021), MIT"
+}

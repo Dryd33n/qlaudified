@@ -113,8 +113,10 @@ def test_families_are_balanced_disjoint_and_rotated(tmp_path, monkeypatch):
         middles = [[c["kind"] for c in t["chain"][1:-1]] for t in tasks]
         for short, long in itertools.pairwise(middles):
             assert long[:len(short)] == short  # longer chains extend shorter ones
-        kinds_at[fam] = middles[-1]
-        assert sorted(middles[-1]) == sorted(k for k, _, _ in hops_build.MIDDLE)
+        kinds_at[fam] = middles[-1][:len(hops_build.MIDDLE)]
+        assert sorted(kinds_at[fam]) == sorted(k for k, _, _ in hops_build.MIDDLE)
+        if len(middles[-1]) > len(hops_build.MIDDLE):  # past ten hops the menu repeats
+            assert middles[-1][len(hops_build.MIDDLE):] == middles[-1][:-len(hops_build.MIDDLE)]
     for position in range(len(hops_build.MIDDLE)):
         assert len({k[position] for k in kinds_at.values()}) == len(hops_build.FAMILIES)
 

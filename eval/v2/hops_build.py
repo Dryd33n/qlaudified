@@ -1,4 +1,4 @@
-"""Build the hop study: real findings relayed through 4, 6, 8 or 10 hops.
+"""Build the hop study: real findings relayed through 4, 6, 8, 10 or 20 hops.
 
     py -3 eval/v2/hops_build.py    # writes eval/v2/hops/sandbox/ and eval/v2/hops/tasks/
 
@@ -21,7 +21,7 @@ finds a study at every hop (hops_score.py).
 disjoint and drawn with a fixed seed. The middle menu is rotated by two places per family, so a
 hop kind sits at different positions across families and position is not confounded with kind.
 The N-hop chain of a family is the first N-2 kinds of its rotated menu, so longer chains extend
-shorter ones.
+shorter ones. Past ten hops the menu repeats (a 20-hop chain uses each kind two or three times).
 
 **Variants** (same steps, different session boundaries; run.py suite ``hops``):
 
@@ -40,7 +40,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "hops"
 POOL = OUT / "data" / "findings.jsonl"
-HOPS = (4, 6, 8, 10)
+HOPS = (4, 6, 8, 10, 20)
 FAMILIES = ("fam-a", "fam-b", "fam-c", "fam-d")
 PER_KIND = 3  # hedged and firm studies per family
 SEED = 2026
@@ -88,10 +88,11 @@ def families(pool: list[dict]) -> dict[str, list[dict]]:
 
 
 def chain(family_index: int, hops: int) -> list[dict]:
-    if not 3 <= hops <= len(MIDDLE) + 2:
-        raise ValueError(f"hops must be 3..{len(MIDDLE) + 2}")
+    if hops < 3:
+        raise ValueError("hops must be at least 3")
     shift = (2 * family_index) % len(MIDDLE)
-    middle = (MIDDLE[shift:] + MIDDLE[:shift])[:hops - 2]
+    rotated = MIDDLE[shift:] + MIDDLE[:shift]
+    middle = list(itertools.islice(itertools.cycle(rotated), hops - 2))
     kinds = [FIRST, *middle, FINAL]
     return [{"hop": i, "kind": kind, "file": f"hops/{i:02d}-{kind}.{ext}", "describe": desc}
             for i, (kind, ext, desc) in enumerate(kinds, 1)]

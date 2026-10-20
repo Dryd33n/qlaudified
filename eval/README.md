@@ -56,12 +56,12 @@ high are secondary. One full repeat is 480 runs (32 tasks × 3 styles × 5 condi
 
 ## Hop study (docs/findings/hop-study.md)
 
-Real findings with human certainty labels (Pei & Jurgens, EMNLP 2021) relayed through 4, 6, 8 or
-10 hops; every hop's artifact is scored.
+Real findings with human certainty labels (Pei & Jurgens, EMNLP 2021) relayed through 4, 6, 8,
+10 or 20 hops; every hop's artifact is scored.
 
 ```
 v2/hops_select.py  pool of hedged and firm findings from the Pei & Jurgens data (v2/hops/data/)
-v2/hops_build.py   builds v2/hops/sandbox/ and v2/hops/tasks/ (16 tasks; relay and session prompts)
+v2/hops_build.py   builds v2/hops/sandbox/ and v2/hops/tasks/ (20 tasks; relay and session prompts)
 v2/hops_score.py   per-hop kept / inflated / omitted; survival by hop, loss by hop kind, re-reads;
                    --estimator adds the certainty-estimator model
 ```
