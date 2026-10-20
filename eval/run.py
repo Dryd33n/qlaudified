@@ -1,6 +1,6 @@
 """Eval runner: tasks × conditions × repeats via isolated `claude -p` runs; resumable and cost-capped.
 
-    py -3 eval/run.py [--suite v1|v2|probe|hops] [--set dry|pilot|confirmatory] [--tasks a,b]
+    py -3 eval/run.py [--suite v1|v2|probe|hops|gauntlet] [--set dry|pilot|confirmatory] [--tasks a,b]
                       [--variants ...] [--conditions ...] [--repeats 2] [--model haiku]
                       [--daily-cap 2.0] [--max-runs N] [--max-turns 6] [--dry-run]
 
@@ -66,9 +66,13 @@ SUITES = {
            "conditions": "off,prompt,rules,placebo,medium"},
     "probe": {"variants": {"natural": "prompt-natural.txt"}, "conditions": "off"},
     "hops": {"variants": {"relay": "prompt-relay.txt", "session": "prompt-session.txt"},
-             "conditions": "off", "max_turns": 10},
+             "conditions": "off", "max_turns": 10, "keep": ("hops",)},
+    "gauntlet": {"variants": {"pipeline": "prompt-pipeline.txt"}, "conditions": "off",
+                 "max_turns": 15, "snapshots": True,
+                 "keep": ("data", "analysis", "src", "tests", "docs", "NOTES.md", "ingest.py",
+                          "validate.py")},
 }
-SUITE_DIRS = {"v2": V2, "probe": V2 / "probe", "hops": V2 / "hops"}
+SUITE_DIRS = {"v2": V2, "probe": V2 / "probe", "hops": V2 / "hops", "gauntlet": V2 / "gauntlet"}
 NEW_SESSION = "/new"  # a step of its own: the next step starts a fresh session (hops relay)
 VARIANTS = SUITES["v1"]["variants"]  # v1 names, kept for older callers
 SETS = ("dry", "pilot", "confirmatory")
@@ -122,6 +126,17 @@ def _transcript(config_dir: str, session_id: str | None) -> Path | None:
     return next(iter(Path(config_dir).glob(f"projects/*/{session_id}.jsonl")), None)
 
 
+def _copy_kept(sandbox: Path, dest: Path, keep: tuple[str, ...]) -> None:
+    for name in keep:
+        src = sandbox / name
+        if src.is_dir():
+            shutil.copytree(src, dest / name, dirs_exist_ok=True,
+                            ignore=shutil.ignore_patterns("__pycache__"))
+        elif src.is_file():
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src, dest / name)
+
+
 def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
             out: Path, suite: str = "v1") -> dict:
     """One isolated run: sandbox copy with the condition's config, every step, recording kept."""
@@ -153,6 +168,8 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     cost, turns, session_id, returncode, data, stderr = 0.0, 0, None, 0, {}, b""
     usage_steps: list[dict] = []
     sessions: list[str] = []
+    keep = SUITES[suite].get("keep", ())
+    done_steps = 0
     for step in steps_for(task, variant, suite):
         if step == NEW_SESSION:
             session_id = None
@@ -173,6 +190,9 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
         if session_id and session_id not in sessions:
             sessions.append(session_id)
         returncode, stderr = proc.returncode, proc.stderr
+        done_steps += 1
+        if SUITES[suite].get("snapshots"):  # gauntlet: each step's files, to score every channel
+            _copy_kept(sandbox, work / "steps" / f"{done_steps:02d}", keep)
         if returncode != 0 or not session_id:
             break
     record = {
@@ -190,6 +210,8 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
+    if (work / "steps").is_dir():
+        shutil.copytree(work / "steps", out / "steps")
     if (work / "record" / "events.jsonl").exists():
         shutil.copy(work / "record" / "events.jsonl", out / "events.jsonl")
     if store.exists():
@@ -202,8 +224,7 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
             path = _transcript(env["CLAUDE_CONFIG_DIR"], sid)
             if path:
                 shutil.copy(path, out / f"transcript-{n:02d}.jsonl")
-    if (sandbox / "hops").is_dir():  # hops suite: every hop's artifact is scored
-        shutil.copytree(sandbox / "hops", out / "hops")
+    _copy_kept(sandbox, out, keep)  # hops: every hop's artifact; gauntlet: the final files
     (out / "result.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
     shutil.rmtree(work, ignore_errors=True)
     return record
