@@ -184,8 +184,13 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
             session_id = None
             continue
         resume = ["--resume", session_id] if session_id else []
-        proc = subprocess.run(["claude", "-p", step, *resume, *base], cwd=sandbox, env=env,
-                              stdin=subprocess.DEVNULL, capture_output=True, check=False,
+        # With shell=True, cmd.exe ends the command at a newline and drops the flags after it, so
+        # a multi-line step (a pasted document, handoff suite) goes on stdin instead.
+        multiline = "\n" in step
+        proc = subprocess.run(["claude", "-p", *([] if multiline else [step]), *resume, *base],
+                              cwd=sandbox, env=env, capture_output=True, check=False,
+                              input=step.encode("utf-8") if multiline else None,
+                              stdin=None if multiline else subprocess.DEVNULL,
                               shell=(os.name == "nt"))
         try:
             data = json.loads(proc.stdout.decode("utf-8", "replace"))
