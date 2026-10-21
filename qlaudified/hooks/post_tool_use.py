@@ -4,14 +4,15 @@ For every tool call: number the step; parse what a retrieval returned into facts
 source (INT, PROV-1); track uses of earlier facts and Claude's own claims in its reasoning and
 the tool input (INT-3, PROV-4); let the Administrator fill the judgment fields when the step meets
 the threshold (PROV-2 to PROV-6); rewrite the read-only provenance.csv (PROV-7). In Medium and High
-the new facts go back to Claude as plain factual lines (RFD-2); Low adds nothing to Claude's context.
+the new facts go back to Claude as plain factual lines (RFD-2), with any earlier session's
+qualified facts they match (RFD-5); Low adds nothing to Claude's context.
 Reads of provenance.csv itself are logged as consults (RFD-4), never captured.
 """
 
 import json
 import time
 
-from qlaudified import capture, config, inject, paths, tracking
+from qlaudified import capture, carry, config, inject, paths, tracking
 from qlaudified.store import Store
 
 
@@ -89,6 +90,9 @@ def handle(payload: dict) -> dict | None:
     kept = [current[s.span_id] for s in new if s.span_id in current]
     delta = inject.build_delta(kept, cfg.inject_budget_chars, csv_path=inject.csv_hint(folder, project),
                                placebo=cfg.refeed == "placebo")
+    carried = carry.carry(session_id, "\n".join(s.text for s in new), cfg.carry_budget_chars,
+                          payload, placebo=cfg.refeed == "placebo")
+    delta = "\n".join(part for part in (delta, carried) if part)
     if not delta:
         return None
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": delta}}
