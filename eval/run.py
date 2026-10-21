@@ -5,7 +5,8 @@ resumable and cost-capped.
                       [--conditions ...] [--repeats 2] [--model haiku] [--daily-cap 2.0]
                       [--max-runs N] [--max-turns 15] [--dry-run]
 
-Tasks are eval/handoff/ (built by eval/handoff/build.py; scored by eval/handoff/score.py).
+Tasks are eval/handoff/ (built by eval/handoff/build.py; scored by eval/handoff/score.py). Plugin
+conditions start from an earlier session's ledger (eval/handoff/store/, from the prep variant).
 
 Conditions. **off** runs without the plugin; **low** records only (the sidecar builds the ledger and
 report, nothing reaches Claude); **medium** records and refeeds; **high** adds the retry. Controls:
@@ -42,6 +43,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 HANDOFF = REPO / "eval" / "handoff"
+STORE = HANDOFF / "store"  # earlier sessions' ledgers, per task (RFD-5)
 RUNS = REPO / "eval" / "runs"
 sys.path.insert(0, str(REPO / "scripts"))
 
@@ -54,6 +56,7 @@ EXTRA_CONFIG = {"rules": 'backend = "none"', "placebo": 'refeed = "placebo"'}
 PROMPT_ONLY = "When you state a figure from a source, keep the source's qualifiers."
 SYSTEM_PROMPTS = {"prompt": PROMPT_ONLY}
 VARIANTS = ("paste-board", "paste-reply", "edit-board", "edit-reply")
+PREP = "prep"  # the earlier session whose ledger plugin conditions start from (build.py --store)
 TOOLS = "Read,Grep,Glob,Bash,PowerShell,Write,Edit"  # Windows lists PowerShell as the primary shell
 SETS = ("dry", "pilot", "confirmatory")
 LIMITED = re.compile(r"usage limit|rate limit|limit reached|429|overloaded|quota|credit balance",
@@ -112,8 +115,10 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
                     ignore=shutil.ignore_patterns("prompt*.txt", ".claude"))
     store = sandbox / ".claude" / ".qlaudified"
     mode = CONDITIONS[condition]
+    if mode is not None and variant != PREP:  # the earlier session's ledger (RFD-5)
+        shutil.copytree(STORE / task / "sessions", store / "sessions")
     if mode is not None:
-        store.mkdir(parents=True)
+        store.mkdir(parents=True, exist_ok=True)
         lines = [f'mode = "{mode}"', EXTRA_CONFIG.get(condition, "")]
         (store / "config.toml").write_text("\n".join(filter(None, lines)) + "\n", encoding="utf-8")
     env = {**os.environ, **TEST_ENV, "QLAUDIFIED_RECORD_DIR": str(work / "record")}
@@ -197,9 +202,15 @@ def main(argv: list[str] | None = None) -> int:
     unknown_tasks = set(tasks) - set(task_ids())
     conditions = args.conditions.split(",")
     variants = (args.variants or ",".join(VARIANTS)).split(",")
-    unknown = unknown_tasks | (set(conditions) - set(CONDITIONS)) | (set(variants) - set(VARIANTS))
+    unknown = (unknown_tasks | (set(conditions) - set(CONDITIONS))
+               | (set(variants) - {*VARIANTS, PREP}))
     if unknown:
         raise SystemExit(f"unknown tasks, conditions or variants: {', '.join(sorted(unknown))}")
+    plugin = [c for c in conditions if CONDITIONS[c] is not None]
+    missing = [t for t in tasks if not (STORE / t / "sessions").is_dir()]
+    if plugin and set(variants) - {PREP} and missing:
+        raise SystemExit(f"{', '.join(plugin)} need the earlier session's ledger for "
+                         f"{', '.join(missing)}: run the prep variant, then build.py --store")
     # Repeat-major: if a cap bites, every task has its first repeat in every variant and
     # condition. Conditions sit innermost, so a task's conditions run back to back.
     plan = [(t, v, c, r) for r in range(1, args.repeats + 1) for v in variants for t in tasks

@@ -43,8 +43,44 @@ and never asks whether the findings underneath were hedged. Example, from a past
 Every yoga abstract said "may have", "possibly" or "appeared to". The handoff tasks are the
 evaluation method (`eval/README.md`).
 
-**Open question for the plugin:** its ledger is per session, and the session that answers here
-never reads the sources, so as built it has nothing to refeed in the workflow where loss happens.
+## With the plugin: the handoff comparison
+
+The ledger was per session, so in the handoff workflow the plugin had nothing to refeed. It now
+carries qualified facts from earlier sessions in the project (RFD-5). Tested Oct 21, 2026, with a
+pre-registered design ([protocol and full result](eval/README.md#pre-registered-comparison-oct-21-2026)):
+an earlier session read the abstracts with the plugin on, then a fresh session was handed the
+firm report (pasted, or "turn docs/report.md into…") and asked for a board slide or a reply to the
+clinic manager. 2 families × 4 prompts × 2 repeats = 16 runs per arm, haiku, hand-labelled.
+
+| Arm | Hedged findings kept (of stated) | Firm findings wrongly hedged |
+| --- | --- | --- |
+| Off | 24% (7/29) | 0% (0/33) |
+| Prompt: "keep the sources' qualifiers" | 45% (13/29) | 11% (3/28) |
+| Placebo: the same carried facts, qualifiers masked | 40% (14/35) | 17% (6/36) |
+| **Medium** | **92% (37/40)** | **50% (15/30)** |
+
+- **The carry-over keeps hedges, and the qualifiers are what do it.** Medium beat placebo in every
+  paired cell where they differed (8 of 8, sign test p = 0.004). The carry-over fired in all 32
+  plugin runs, and only 1 of 16 medium runs opened an abstract. Example, a pasted report turned
+  into a slide (Medium; the session read no file):
+
+  > **Acupuncture (rank 2 of 20):** Reduces chronic pain by about 33% at $60 per patient…
+  > *Footnote:* … Source abstracts describe both effects with hedged language ("appeared to,"
+  > "may have"), so treat the percentages as estimates.
+
+- **It also over-hedges, so the pre-registered rule is not met.** The rule allowed firm findings to
+  be hedged at most 15 points more often than with the plugin off; Medium did it 50 points more.
+  Every case is one blanket sentence over all the figures in a reply to the manager ("The figures
+  above should be read as estimates"); no answer hedged a specific firm finding, and no board
+  slide did it at all.
+- **Why:** the plugin carries only facts that had qualifiers, so it tells Claude which sources
+  hedge but never which do not. Claude names the firm findings as firm when it can see them (6 of
+  13 answers with that evidence did) and otherwise covers everything (2 of 14 without it named
+  them). Next to test: carry the matched firm facts too, marked as stated plainly in the source.
+
+Limits: haiku only; synthetic studies with plain hedges; the matching was designed on these two
+families (no held-out family yet); one labeller, and six labels were corrected after unblinding
+because the blind export hid hedge notes ([details](eval/README.md#result-oct-21-2026)).
 
 ## How it works
 

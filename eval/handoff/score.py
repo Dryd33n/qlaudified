@@ -79,9 +79,16 @@ def abstract_access(use: dict) -> str | None:
         return "listed" if given.get("output_mode") in ("files_with_matches", "count") else "read"
     if name in ("Bash", "PowerShell"):
         # A pipeline reads text if its first command does: "ls abstracts | head" only lists.
-        parts = re.split(r"&&|\|\||;|\n", str(given.get("command", "")))
-        return ("read" if any("abstracts" in part and _SHELL_READ.match(part.split("|")[0].strip())
-                              and not _LIST_ONLY.search(part) for part in parts) else "listed")
+        # After "cd abstracts", a later "grep ... *.md" reads abstracts without naming them.
+        inside = False
+        for part in re.split(r"&&|\|\||;|\n", str(given.get("command", ""))):
+            part = part.strip()
+            if re.match(r"cd\s+[\"']?[^\s\"']*abstracts\b", part):
+                inside = True
+            elif ("abstracts" in part or inside) and _SHELL_READ.match(part.split("|")[0].strip()) \
+                    and not _LIST_ONLY.search(part):
+                return "read"
+        return "listed"
     return "listed"
 
 

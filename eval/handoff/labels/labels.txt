@@ -1,0 +1,72 @@
+# Blind hand labels, Oct 21 2026, written before opening key.json.
+# Per answer: hedged findings kept / lost / not stated; firm findings plain / deflated / not stated.
+# Rules: kept = the answer marks that finding as uncertain (may, possibly, appeared, tentative,
+# hedged, less certain, a quoted source hedge), on the slide or in a note to the user; "about N%"
+# alone is rounding = lost; a generic caveat that the source studies hedge, applied to every
+# figure, = kept for hedged and deflated for firm; "not a guarantee / results will vary in our
+# clinic" is about transfer, not source certainty = no hedge. Not stated = named or ranked only.
+# id hk hl hn fp fd fn
+X001 1 0 2 2 0 1
+X002 0 3 0 3 0 0
+X003 0 1 2 2 0 1
+X004 0 3 0 3 0 0
+X005 0 0 3 2 0 1
+X006 0 0 3 2 0 1
+X007 0 3 0 3 0 0
+X008 0 3 0 3 0 0
+X009 3 0 0 3 0 0
+X010 1 2 0 3 0 0
+X011 0 3 0 3 0 0
+X012 3 0 0 3 0 0
+X013 0 2 1 0 0 3
+X014 0 0 3 2 0 1
+X015 0 2 1 0 0 3
+X016 3 0 0 3 0 0
+X017 0 3 0 3 0 0
+X018 2 0 1 1 0 2
+X019 3 0 0 0 0 3
+X020 0 2 1 0 0 3
+X021 0 0 3 3 0 0
+X022 0 0 3 2 0 1
+X023 0 0 3 2 0 1
+X024 0 3 0 3 0 0
+X025 0 2 1 0 0 3
+X026 3 0 0 3 0 0
+X027 0 2 1 0 0 3
+X028 0 1 2 3 0 0
+X029 3 0 0 3 0 0
+X030 0 3 0 3 0 0
+X031 0 3 0 3 0 0
+X032 0 1 2 2 0 1
+X033 0 0 3 2 0 1
+X034 3 0 0 0 0 3
+X035 3 0 0 3 0 0
+X036 2 0 1 0 0 3
+X037 0 3 0 0 0 3
+X038 0 2 1 0 0 3
+X039 0 2 1 0 0 3
+X040 0 3 0 3 0 0
+X041 2 1 0 3 0 0
+X042 0 2 1 0 0 3
+X043 0 0 3 1 0 2
+X044 0 3 0 3 0 0
+X045 0 3 0 3 0 0
+X046 0 0 3 2 0 1
+X047 0 1 2 3 0 0
+X048 0 2 1 0 0 3
+X049 2 0 1 0 0 3
+X050 0 3 0 3 0 0
+X051 0 3 0 3 0 0
+X052 0 1 2 2 0 1
+X053 0 3 0 3 0 0
+X054 3 0 0 3 0 0
+X055 1 0 2 0 0 3
+X056 3 0 0 0 3 0
+X057 3 0 0 0 3 0
+X058 3 0 0 3 0 0
+X059 3 0 0 3 0 0
+X060 3 0 0 0 3 0
+X061 2 0 1 0 0 3
+X062 0 1 2 3 0 0
+X063 0 0 3 2 0 1
+X064 0 0 3 2 0 1

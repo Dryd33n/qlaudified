@@ -8,7 +8,7 @@ Provided Document rows rather than Internal Document. Nothing is added to Claude
 import re
 from pathlib import Path
 
-from qlaudified import capture, config, paths
+from qlaudified import capture, carry, config, paths
 from qlaudified.store import Store
 
 _PATHLIKE = re.compile(r"@?((?:[\w.\-]+[/\\])*[\w.\-]+\.[A-Za-z0-9]{1,6})\b")
@@ -37,8 +37,12 @@ def handle(payload: dict) -> dict | None:
                                        "User Prompt")
     files = provided_files(prompt, project, payload.get("cwd"))
     folder = paths.session_dir(session_id, payload)
+    carried = ""
+    if cfg.mode != config.Mode.LOW:  # RFD-5: a pasted report names facts an earlier session read
+        carried = carry.carry(session_id, prompt, cfg.carry_budget_chars, payload,
+                              placebo=cfg.refeed == "placebo")
     if not facts and not files and not (folder / "index.sqlite").exists():
-        return None
+        return _context(carried)
     store = Store(folder)
     if files:
         store.add_provided(files, turn)
@@ -48,4 +52,10 @@ def handle(payload: dict) -> dict | None:
             fact.step = step
         store.add_spans(facts)
     store.export_csv()
-    return None
+    return _context(carried)
+
+
+def _context(text: str) -> dict | None:
+    if not text:
+        return None
+    return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": text}}
