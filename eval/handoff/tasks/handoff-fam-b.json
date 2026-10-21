@@ -1,0 +1,869 @@
+{
+  "id": "handoff-fam-b",
+  "family": "fam-b",
+  "interventions": [
+    {
+      "name": "Nurse home visits",
+      "outcome": "hospital readmissions",
+      "kind": "firm",
+      "pooled": 14,
+      "focus": true
+    },
+    {
+      "name": "Acupuncture",
+      "outcome": "chronic pain",
+      "kind": "firm",
+      "pooled": 33,
+      "focus": true
+    },
+    {
+      "name": "Yoga",
+      "outcome": "fatigue",
+      "kind": "firm",
+      "pooled": 36,
+      "focus": true
+    },
+    {
+      "name": "Tai chi",
+      "outcome": "falls",
+      "kind": "firm",
+      "pooled": 18,
+      "focus": false
+    },
+    {
+      "name": "Dietitian counselling",
+      "outcome": "weight regain",
+      "kind": "firm",
+      "pooled": 18,
+      "focus": false
+    },
+    {
+      "name": "CBT for insomnia",
+      "outcome": "insomnia severity",
+      "kind": "firm",
+      "pooled": 30,
+      "focus": false
+    },
+    {
+      "name": "Massage therapy",
+      "outcome": "post-operative pain",
+      "kind": "firm",
+      "pooled": 28,
+      "focus": false
+    },
+    {
+      "name": "Music therapy",
+      "outcome": "agitation",
+      "kind": "firm",
+      "pooled": 18,
+      "focus": false
+    },
+    {
+      "name": "Hydration reminders",
+      "outcome": "urinary tract infections",
+      "kind": "firm",
+      "pooled": 15,
+      "focus": false
+    },
+    {
+      "name": "Strength training",
+      "outcome": "frailty scores",
+      "kind": "firm",
+      "pooled": 14,
+      "focus": false
+    },
+    {
+      "name": "Text-message reminders",
+      "outcome": "missed appointments",
+      "kind": "hedged",
+      "pooled": 34,
+      "focus": true
+    },
+    {
+      "name": "Peer support groups",
+      "outcome": "loneliness scores",
+      "kind": "hedged",
+      "pooled": 18,
+      "focus": true
+    },
+    {
+      "name": "Pharmacist medication review",
+      "outcome": "adverse drug events",
+      "kind": "hedged",
+      "pooled": 38,
+      "focus": true
+    },
+    {
+      "name": "Light therapy",
+      "outcome": "seasonal depression scores",
+      "kind": "hedged",
+      "pooled": 36,
+      "focus": false
+    },
+    {
+      "name": "Hearing aids",
+      "outcome": "cognitive decline",
+      "kind": "hedged",
+      "pooled": 30,
+      "focus": false
+    },
+    {
+      "name": "Sleep hygiene coaching",
+      "outcome": "daytime sleepiness",
+      "kind": "hedged",
+      "pooled": 19,
+      "focus": false
+    },
+    {
+      "name": "Breathing exercises",
+      "outcome": "breathlessness",
+      "kind": "hedged",
+      "pooled": 24,
+      "focus": false
+    },
+    {
+      "name": "Bladder training",
+      "outcome": "incontinence episodes",
+      "kind": "hedged",
+      "pooled": 24,
+      "focus": false
+    },
+    {
+      "name": "Walking groups",
+      "outcome": "depressive symptoms",
+      "kind": "hedged",
+      "pooled": 21,
+      "focus": false
+    },
+    {
+      "name": "Mindfulness training",
+      "outcome": "anxiety",
+      "kind": "hedged",
+      "pooled": 27,
+      "focus": false
+    }
+  ],
+  "studies": [
+    {
+      "id": "A001",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 37
+    },
+    {
+      "id": "A002",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A003",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A004",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 18
+    },
+    {
+      "id": "A005",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 23
+    },
+    {
+      "id": "A006",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 23
+    },
+    {
+      "id": "A007",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A008",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 19
+    },
+    {
+      "id": "A009",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 29
+    },
+    {
+      "id": "A010",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 41
+    },
+    {
+      "id": "A011",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 27
+    },
+    {
+      "id": "A012",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 16
+    },
+    {
+      "id": "A013",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 28
+    },
+    {
+      "id": "A014",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A015",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 28
+    },
+    {
+      "id": "A016",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 30
+    },
+    {
+      "id": "A017",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 14
+    },
+    {
+      "id": "A018",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 9
+    },
+    {
+      "id": "A019",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 27
+    },
+    {
+      "id": "A020",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 28
+    },
+    {
+      "id": "A021",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A022",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A023",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 15
+    },
+    {
+      "id": "A024",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 26
+    },
+    {
+      "id": "A025",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 15
+    },
+    {
+      "id": "A026",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A027",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 26
+    },
+    {
+      "id": "A028",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A029",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 21
+    },
+    {
+      "id": "A030",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 13
+    },
+    {
+      "id": "A031",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 25
+    },
+    {
+      "id": "A032",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 15
+    },
+    {
+      "id": "A033",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A034",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 21
+    },
+    {
+      "id": "A035",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 29
+    },
+    {
+      "id": "A036",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 40
+    },
+    {
+      "id": "A037",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A038",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 10
+    },
+    {
+      "id": "A039",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 37
+    },
+    {
+      "id": "A040",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A041",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 22
+    },
+    {
+      "id": "A042",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 19
+    },
+    {
+      "id": "A043",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 40
+    },
+    {
+      "id": "A044",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 27
+    },
+    {
+      "id": "A045",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A046",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 26
+    },
+    {
+      "id": "A047",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 15
+    },
+    {
+      "id": "A048",
+      "intervention": "Bladder training",
+      "kind": "hedged",
+      "effect": 28
+    },
+    {
+      "id": "A049",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 21
+    },
+    {
+      "id": "A050",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 17
+    },
+    {
+      "id": "A051",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 37
+    },
+    {
+      "id": "A052",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A053",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A054",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 35
+    },
+    {
+      "id": "A055",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 19
+    },
+    {
+      "id": "A056",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 18
+    },
+    {
+      "id": "A057",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 20
+    },
+    {
+      "id": "A058",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 31
+    },
+    {
+      "id": "A059",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 15
+    },
+    {
+      "id": "A060",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 18
+    },
+    {
+      "id": "A061",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A062",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 17
+    },
+    {
+      "id": "A063",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 40
+    },
+    {
+      "id": "A064",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 33
+    },
+    {
+      "id": "A065",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 19
+    },
+    {
+      "id": "A066",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 21
+    },
+    {
+      "id": "A067",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 19
+    },
+    {
+      "id": "A068",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 24
+    },
+    {
+      "id": "A069",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 32
+    },
+    {
+      "id": "A070",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 33
+    },
+    {
+      "id": "A071",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 16
+    },
+    {
+      "id": "A072",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 17
+    },
+    {
+      "id": "A073",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 37
+    },
+    {
+      "id": "A074",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 26
+    },
+    {
+      "id": "A075",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 31
+    },
+    {
+      "id": "A076",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A077",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A078",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 25
+    },
+    {
+      "id": "A079",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 19
+    },
+    {
+      "id": "A080",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 39
+    },
+    {
+      "id": "A081",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 13
+    },
+    {
+      "id": "A082",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 26
+    },
+    {
+      "id": "A083",
+      "intervention": "Light therapy",
+      "kind": "hedged",
+      "effect": 39
+    },
+    {
+      "id": "A084",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 19
+    },
+    {
+      "id": "A085",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 32
+    },
+    {
+      "id": "A086",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 24
+    },
+    {
+      "id": "A087",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 23
+    },
+    {
+      "id": "A088",
+      "intervention": "CBT for insomnia",
+      "kind": "firm",
+      "effect": 36
+    },
+    {
+      "id": "A089",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A090",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 14
+    },
+    {
+      "id": "A091",
+      "intervention": "Peer support groups",
+      "kind": "hedged",
+      "effect": 17
+    },
+    {
+      "id": "A092",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 35
+    },
+    {
+      "id": "A093",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 26
+    },
+    {
+      "id": "A094",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 34
+    },
+    {
+      "id": "A095",
+      "intervention": "Tai chi",
+      "kind": "firm",
+      "effect": 15
+    },
+    {
+      "id": "A096",
+      "intervention": "Strength training",
+      "kind": "firm",
+      "effect": 12
+    },
+    {
+      "id": "A097",
+      "intervention": "Music therapy",
+      "kind": "firm",
+      "effect": 20
+    },
+    {
+      "id": "A098",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 37
+    },
+    {
+      "id": "A099",
+      "intervention": "Dietitian counselling",
+      "kind": "firm",
+      "effect": 18
+    },
+    {
+      "id": "A100",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 25
+    },
+    {
+      "id": "A101",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 38
+    },
+    {
+      "id": "A102",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 28
+    },
+    {
+      "id": "A103",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 34
+    },
+    {
+      "id": "A104",
+      "intervention": "Nurse home visits",
+      "kind": "firm",
+      "effect": 14
+    },
+    {
+      "id": "A105",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 37
+    },
+    {
+      "id": "A106",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 34
+    },
+    {
+      "id": "A107",
+      "intervention": "Text-message reminders",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A108",
+      "intervention": "Mindfulness training",
+      "kind": "hedged",
+      "effect": 24
+    },
+    {
+      "id": "A109",
+      "intervention": "Acupuncture",
+      "kind": "firm",
+      "effect": 29
+    },
+    {
+      "id": "A110",
+      "intervention": "Hydration reminders",
+      "kind": "firm",
+      "effect": 11
+    },
+    {
+      "id": "A111",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 20
+    },
+    {
+      "id": "A112",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 35
+    },
+    {
+      "id": "A113",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 34
+    },
+    {
+      "id": "A114",
+      "intervention": "Yoga",
+      "kind": "firm",
+      "effect": 36
+    },
+    {
+      "id": "A115",
+      "intervention": "Sleep hygiene coaching",
+      "kind": "hedged",
+      "effect": 16
+    },
+    {
+      "id": "A116",
+      "intervention": "Pharmacist medication review",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A117",
+      "intervention": "Massage therapy",
+      "kind": "firm",
+      "effect": 28
+    },
+    {
+      "id": "A118",
+      "intervention": "Hearing aids",
+      "kind": "hedged",
+      "effect": 36
+    },
+    {
+      "id": "A119",
+      "intervention": "Walking groups",
+      "kind": "hedged",
+      "effect": 17
+    },
+    {
+      "id": "A120",
+      "intervention": "Breathing exercises",
+      "kind": "hedged",
+      "effect": 19
+    }
+  ],
+  "frozen_from": "gauntlet-fam-b__pipeline__off__r1__haiku after step 6 (lint) of the removed gauntlet pipeline"
+}

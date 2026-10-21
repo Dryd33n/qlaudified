@@ -30,7 +30,7 @@ addopts = "-ra"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["spike", "eval/v2/handoff/frozen", "eval/v2/handoff/sandbox"]  # handoff: code a run wrote, kept verbatim
+extend-exclude = ["spike", "eval/handoff/sandbox"]  # code a pipeline run wrote, kept verbatim
 
 [tool.ruff.lint.per-file-ignores]
 # Entry points run on whatever Python the hook finds, so they keep old syntax and a version check.
