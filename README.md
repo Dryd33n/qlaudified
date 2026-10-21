@@ -55,37 +55,41 @@ Loss is not about distance or context length: Claude keeps hedges while the sour
 and checks the source when asked about evidence. It loses them when handed a firm-looking
 document to transform. That handoff is the evaluation task (`eval/README.md`).
 
-### With the plugin (pre-registered comparison, Oct 21, 2026)
+### With the plugin (two pre-registered comparisons, Oct 21–22, 2026)
 
 An earlier session read the abstracts with the plugin on; a fresh session was then handed the firm
-report and asked for a board slide or a reply to a clinic manager. 16 runs per arm, haiku,
-hand-labelled ([protocol and full result](eval/README.md#pre-registered-comparison-oct-21-2026)).
+report and asked for a board slide or a reply to a clinic manager. The latest comparison: three
+task families (one held out from tuning), 24 runs per arm, haiku, labelled blind by hand
+([protocol and full results](eval/README.md#pre-registered-comparison-2-oct-21-2026)).
 
 | Arm | Hedged findings kept (of stated) | Firm findings wrongly hedged |
 | --- | --- | --- |
-| Off | 24% (7/29) | 0% (0/33) |
-| Prompt: "keep the sources' qualifiers" | 45% (13/29) | 11% (3/28) |
-| Placebo: the same carried facts, qualifiers masked | 40% (14/35) | 17% (6/36) |
-| **Medium** | **92% (37/40)** | **50% (15/30)** |
+| Off | 24% (10/42) | 6% (3/48) |
+| Prompt: "keep the sources' qualifiers" | 33% (13/39) | 8% (3/39) |
+| Placebo: the same carried facts, qualifiers masked | 44% (22/50) | 24% (12/50) |
+| **Medium** | **88% (44/50)** | **29% (15/52)** |
 
-- **Hedges kept, and the qualifiers are what do it:** Medium beat placebo in every paired cell
-  where they differed (8 of 8, sign test p = 0.004).
-- **But it over-hedged, so the pre-registered rule was not met:** firm findings were hedged 50
-  points more often than with the plugin off (the limit was 15). Every case was one blanket
-  sentence over all the figures in a reply ("The figures above should be read as estimates"). The
-  cause: this version carried only facts that had qualifiers, so Claude knew which sources hedged
-  but not which did not. The current version carries the matched firm facts too; it has not been
-  tested yet.
+- **Hedges kept, and the qualifiers are what do it:** Medium beat placebo in 11 of the 12 paired
+  cells where they differed (sign test p = 0.003). The first comparison, on two families, showed
+  the same (92% kept, 8 of 8 cells), and on the held-out family Medium kept 71% against 40%
+  placebo and 23% off.
+- **But it still over-hedges, so the pre-registered rule is not met:** firm findings were hedged
+  23 points more often than with the plugin off (the limit was 15). Each case is one blanket
+  sentence over all the figures, almost always in a reply to the manager ("several of the studies
+  report estimates rather than precise results, so treat them as a guide"). The first version carried only
+  facts that had qualifiers; carrying the firm facts too did not stop these blanket caveats (5 of
+  16 runs before, 4 of 16 after, on the same two families). It looks like how Claude writes a reply
+  once it knows that some sources hedge.
 
 ### Caveats
 
 - Haiku only, on synthetic studies whose hedges are plain words.
-- 16 runs per arm: enough to see a pattern, not to measure its size precisely.
-- The matching was tuned on the two task families tested; a held-out family is built for the next
-  test but has not been run.
-- One labeller. The blind export cut long answers and hid hedge notes in 26 of 64; six labels were
-  corrected after unblinding, so those six are not blind. Answers from plugin arms sometimes cite
-  ledger IDs, which the blinding could not hide.
+- 24 runs per arm: enough to see a pattern, not to measure its size precisely. The held-out family
+  alone (8 runs per arm) is too small to test on its own.
+- One labeller. Comparison 1's blind export cut long answers and six labels were corrected after
+  unblinding; comparison 2's export was uncut, and one labelling rule was made explicit partway,
+  before unblinding. Answers from plugin arms sometimes cite ledger IDs, which the blinding could
+  not hide.
 - The plugin's sidecar calls are billed separately from the session costs reported.
 
 ## How it works
@@ -157,8 +161,9 @@ a sidecar call, 5–7 s with one; the sidecar costs about $0.001 per recorded fa
 
 ## Open questions
 
-- **Does carrying firm facts fix the over-hedging?** The revised carry-over is built; the next
-  pre-registered comparison, with the held-out family, decides it.
+- **How to stop the blanket caveat?** Carrying firm facts did not. Claude covers every figure
+  once it knows some sources hedge, mostly in replies. Options are a per-intervention summary in
+  the carried lines, or accepting it as the cost of keeping hedges (88% vs 24%).
 - **What if the sources were never read through Claude's tools?** When a script Claude wrote
   parses the sources, the plugin never sees the hedges and has nothing to carry.
 - **Does it hold beyond haiku**, and on real documents whose hedges are implied (study design,
