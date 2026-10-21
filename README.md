@@ -20,12 +20,10 @@ also fed back into Claude's loop, so qualifiers survive long tasks.
 
 ## Where hedges get lost without the plugin
 
-Haiku, no plugin, Oct 9–21, 2026. Every number is counted by hand from the answers; runs are few
-(2 to 21 per row), so read them as rates to confirm, not measurements.
+Hedges commonly disappear when sources undergo a lossy transformation, a hedged value gets stored into a table with no room for a hedge, now the agent builds from that table forgetting the hedge ever existed. 
 
 | Workflow | Hedged findings lost |
 | --- | --- |
-| Answering from sources still in context: summaries, notes, `/compact`, ~120k tokens of competing figures (21 runs) | **none** |
 | Rewriting the same findings through a chain of formats, each step a fresh session (CSV, one-liners, slides, FAQ…) | 1 of 12 at 10 steps; 2 of 6 at 20 steps, by drift ("may include symptoms" became "the study found treatment works") |
 | Turning hedged figures into data: parsing to a numeric field, pooling, ranking, code constants, a report filled from a firm template | ingest strips the hedge in 6 of 8 runs; ranking and code lose all of them in 8 of 8; the report keeps them in 1 of 8 |
 | A fresh session answers from those files, sources still on disk, asked **how strong the evidence is** | **0 of 6** (it reopens the sources every time) |
