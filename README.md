@@ -43,8 +43,12 @@ and never asks whether the findings underneath were hedged. Example, from a past
 Every yoga abstract said "may have", "possibly" or "appeared to". The handoff tasks are the
 evaluation method (`eval/README.md`).
 
-**Open question for the plugin:** its ledger is per session, and the session that answers here
-never reads the sources, so as built it has nothing to refeed in the workflow where loss happens.
+**With the plugin** (pre-registered, 64 runs, Oct 21): the ledger was per session, so it had
+nothing to refeed in this workflow; it now carries qualified facts from earlier sessions (RFD-5).
+In the handoff tasks Medium kept **76%** of hedges against 24% off, 34% with an instruction to keep
+qualifiers, and 29% with a placebo that carries the same facts without their qualifiers. But in
+3 of 16 runs the carried caveats spread to firm findings (30% deflated vs 0% off), so the
+pre-registered rule is not met. [Details](eval/README.md#result-oct-21-2026).
 
 ## How it works
 
