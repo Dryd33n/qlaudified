@@ -8,7 +8,9 @@ feeds the sources' qualifiers back so they survive into the final answer.**
 ![dependencies: standard library](https://img.shields.io/badge/dependencies-stdlib%20only-brightgreen)
 ![license: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
-**At a glance**
+A source says Q3 revenue was *estimated* at $4.2M, *based on preliminary figures*. Fifteen tool
+calls later, Claude's summary says "Q3 revenue was $4.2M." Nothing in it is invented, yet the claim
+is now wrong. qlaudified is a Claude Code plugin intends to catch and prevent that loss.
 
 - **The problem:** when work is handed over between sessions, Claude turns "may have reduced
   fatigue by about 30%" into "reduces fatigue by 36%". Without the plugin, 13 of 14 hedged
