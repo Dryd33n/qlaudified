@@ -1,6 +1,6 @@
 """Eval runner: tasks × conditions × repeats via isolated `claude -p` runs; resumable and cost-capped.
 
-    py -3 eval/run.py [--suite v1|v2|probe|hops|gauntlet] [--set dry|pilot|confirmatory] [--tasks a,b]
+    py -3 eval/run.py [--suite v1|v2|probe|hops|gauntlet|handoff] [--set dry|pilot|confirmatory] [--tasks a,b]
                       [--variants ...] [--conditions ...] [--repeats 2] [--model haiku]
                       [--daily-cap 2.0] [--max-runs N] [--max-turns 6] [--dry-run]
 
@@ -74,8 +74,13 @@ SUITES = {
                  "tools": "Read,Grep,Glob,Bash,PowerShell,Write,Edit",
                  "keep": ("data", "analysis", "src", "tests", "docs", "NOTES.md", "ingest.py",
                           "validate.py")},
+    "handoff": {"variants": {v: f"prompt-{v}.txt" for v in ("paste-board", "paste-reply",
+                                                            "edit-board", "edit-reply")},
+                "conditions": "off", "max_turns": 15,
+                "tools": "Read,Grep,Glob,Bash,PowerShell,Write,Edit"},
 }
-SUITE_DIRS = {"v2": V2, "probe": V2 / "probe", "hops": V2 / "hops", "gauntlet": V2 / "gauntlet"}
+SUITE_DIRS = {"v2": V2, "probe": V2 / "probe", "hops": V2 / "hops", "gauntlet": V2 / "gauntlet",
+              "handoff": V2 / "handoff"}
 NEW_SESSION = "/new"  # a step of its own: the next step starts a fresh session (hops relay)
 VARIANTS = SUITES["v1"]["variants"]  # v1 names, kept for older callers
 SETS = ("dry", "pilot", "confirmatory")

@@ -1,0 +1,1 @@
+Turn docs/report.md into the board slide. Draft the board slide recommending which two of these to fund, with one line on each, and reply with the slide text.

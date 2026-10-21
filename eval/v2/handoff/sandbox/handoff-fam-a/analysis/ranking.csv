@@ -1,0 +1,21 @@
+rank,intervention,mean_effect_pct,total_n,n_studies,cost_per_patient,effect_per_100_dollars
+1,Yoga,36.33,3066,6,40.00,90.833
+2,Acupuncture,33.17,2711,6,60.00,55.278
+3,Music therapy,18.33,3256,6,40.00,45.833
+4,Nurse home visits,13.50,3956,6,40.00,33.750
+5,Massage therapy,27.83,1554,6,85.00,32.745
+6,Dietitian counselling,17.67,2876,6,60.00,29.444
+7,Pharmacist medication review,38.17,3070,6,150.00,25.444
+8,Strength training,14.50,2956,6,60.00,24.167
+9,CBT for insomnia,29.83,3870,6,150.00,19.889
+10,Mindfulness training,26.67,2588,6,150.00,17.778
+11,Bladder training,24.50,2685,6,150.00,16.333
+12,Text-message reminders,34.17,2596,6,210.00,16.270
+13,Breathing exercises,23.83,1985,6,150.00,15.889
+14,Sleep hygiene coaching,19.00,2735,6,150.00,12.667
+15,Light therapy,35.67,2128,6,300.00,11.889
+16,Walking groups,20.83,2967,6,210.00,9.921
+17,Hearing aids,29.67,2532,6,300.00,9.889
+18,Peer support groups,18.17,2016,6,210.00,8.651
+19,Tai chi,17.67,3458,6,450.00,3.926
+20,Hydration reminders,14.83,3262,6,450.00,3.296
