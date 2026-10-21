@@ -171,6 +171,42 @@ new runs as logged; the plugin's sidecar calls are billed separately and not inc
 pre-registered, plus: answers from plugin arms sometimes cite ledger IDs (`[F12]`), which the
 blinding could not hide.
 
+## Pre-registered comparison 2 (Oct 21, 2026)
+
+Written before any run of it. Code frozen at commit `86e7a59`: the carry-over now carries the
+matched firm facts too and cuts long source labels (`2dfa160`), and a held-out family exists
+(`fam-c`, `86e7a59`). Nothing in `qlaudified/` or `eval/` changes until it is scored, except to
+fix a crash, which would be reported.
+
+**Question.** Does the revised carry-over keep hedges without hedging firm findings, and does
+it hold on a family it was not tuned on?
+
+**Design.** Arms off, prompt, placebo, medium. 3 families × 4 variants × 2 repeats = 24 runs per
+arm, haiku, `--set pilot`. Off and prompt do not involve the plugin, so their fam-a and fam-b
+runs are the 32 from comparison 1, copied in; fam-c's are new. Placebo and medium are all new.
+Plugin arms start from the frozen prep ledgers: fam-a and fam-b's from comparison 1, and one
+new medium prep run for fam-c.
+
+- *Manipulation checks.* Before the comparison: fam-c's prep ledger holds qualified facts for
+  each hedged focus intervention and unqualified facts for each firm one. After each plugin run:
+  whether anything was carried, and whether a firm focus intervention named in the prompt or
+  file got a line.
+
+**Scoring.** As in comparison 1, with one fix: the blind export shows each intervention's whole
+text and every line about hedging, uncut. All 96 answers are labelled in one shuffled, blind set
+(comparison 1's off and prompt answers again, not reused labels).
+
+**Decision rule.** A pattern is present if all three hold, over all three families:
+
+1. Medium keeps a larger share of hedges than placebo in the paired cells where they differ
+   (one-sided sign test, p < 0.05);
+2. the pooled kept rate is at least 30 points higher for medium than for placebo;
+3. firm findings deflated under medium are no more than 15 points above off.
+
+Reported separately: the same three on fam-c alone (8 paired cells), as the held-out check; it
+is not part of the decision, since 8 cells cannot reach p < 0.05 unless every differing cell
+favours one arm. No extension this time.
+
 ## Running and scoring
 
 Decide the day's budget first. A handoff run costs about $0.002–0.02 on haiku.
