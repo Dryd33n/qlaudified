@@ -127,6 +127,24 @@ def test_first_use_keeps_its_qualifiers_and_later_uses_accumulate(tmp_path):
     assert store.spans() == []
 
 
+def test_every_use_in_the_first_use_step_adds_its_qualifiers(tmp_path):
+    """Seen live: a final answer's table row (no hedge) came before the sentence that kept "may";
+    the first use recorded none, while the sidecar said "may" was kept."""
+    store = Store(tmp_path / "s")
+    fid = store.add_span(make("Review may have reduced events by about 41%.", qualifiers="may; about"))
+    assert store.record_use(fid, 8, "final answer", "") is True  # the table row
+    assert store.record_use(fid, 8, "final answer", "may") is False  # the sentence, same step
+    store.record_use(fid, 9, "Write notes.md", "about")  # a later step changes nothing
+    fact = store.spans()[0]
+    assert (fact.first_use_step, fact.first_use_qualifiers) == (8, "may")
+    assert fact.uses == "8:final answer; 9:Write notes.md"
+    # another place in the first-use step is not merged: dropped in reasoning, kept in the file
+    other = store.add_span(make("Q3 revenue is estimated at $4.2M.", qualifiers="estimated"))
+    store.record_use(other, 2, "reasoning", "")
+    store.record_use(other, 2, "Write notes.md", "estimated")
+    assert store.spans()[1].first_use_qualifiers == ""
+
+
 def test_turns_keep_their_number_and_claims_go_to_claims_csv(tmp_path):
     store = Store(tmp_path / "s")
     store.add_span(make("Q3 revenue is estimated at $4.2M."))

@@ -267,14 +267,26 @@ class Store:
 
     def record_use(self, span_id: str, step: int, where: str, qualifiers: str) -> bool:
         """Note that a fact was used at ``step``; the first use also keeps the qualifiers present
-        then (PROV-4). Returns True for the first use."""
+        then (PROV-4). Returns True for the first use.
+
+        One place can use a fact more than once (a final answer's table row and its sentence):
+        the qualifiers of every use in the first use's place are kept, so "may" in the sentence
+        is not lost to a table row that came first. A different place in the same step is not
+        merged: reasoning that drops a hedge before a file that keeps it is decay, and the first
+        use records it."""
         with self._write() as con:
-            row = con.execute("SELECT first_use_step, uses FROM spans WHERE span_id = ?",
-                              (span_id,)).fetchone()
+            row = con.execute("SELECT first_use_step, uses, first_use_qualifiers FROM spans "
+                              "WHERE span_id = ?", (span_id,)).fetchone()
             if row is None:
                 return False
-            first, uses = row
+            first, uses, first_quals = row
             entry = f"{step}:{where}"
+            if first == step and qualifiers and (uses or "").split("; ")[0] == entry:
+                kept = [q for q in (first_quals or "").split("; ") if q]
+                merged = kept + [q for q in qualifiers.split("; ") if q and q not in kept]
+                if merged != kept:
+                    con.execute("UPDATE spans SET first_use_qualifiers = ? WHERE span_id = ?",
+                                ("; ".join(merged), span_id))
             if entry in (uses or "").split("; "):
                 return False
             uses = f"{uses}; {entry}" if uses else entry

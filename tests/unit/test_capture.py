@@ -50,6 +50,29 @@ def test_cat_through_bash_is_upgraded_to_file_facts(payload, sandbox):
     assert "roughly" in interval.qualifiers and "900 s" in interval.numbers
 
 
+def test_directory_listings_and_bare_paths_are_not_facts(payload, sandbox):
+    """Seen live: an `ls -la` and a `find` in one command made 15 rows of sizes, times and IDs."""
+    p = payload("post_bash")
+    p["tool_input"]["command"] = "ls -la && find . -type f | head"
+    p["tool_response"]["stdout"] = (
+        "total 48\n"
+        "drwxr-xr-x 1 Dryde 197609 0 Oct 20 17:48 .\n"
+        "-rw-r--r-- 1 Dryde 197609 448 Oct 20 03:26 costs.csv\n"
+        "./.claude/.qlaudified/sessions/220d8471-e20f-4b38-9480-723a24314cc1/claims.csv\n"
+        "Results: Yoga may have reduced fatigue by about 32% compared with usual care.")
+    facts, _ = read_tool_result(p, sandbox)
+    assert [f.text for f in facts] == [
+        "Results: Yoga may have reduced fatigue by about 32% compared with usual care."]
+
+
+def test_a_path_inside_a_sentence_still_counts(payload, sandbox):
+    p = payload("post_bash")
+    p["tool_input"]["command"] = "cat notes.txt | head"
+    p["tool_response"]["stdout"] = "The Q3 figures in reports/q3.md are estimated at $4.2M."
+    facts, _ = read_tool_result(p, sandbox)
+    assert len(facts) == 1 and "estimated" in facts[0].qualifiers
+
+
 def test_other_commands_are_command_output_and_cant_be_reread(payload, sandbox):
     p = payload("post_bash")
     p["tool_input"]["command"] = "python -m pytest -q"
