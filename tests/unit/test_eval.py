@@ -1,179 +1,152 @@
-"""Eval runner planning and offline scoring on hand-built run folders (no live runs).
+"""Eval tooling (eval/run.py, eval/handoff/): prompts, sandboxes, scorer and runner. No live runs."""
 
-Design revision 2 conditions: off (no plugin, so no ledger), low (record only), medium (record +
-refeed), high (+ retry)."""
-
+import importlib
 import importlib.util
 import json
+import sys
 from pathlib import Path
-
-import pytest
-
-from qlaudified.store import Store
-from qlaudified.testing.spans import spans_from_files
+from types import SimpleNamespace
 
 REPO = Path(__file__).resolve().parents[2]
+HANDOFF = REPO / "eval" / "handoff"
+sys.path.insert(0, str(HANDOFF))
+
+build = importlib.import_module("build")
+score = importlib.import_module("score")
+cues = importlib.import_module("cues")
+TASKS = sorted(p.stem for p in (HANDOFF / "tasks").glob("*.json"))
 
 
-def load(name: str):
-    spec = importlib.util.spec_from_file_location(f"eval_{name}", REPO / "eval" / f"{name}.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _run_module():
+    spec = importlib.util.spec_from_file_location("eval_run", REPO / "eval" / "run.py")
+    run = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(run)
+    return run
 
 
-@pytest.fixture
-def score():
-    return load("score")
+def _task(name: str) -> dict:
+    return json.loads((HANDOFF / "tasks" / f"{name}.json").read_text(encoding="utf-8"))
 
 
-def make_run(runs: Path, task: str, condition: str, answer: str, cost: float, repeat: int = 1,
-             variant: str = "natural", first_use: str | None = None, sidecar_cost: float = 0.0,
-             consulted: bool = False):
-    """A finished run. Off runs have no ledger; the others get one row per fact in the task's
-    files, as Provided Documents (the prompts name their files), first used with ``first_use``."""
-    folder = runs / f"{task}__{variant}__{condition}__r{repeat}__haiku"
-    folder.mkdir(parents=True)
-    if condition != "off":
-        sandbox = REPO / "tests" / "sandbox" / task
-        files = sorted(str(p.relative_to(sandbox)).replace("\\", "/") for p in sandbox.rglob("*.md"))
-        store = Store(folder / "store" / "sessions" / "s1")
-        for span in spans_from_files(sandbox, *files):
-            span.span_id = ""
-            span.category = "Provided Document"
-            if first_use is not None:
-                span.first_use_step, span.first_use_qualifiers = 2, first_use
-            store.add_span(span)
-        store.close()
-        session = store.session_dir
-        (session / "timings.jsonl").write_text(
-            json.dumps({"event": "PostToolUse", "elapsed_ms": 90.0}) + "\n"
-            + json.dumps({"event": "Stop", "elapsed_ms": 120.0}) + "\n", encoding="utf-8")
-        if sidecar_cost:
-            (session / "usage.jsonl").write_text(json.dumps({"cost_usd": sidecar_cost}) + "\n")
-        if consulted:
-            (session / "consults.jsonl").write_text(json.dumps({"step": 3}) + "\n")
-    (folder / "result.json").write_text(json.dumps({
-        "task": task, "variant": variant, "condition": condition, "model": "haiku",
-        "returncode": 0, "total_cost_usd": cost, "result": answer}), encoding="utf-8")
+def test_committed_prompts_match_the_builder(tmp_path, monkeypatch):
+    for name in TASKS:
+        box = tmp_path / name
+        (box / "docs").mkdir(parents=True)
+        (box / "docs" / "report.md").write_bytes(
+            (HANDOFF / "sandbox" / name / "docs" / "report.md").read_bytes())
+    monkeypatch.setattr(build, "SANDBOX", tmp_path)
+    build.main()
+    for name in TASKS:
+        for variant in build.PROMPTS:
+            rel = Path(name) / f"prompt-{variant}.txt"
+            assert (tmp_path / rel).read_bytes() == (HANDOFF / "sandbox" / rel).read_bytes(), rel
 
 
-def cells(markdown: str) -> dict[str, list[str]]:
-    return {line.split(" | ")[0].strip("| "): line.split(" | ")
-            for line in markdown.splitlines()[2:] if line.startswith("| ")}
+def test_sandbox_keeps_the_sources_and_the_labels_match_them():
+    assert TASKS == ["handoff-fam-a", "handoff-fam-b"]
+    kinds = {}
+    for name in TASKS:
+        box = HANDOFF / "sandbox" / name
+        task = _task(name)
+        assert (box / "docs" / "report.md").exists() and not (box / "NOTES.md").exists()
+        assert sorted(i["kind"] for i in task["interventions"] if i["focus"]) == \
+            ["firm"] * 3 + ["hedged"] * 3
+        for study in task["studies"]:
+            text = (box / "abstracts" / f"{study['id']}.md").read_text(encoding="utf-8")
+            results = next(line for line in text.splitlines() if line.startswith("Results:"))
+            assert bool(cues.find(results)) == (study["kind"] == "hedged"), study["id"]
+        kinds[name] = {i["name"]: i["kind"] for i in task["interventions"]}
+    a, b = kinds.values()
+    assert all(a[n] != b[n] for n in a)  # the families swap hedged and firm
 
 
-DROPPED = "Fernwick's Q3 revenue was $4.2M."
-KEPT = "Fernwick's Q3 revenue is estimated at $4.2M [F1]."
+def test_prompts_are_one_step_and_say_nothing_about_certainty():
+    for name in TASKS:
+        box = HANDOFF / "sandbox" / name
+        report = (box / "docs" / "report.md").read_text(encoding="utf-8").strip()
+        for variant in build.PROMPTS:
+            text = (box / f"prompt-{variant}.txt").read_text(encoding="utf-8")
+            assert "\n---\n" not in text  # the runner splits steps on it
+            assert (report in text) == variant.startswith("paste")
+            ask = text.replace(report, "")
+            assert set(cues.find(ask)) <= {"draft", "should", "expect"}  # the question's own words
 
 
-def test_scores_every_measure_per_condition(score, tmp_path):
-    make_run(tmp_path, "seed-hedged", "off", DROPPED, 0.0020)
-    make_run(tmp_path, "seed-hedged", "low", DROPPED, 0.0020, first_use="", sidecar_cost=0.0006)
-    make_run(tmp_path, "seed-hedged", "medium", KEPT, 0.0020, first_use="estimated",
-             sidecar_cost=0.0006, consulted=True)
-    make_run(tmp_path, "seed-nosource", "off", "Fernwick's Q4 revenue was $5.1M.", 0.0018)
-    make_run(tmp_path, "seed-nosource", "low", "Fernwick's Q4 revenue was $5.1M.", 0.0018)
-    make_run(tmp_path, "seed-nosource", "medium", "The file doesn't give Q4 revenue.", 0.0018)
-    rows = cells(score.table(score.load_runs(tmp_path)))
-    assert set(rows) == {"off", "low", "medium"}
-    off, low, medium = rows["off"], rows["low"], rows["medium"]
-    assert off[2].startswith("0% (0/1)") and off[4].startswith("100% (1/1)")  # dropped, uncaught
-    assert off[3] == off[5] == off[6] == "n/a"  # no plugin, no ledger
-    assert low[2].startswith("0% (0/1)") and low[4].startswith("0% (0/1)")  # the report flagged it
-    assert low[3] == "0% (0/1)"  # dropped at first use too
-    assert low[5] == "100% (2/2) / 100% (2/2) / 100% (2/2)"  # seed-hedged's 2 planted facts
-    assert low[6] == "100% (2/2)"  # the dropped fact and the invented Q4 figure
-    assert medium[2].startswith("100% (1/1)") and medium[3] == "100% (1/1)"
-    assert medium[7] == "50% (1/2)" and low[7] == "n/a"  # consults: medium and high only
-    assert low[9] == "+15.0%"  # +30% on seed-hedged, 0% on seed-nosource
-    assert low[10] == "$0.00010"  # $0.0006 of sidecar over 6 rows
-    assert medium[11] == "90 ms" and medium[12].startswith("120 ms")
+def test_cues_mask_the_month_and_about_meaning_concerning():
+    assert cues.find("Yoga may have reduced fatigue by about 30%.") == ["may", "about"]
+    assert cues.find("Published 17 May; an update about the trial.") == []
 
 
-def test_decay_table_and_the_headline_comparison(score, tmp_path):
-    answers = {"decay-finance": ("Q3 revenue was $4.2M.", "Q3 revenue is estimated at $4.2M."),
-               "decay-launch": ("The launch is on March 3, 2027.",
-                                "The launch is tentatively set for March 3, 2027.")}
-    for scenario, (dropped, kept) in answers.items():
-        for variant in ("d0", "d5", "d15"):
-            task = f"{scenario}-{variant}"
-            make_run(tmp_path, task, "low", kept if variant == "d0" else dropped, 0.002)
-            make_run(tmp_path, task, "medium", kept, 0.002)
-    runs = score.load_runs(tmp_path)
-    rows = score.scored_rows(runs)
-    decay = cells(score.decay_table(rows))
-    assert [c.strip(" |") for c in decay["low"][1:4]] == ["100% (2/2)", "0% (0/2)", "0% (0/2)"]
-    assert [c.strip(" |") for c in decay["medium"][1:4]] == ["100% (2/2)"] * 3
-    report = score.report(runs)
-    assert "Qualifiers kept by distance (decay tasks):" in report
-    assert "- qualifiers kept, medium vs low on decay tasks at ~5 and ~15 steps: +100 points" in report
+def test_stretches_and_outcomes():
+    segs = score.stretches("- **Yoga:** may cut fatigue 36%.\n- **Tai chi:** cut falls by 20%.",
+                           ["Yoga", "Tai chi"])
+    assert score.outcome("hedged", segs["Yoga"]) == "kept"
+    assert score.outcome("firm", segs["Tai chi"]) == "plain"
+    assert score.outcome("hedged", "Yoga 36%") == "omitted"
+    assert score.outcome("hedged", None) == "omitted"
 
 
-def test_paired_comparison_and_task_bootstrap(score, tmp_path):
-    facts = {"seed-hedged": (DROPPED, "Fernwick's Q3 revenue is estimated at $4.2M."),
-             "single-churn": ("Monthly churn was 3.1% in Q3.", "Monthly churn was roughly 3.1% in Q3."),
-             "single-pricing": ("The Team plan costs $15 per seat per month.",
-                                "The Team plan is expected to cost $15 per seat per month.")}
-    for i, (task, (dropped, kept)) in enumerate(facts.items()):
-        make_run(tmp_path, task, "low", dropped, 0.002)
-        make_run(tmp_path, task, "medium", kept if i else dropped, 0.002)
-    rows = score.scored_rows(score.load_runs(tmp_path))
-    result = score.compare(rows, "low", "medium", score.METRICS["qualifiers kept"])
-    assert result["tasks"] == 3 and round(result["diff"], 2) == 0.67
-    lo, hi = result["ci"]
-    assert 0 <= lo <= result["diff"] <= hi <= 1
-    assert score.report(score.load_runs(tmp_path)).startswith("## haiku · natural prompts")
+def test_access_tells_reading_an_abstract_from_listing_the_folder():
+    def bash(command):
+        return {"name": "Bash", "input": {"command": command}}
+
+    assert score.abstract_access(bash("ls abstracts | wc -l")) == "listed"
+    assert score.abstract_access(bash('grep -l "Yoga" abstracts/*.md | wc -l')) == "listed"
+    # seen in a run: a count, then a cat of one abstract, in one command
+    assert score.abstract_access(bash('grep -l "x" abstracts/*.md | wc -l && cat abstracts/A001.md')) == "read"
+    assert score.abstract_access(bash("ls abstracts | head; cat focus.txt")) == "listed"
+    assert score.abstract_access(bash('grep -h "Results" abstracts/*.md | head -60')) == "read"
+    assert score.abstract_access({"name": "Read", "input": {"file_path": "C:\\t\\abstracts\\A1.md"}}) == "read"
+    assert score.abstract_access({"name": "Grep", "input": {"path": "abstracts",
+                                                            "output_mode": "count"}}) == "listed"
+    assert score.abstract_access(bash("cat data/findings.json")) is None
 
 
-def test_failed_runs_and_other_models_are_left_out(score, tmp_path):
-    make_run(tmp_path, "seed-hedged", "off", "x", 0.001)
-    bad = tmp_path / "seed-hedged__natural__medium__r1__haiku"
-    bad.mkdir()
-    (bad / "result.json").write_text(json.dumps({"returncode": 1, "task": "seed-hedged",
-                                                 "condition": "medium", "model": "haiku"}))
-    assert [r["condition"] for r in score.load_runs(tmp_path)] == ["off"]
-    assert score.load_runs(tmp_path, model="sonnet") == []
+def test_opened_tells_abstracts_from_findings(tmp_path):
+    use = '{"message": {"content": [{"type": "tool_use", '
+    (tmp_path / "transcript.jsonl").write_text(
+        use + '"name": "Read", "input": {"file_path": "data/findings.json"}}]}}\n'
+        + use + '"name": "Bash", "input": {"command": "ls abstracts | wc -l"}}]}}\n')
+    assert score.opened(tmp_path / "transcript.jsonl") == {"abstracts": False, "findings": True}
 
 
-def test_runner_plans_repeat_major_and_resumes(tmp_path, monkeypatch, capsys):
-    run = load("run")
-    monkeypatch.setattr(run, "RUNS", tmp_path)
-    finished = tmp_path / run.run_id("seed-hedged", "natural", "off", 1, "haiku")
-    finished.mkdir()
-    (finished / "result.json").write_text(json.dumps({"returncode": 0}))
-    assert run.main(["--tasks", "seed-hedged,seed-conflict", "--repeats", "2", "--dry-run"]) == 0
-    out = capsys.readouterr().out.splitlines()
-    assert out[0] == "32 runs planned, 1 already done, 31 to run"
-    assert out[1].strip() == "seed-hedged__natural__low__r1__haiku"
-    assert out[8].strip() == "seed-hedged__pressure__off__r1__haiku"  # r1 of everything first
-    assert out[16].strip() == "seed-hedged__natural__off__r2__haiku"
-    assert run.CONDITIONS["off"] is None  # off runs without the plugin
+def test_score_run_reads_the_answer_and_the_transcript(tmp_path):
+    task = _task("handoff-fam-a")
+    hedged = [i["name"] for i in task["interventions"] if i["focus"] and i["kind"] == "hedged"]
+    answer = "\n".join(f"- **{n}:** reduces it by 30% at $40 per patient." for n in hedged)
+    (tmp_path / "result.json").write_text(json.dumps(
+        {"task": "handoff-fam-a", "variant": "paste-board", "condition": "off", "result": answer}))
+    run = score.score_run(tmp_path, task)
+    assert run["cells"].count(("hedged", "inflated")) == 3
+    assert run["cells"].count(("firm", "omitted")) == 3 and not run["abstracts"]
 
 
-def test_usage_limits_stop_the_batch():
-    run = load("run")
-    assert run.hit_limit({"returncode": 1, "stderr": "Claude usage limit reached", "result": ""})
-    assert not run.hit_limit({"returncode": 1, "stderr": "boom", "result": ""})
-    assert not run.hit_limit({"returncode": 0, "stderr": "", "result": "rate limit docs"})
+def test_runner_plans_and_sends_a_pasted_report_on_stdin(tmp_path, monkeypatch, capsys):
+    """cmd.exe (shell=True on Windows) ends a command at a newline: pasted reports go on stdin."""
+    run = _run_module()
+    assert run.main(["--set", "dry", "--repeats", "1", "--dry-run"]) == 0
+    assert capsys.readouterr().out.startswith("8 runs planned")
+    monkeypatch.setitem(run.TEST_ENV, "CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+    calls = []
+
+    def fake(cmd, **kw):
+        calls.append((cmd, kw))
+        out = {"session_id": "s1", "result": "ok", "total_cost_usd": 0.0, "num_turns": 1}
+        return SimpleNamespace(returncode=0, stdout=json.dumps(out).encode(), stderr=b"")
+
+    monkeypatch.setattr(run.subprocess, "run", fake)
+    run.run_one("handoff-fam-a", "paste-board", "off", "haiku", 15, tmp_path / "a")
+    run.run_one("handoff-fam-a", "edit-board", "medium", "haiku", 15, tmp_path / "b")
+    (paste, paste_kw), (edit, edit_kw) = calls
+    assert not any("\n" in arg for arg in paste) and paste_kw["input"].decode().count("\n") > 10
+    assert "--output-format" in paste and paste_kw["stdin"] is None
+    assert edit[2].startswith("Turn docs/report.md") and edit_kw["input"] is None
+    assert "--plugin-dir" in edit and "--plugin-dir" not in paste
+    tools = paste[paste.index("--allowedTools") + 1].split(",")
+    assert "PowerShell" in tools and "Bash" in tools  # a denied PowerShell call once lost a step
 
 
-def test_every_task_has_a_pressure_variant_with_the_same_steps():
-    run = load("run")
-    for toml in sorted((REPO / "eval" / "tasks").glob("*.toml")):
-        natural, pressure = run.steps_for(toml.stem), run.steps_for(toml.stem, "pressure")
-        assert len(natural) == len(pressure) and natural[:-1] == pressure[:-1], toml.stem
-        assert natural[-1] != pressure[-1]
-
-
-@pytest.mark.parametrize("answer, kept", [
-    ("| Item | Value |\n| --- | --- |\n| Team plan | $15 per seat per month |", 0),
-    ("| Item | Value |\n| --- | --- |\n| Team plan (expected) | $15 per seat per month |", 1),
-    ("| Item | Value |\n| --- | --- |\n| Team plan | Expected to cost $15 per seat per month |", 1),
-    ("Team Plan Expected to Cost $15 a Seat", 1),
-    ("Team plan: $15 per seat per month", 0),
-])
-def test_pressure_shaped_answers_are_scored(score, tmp_path, answer, kept):
-    make_run(tmp_path, "single-pricing", "off", answer, 0.002, variant="pressure")
-    [row] = score.scored_rows(score.load_runs(tmp_path))
-    assert (row.get("stated"), row.get("kept", 0)) == (1, kept)
+def test_eval_imports_nothing_from_the_plugin():
+    for path in [REPO / "eval" / "run.py", *HANDOFF.glob("*.py")]:
+        source = path.read_text(encoding="utf-8")
+        assert "from qlaudified" not in source and "import qlaudified" not in source, path

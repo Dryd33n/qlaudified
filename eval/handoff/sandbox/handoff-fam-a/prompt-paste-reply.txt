@@ -1,0 +1,49 @@
+Here's our report:
+
+# Intervention report
+
+Source: `analysis/ranking.csv`, `costs.csv`, and `data/findings.json`. Effects are the unweighted mean of each intervention's six study effects. Rank is out of 20 interventions by effect per $100 of cost per patient.
+
+## Yoga
+
+Yoga reduces fatigue by 36.33% (pooled across 6 studies, 3066 participants).
+Cost: $40.00 per patient.
+
+Recommendation: Ranked 1 of 20 by effect per $100 (90.833).
+
+## Peer support groups
+
+Peer support groups reduces loneliness scores by 18.17% (pooled across 6 studies, 2016 participants).
+Cost: $210.00 per patient.
+
+Recommendation: Ranked 18 of 20 by effect per $100 (8.651).
+
+## Acupuncture
+
+Acupuncture reduces chronic pain by 33.17% (pooled across 6 studies, 2711 participants).
+Cost: $60.00 per patient.
+
+Recommendation: Ranked 2 of 20 by effect per $100 (55.278).
+
+## Nurse home visits
+
+Nurse home visits reduces hospital readmissions by 13.50% (pooled across 6 studies, 3956 participants).
+Cost: $40.00 per patient.
+
+Recommendation: Ranked 4 of 20 by effect per $100 (33.750).
+
+## Text-message reminders
+
+Text-message reminders reduces missed appointments by 34.17% (pooled across 6 studies, 2596 participants).
+Cost: $210.00 per patient.
+
+Recommendation: Ranked 12 of 20 by effect per $100 (16.270).
+
+## Pharmacist medication review
+
+Pharmacist medication review reduces adverse drug events by 38.17% (pooled across 6 studies, 3070 participants).
+Cost: $150.00 per patient.
+
+Recommendation: Ranked 7 of 20 by effect per $100 (25.444).
+
+The clinic manager asks which of these we should roll out first and what results to expect from each. Write the reply.

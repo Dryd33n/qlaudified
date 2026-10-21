@@ -85,7 +85,7 @@ The rule: every live run should be worth reusing, and anything that can be re-ch
 **Spend fewer runs**
 
 - **Record once, replay forever.** Every live run saves its full hook event stream as a new replay fixture. Live runs are needed again only when a hook's contract changes or Claude Code updates.
-- **Score offline.** Agent transcripts and stores are saved, so verifier and scorer changes are re-scored against old runs for free. (Design revision 2: the record-only condition is Low mode, which runs the sidecar, so it needs its own runs; see `evaluation.md`.)
+- **Score offline.** Agent transcripts and stores are saved, so verifier and scorer changes are re-scored against old runs for free. (Design revision 2: the record-only condition is Low mode, which runs the sidecar, so it needs its own runs; see `eval/README.md`.)
 - **Sidecar off in tests.** Live smoke tests use the `fake` or Ollama backend; exactly one dedicated smoke task exercises the `claude-cli` sidecar.
 
 **Make each run small**
@@ -128,7 +128,7 @@ Spec: docs/design.md · Sprints: docs/sprint-plan.md · Testing: docs/testing.md
 - Hook scripts are tested by piping recorded JSON from tests/sessions and tests/fixtures.
 - Live tests: only via `python scripts/live.py <task>`. Ask before running more than one.
 - Never run the eval runner unless asked. It uses plan usage.
-- Don't open tests/sessions/, tests/fixtures/ or eval/corpus/ unless the task needs it.
+- Don't open tests/sessions/, tests/fixtures/ or eval/handoff/sandbox/ unless the task needs it.
 
 ## Rules
 - Never load this working copy as a plugin in the current session.

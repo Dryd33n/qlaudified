@@ -8,7 +8,7 @@ Spec: docs/design.md · Sprints: docs/sprint-plan.md · Testing: docs/testing.md
 - Hook scripts are tested by piping recorded JSON from tests/sessions and tests/fixtures.
 - Live tests: only via `python scripts/live.py <task>`. Ask before running more than one.
 - Never run the eval runner unless asked. It uses plan usage.
-- Don't open tests/sessions/, tests/fixtures/ or eval/corpus/ unless the task needs it.
+- Don't open tests/sessions/, tests/fixtures/ or eval/handoff/sandbox/ unless the task needs it.
 
 ## Rules
 - Never load this working copy as a plugin in the current session.

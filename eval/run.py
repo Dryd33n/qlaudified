@@ -1,12 +1,14 @@
-"""Eval runner: tasks × conditions × repeats via isolated `claude -p` runs; resumable and cost-capped.
+"""Eval runner: handoff tasks × variants × conditions × repeats via isolated `claude -p` runs;
+resumable and cost-capped.
 
-    py -3 eval/run.py [--suite v1|v2] [--set dry|pilot|confirmatory] [--tasks a,b]
-                      [--variants ...] [--conditions ...] [--repeats 2] [--model haiku]
-                      [--daily-cap 2.0] [--max-runs N] [--max-turns 6] [--dry-run]
+    py -3 eval/run.py [--set dry|pilot|confirmatory] [--tasks a,b] [--variants ...]
+                      [--conditions ...] [--repeats 2] [--model haiku] [--daily-cap 2.0]
+                      [--max-runs N] [--max-turns 15] [--dry-run]
+
+Tasks are eval/handoff/ (built by eval/handoff/build.py; scored by eval/handoff/score.py).
 
 Conditions. **off** runs without the plugin; **low** records only (the sidecar builds the ledger and
-report, nothing reaches Claude); **medium** records and refeeds; **high** adds the retry. Study v2
-adds three controls (docs/findings/methods-critique.md, fix 1):
+report, nothing reaches Claude); **medium** records and refeeds; **high** adds the retry. Controls:
 
 - **prompt**: no plugin, plus one system line asking Claude to keep sources' qualifiers. The
   cheapest thing that could produce Medium's effect.
@@ -15,21 +17,16 @@ adds three controls (docs/findings/methods-critique.md, fix 1):
 - **placebo**: Medium with the refeed's qualifiers masked out (``refeed = "placebo"``): the same
   reminder of the fact, without the hedge.
 
-Suites. **v1** is the frozen exploratory corpus (eval/tasks, tests/sandbox; variants natural and
-pressure). **v2** is the redesigned study (eval/v2, built by eval/v2/build.py; variants natural,
-format and antihedge). v2 runs go to eval/runs/<set>/v2/ so dry runs, the pilot and confirmatory
-runs never mix; v1 runs stay in eval/runs/.
+Each run lands in eval/runs/<set>/handoff/<task>__<variant>__<condition>__r<n>__<model>/ with
+result.json (cost, turns, tokens), the hook recording (events.jsonl), the store (store/) and the
+session transcript (transcript.jsonl). A run whose result.json has returncode 0 is skipped, so an
+interrupted batch resumes where it stopped.
 
-Each run lands in <runs>/<task>__<variant>__<condition>__r<n>__<model>/ with result.json (cost,
-turns, tokens per step), the hook recording (events.jsonl), the store (store/) and the session
-transcript (transcript.jsonl), from which distance in tokens and re-reads are measured. A run whose
-result.json has returncode 0 is skipped, so an interrupted batch resumes where it stopped.
-
-Invalid runs (protocol v2): a run that exits non-zero is retried on the next invocation; a run that
-exits 0 with an empty final answer is retried once at once, and if it is still empty it is kept
-with ``invalid: true`` and scored as stating nothing. Every run is appended to eval/ledger.jsonl,
-and the batch stops once today's spend reaches --daily-cap, after --max-runs runs, or at the first
-run that fails on a usage or rate limit. Never start a batch without deciding the day's budget.
+Invalid runs: a run that exits non-zero is retried on the next invocation; a run that exits 0 with
+an empty answer is retried once at once, and if it is still empty it is kept with ``invalid:
+true`` and scored as stating nothing. Every run is appended to eval/ledger.jsonl, and the batch
+stops once today's spend reaches --daily-cap, after --max-runs runs, or at the first run that
+fails on a usage or rate limit. Never start a batch without deciding the day's budget.
 """
 
 import argparse
@@ -41,13 +38,11 @@ import subprocess
 import sys
 import tempfile
 import time
-import tomllib
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-TASKS = REPO / "eval" / "tasks"
+HANDOFF = REPO / "eval" / "handoff"
 RUNS = REPO / "eval" / "runs"
-V2 = REPO / "eval" / "v2"
 sys.path.insert(0, str(REPO / "scripts"))
 
 from live import LEDGER, TEST_ENV, spent_today
@@ -58,16 +53,8 @@ CONDITIONS: dict[str, str | None] = {"off": None, "prompt": None, "low": "low", 
 EXTRA_CONFIG = {"rules": 'backend = "none"', "placebo": 'refeed = "placebo"'}
 PROMPT_ONLY = "When you state a figure from a source, keep the source's qualifiers."
 SYSTEM_PROMPTS = {"prompt": PROMPT_ONLY}
-SUITES = {
-    "v1": {"variants": {"natural": "prompt.txt", "pressure": "prompt-pressure.txt"},
-           "conditions": "off,low,medium,high"},
-    "v2": {"variants": {"natural": "prompt-natural.txt", "format": "prompt-format.txt",
-                        "antihedge": "prompt-antihedge.txt"},
-           "conditions": "off,prompt,rules,placebo,medium"},
-    "probe": {"variants": {"natural": "prompt-natural.txt"}, "conditions": "off"},
-}
-SUITE_DIRS = {"v2": V2, "probe": V2 / "probe"}
-VARIANTS = SUITES["v1"]["variants"]  # v1 names, kept for older callers
+VARIANTS = ("paste-board", "paste-reply", "edit-board", "edit-reply")
+TOOLS = "Read,Grep,Glob,Bash,PowerShell,Write,Edit"  # Windows lists PowerShell as the primary shell
 SETS = ("dry", "pilot", "confirmatory")
 LIMITED = re.compile(r"usage limit|rate limit|limit reached|429|overloaded|quota|credit balance",
                      re.IGNORECASE)
@@ -89,21 +76,16 @@ def done(folder: Path) -> bool:
         return False
 
 
-def sandbox_dir(task: str, suite: str = "v1") -> Path:
-    if suite in SUITE_DIRS:
-        return SUITE_DIRS[suite] / "sandbox" / task
-    return REPO / "tests" / "sandbox" / task
+def sandbox_dir(task: str) -> Path:
+    return HANDOFF / "sandbox" / task
 
 
-def task_ids(suite: str) -> list[str]:
-    if suite in SUITE_DIRS:
-        return sorted(p.stem for p in (SUITE_DIRS[suite] / "tasks").glob("*.json"))
-    return sorted(p.stem for p in TASKS.glob("*.toml"))
+def task_ids() -> list[str]:
+    return sorted(p.stem for p in (HANDOFF / "tasks").glob("*.json"))
 
 
-def steps_for(task: str, variant: str = "natural", suite: str = "v1") -> list[str]:
-    name = SUITES[suite]["variants"][variant]
-    text = (sandbox_dir(task, suite) / name).read_text(encoding="utf-8")
+def steps_for(task: str, variant: str) -> list[str]:
+    text = (sandbox_dir(task) / f"prompt-{variant}.txt").read_text(encoding="utf-8")
     return [s.strip() for s in text.split("\n---\n") if s.strip()]
 
 
@@ -120,13 +102,13 @@ def _transcript(config_dir: str, session_id: str | None) -> Path | None:
 
 
 def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
-            out: Path, suite: str = "v1") -> dict:
+            out: Path) -> dict:
     """One isolated run: sandbox copy with the condition's config, every step, recording kept."""
     # resolve(): Windows hands out 8.3 short temp paths (DRYDEN~1), which Claude Code does not
-    # treat as inside its working folder, so acceptEdits would still deny writing notes.md.
+    # treat as inside its working folder, so acceptEdits would still deny writes in the sandbox.
     work = Path(tempfile.mkdtemp(prefix="qlaudified-eval-")).resolve()
     sandbox = work / task
-    shutil.copytree(sandbox_dir(task, suite), sandbox,
+    shutil.copytree(sandbox_dir(task), sandbox,
                     ignore=shutil.ignore_patterns("prompt*.txt", ".claude"))
     store = sandbox / ".claude" / ".qlaudified"
     mode = CONDITIONS[condition]
@@ -142,17 +124,20 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     system = (["--append-system-prompt", SYSTEM_PROMPTS[condition]]
               if condition in SYSTEM_PROMPTS else [])
     base = [*plugin, *system, "--model", model, "--max-turns", str(turns_cap),
-            "--allowedTools", "Read,Grep,Glob,Bash" + (",Write,Edit" if suite != "v1" else ""),
-            *(["--permission-mode", "acceptEdits"] if suite != "v1" else []),  # notes.md in the sandbox
-            "--permission-prompts", "none",
-            "--output-format", "json"]
+            "--allowedTools", TOOLS, "--permission-mode", "acceptEdits",
+            "--permission-prompts", "none", "--output-format", "json"]
     start = time.time()
     cost, turns, session_id, returncode, data, stderr = 0.0, 0, None, 0, {}, b""
     usage_steps: list[dict] = []
-    for step in steps_for(task, variant, suite):
+    for step in steps_for(task, variant):
         resume = ["--resume", session_id] if session_id else []
-        proc = subprocess.run(["claude", "-p", step, *resume, *base], cwd=sandbox, env=env,
-                              stdin=subprocess.DEVNULL, capture_output=True, check=False,
+        # With shell=True, cmd.exe ends the command at a newline and drops the flags after it, so
+        # a multi-line step (a pasted report) goes on stdin instead.
+        multiline = "\n" in step
+        proc = subprocess.run(["claude", "-p", *([] if multiline else [step]), *resume, *base],
+                              cwd=sandbox, env=env, capture_output=True, check=False,
+                              input=step.encode("utf-8") if multiline else None,
+                              stdin=None if multiline else subprocess.DEVNULL,
                               shell=(os.name == "nt"))
         try:
             data = json.loads(proc.stdout.decode("utf-8", "replace"))
@@ -168,7 +153,7 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
             break
     record = {
         "ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "task": task, "variant": variant,
-        "condition": condition, "suite": suite,
+        "condition": condition, "suite": "handoff",
         "model": model, "returncode": returncode, "wall_s": round(time.time() - start, 1),
         "total_cost_usd": round(cost, 6), "num_turns": turns, "session_id": session_id,
         "usage_steps": usage_steps,
@@ -192,44 +177,29 @@ def run_one(task: str, variant: str, condition: str, model: str, max_turns: int,
     return record
 
 
-def runs_dir(suite: str, run_set: str | None) -> Path:
-    if suite == "v1":
-        return RUNS / run_set / "v1" if run_set else RUNS
-    if run_set not in SETS:
-        raise SystemExit(f"{suite} runs need --set dry, pilot or confirmatory")
-    return RUNS / run_set / suite
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="eval/run.py")
-    parser.add_argument("--suite", default="v1", choices=sorted(SUITES))
-    parser.add_argument("--set", dest="run_set", choices=SETS,
-                        help="v2: which analysis the runs belong to (kept in separate folders)")
+    parser.add_argument("--set", dest="run_set", choices=SETS, required=True,
+                        help="which analysis the runs belong to (kept in separate folders)")
     parser.add_argument("--tasks", help="comma-separated task IDs (default: all)")
-    parser.add_argument("--variants", help="default: every variant of the suite")
-    parser.add_argument("--conditions", help="default: v1 off,low,medium,high; "
-                                             "v2 off,prompt,rules,placebo,medium")
+    parser.add_argument("--variants", help=f"default: {','.join(VARIANTS)}")
+    parser.add_argument("--conditions", default="off", help="default: off")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--model", default="haiku")
-    parser.add_argument("--max-turns", type=int, default=6)
+    parser.add_argument("--max-turns", type=int, default=15)
     parser.add_argument("--daily-cap", type=float, default=2.0, help="USD estimate per day")
     parser.add_argument("--max-runs", type=int, help="stop after this many runs in this batch")
     parser.add_argument("--dry-run", action="store_true", help="list the runs, start nothing")
     args = parser.parse_args(argv)
 
-    suite = SUITES[args.suite]
-    runs = runs_dir(args.suite, args.run_set)
-    tasks = args.tasks.split(",") if args.tasks else task_ids(args.suite)
-    for task in tasks:  # fail early on typos
-        if args.suite in SUITE_DIRS:
-            json.loads((SUITE_DIRS[args.suite] / "tasks" / f"{task}.json").read_text(encoding="utf-8"))
-        else:
-            tomllib.loads((TASKS / f"{task}.toml").read_text(encoding="utf-8"))
-    conditions = (args.conditions or suite["conditions"]).split(",")
-    variants = (args.variants or ",".join(suite["variants"])).split(",")
-    unknown = (set(conditions) - set(CONDITIONS)) | (set(variants) - set(suite["variants"]))
+    runs = RUNS / args.run_set / "handoff"
+    tasks = args.tasks.split(",") if args.tasks else task_ids()
+    unknown_tasks = set(tasks) - set(task_ids())
+    conditions = args.conditions.split(",")
+    variants = (args.variants or ",".join(VARIANTS)).split(",")
+    unknown = unknown_tasks | (set(conditions) - set(CONDITIONS)) | (set(variants) - set(VARIANTS))
     if unknown:
-        raise SystemExit(f"unknown conditions or variants: {', '.join(sorted(unknown))}")
+        raise SystemExit(f"unknown tasks, conditions or variants: {', '.join(sorted(unknown))}")
     # Repeat-major: if a cap bites, every task has its first repeat in every variant and
     # condition. Conditions sit innermost, so a task's conditions run back to back.
     plan = [(t, v, c, r) for r in range(1, args.repeats + 1) for v in variants for t in tasks
@@ -249,12 +219,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"--max-runs {args.max_runs} reached; rerun to resume")
             return 0
         rid = run_id(task, variant, condition, repeat, args.model)
-        record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid,
-                         args.suite)
+        record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid)
         if record["returncode"] == 0 and not record["result"].strip():
-            record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid,
-                             args.suite)  # protocol v2: one immediate retry of an empty answer
-            if record["returncode"] == 0 and not record["result"].strip():
+            record = run_one(task, variant, condition, args.model, args.max_turns, runs / rid)
+            if record["returncode"] == 0 and not record["result"].strip():  # one retry, then invalid
                 record["invalid"] = True
                 (runs / rid / "result.json").write_text(json.dumps(record, indent=2),
                                                         encoding="utf-8")

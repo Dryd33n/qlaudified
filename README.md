@@ -18,50 +18,33 @@ use, and how the fact shaped the answer. The record is a rolling, read-only `pro
 closed by a provenance report at the end of every answer. In Medium and High mode the record is
 also fed back into Claude's loop, so qualifiers survive long tasks.
 
-## Preliminary findings
-> **First look at the redesigned tasks (Oct 9, 14 runs, haiku):** without being told to drop
-> hedges, Claude kept every one, **with or without the plugin**, even ~8,000 tokens after reading
-> the source. It never over-hedged a firm figure either. So far the plugin's measurable effect is
-> confined to prompts that ask for no hedging. Medium also made a long task about 7× slower
-> (224 s vs 32 s).
->
-> **Then a difficulty probe (21 runs, no plugin) tried to make Claude lose hedges on its own:**
-> `/compact`, answering from its own notes, computing changes from estimates, upbeat press
-> releases, and **reading ~120k tokens of competing figures before answering**. Haiku kept every
-> hedge in every run; under persuasive framing it left uncertain figures out rather than overstate
-> them. For current models, in single-session tasks like these, there was no loss for the plugin to
-> prevent. [Details](docs/findings/sprint-6.md).
+## Where hedges get lost without the plugin
 
-**Qualifiers kept in the final answer** (hedged facts stated with the source's hedge):
+Haiku, no plugin, Oct 9–21, 2026. Every number is counted by hand from the answers; runs are few
+(2 to 21 per row), so read them as rates to confirm, not measurements.
 
-| Prompt style | Low: record only | Medium: record + refeed |
-| --- | --- | --- |
-| Natural ("summarize what you read") | 74% (14/19) | **100% (19/19)** |
-| Under pressure ("one punchy headline, no hedging") | 14% (2/14) | **100% (14/14)** |
+| Workflow | Hedged findings lost |
+| --- | --- |
+| Answering from sources still in context: summaries, notes, `/compact`, ~120k tokens of competing figures (21 runs) | **none** |
+| Rewriting the same findings through a chain of formats, each step a fresh session (CSV, one-liners, slides, FAQ…) | 1 of 12 at 10 steps; 2 of 6 at 20 steps, by drift ("may include symptoms" became "the study found treatment works") |
+| Turning hedged figures into data: parsing to a numeric field, pooling, ranking, code constants, a report filled from a firm template | ingest strips the hedge in 6 of 8 runs; ranking and code lose all of them in 8 of 8; the report keeps them in 1 of 8 |
+| A fresh session answers from those files, sources still on disk, asked **how strong the evidence is** | **0 of 6** (it reopens the sources every time) |
+| The same, asked for a board slide, patient leaflet or a reply to a manager | **5 of 15** (2 of 6 runs) |
+| The user **pastes the report**, or asks to **turn it into** a slide or reply | **13 of 14** (6 of 8 runs never opened a source) |
 
-On the decay tasks the hedged fact is read at step 1 and the question comes 0, ~5 or ~15 tool
-calls later, once after a `/compact`. Under pressure, Low kept 1 of 4 hedges at 0 steps, none of
-8 at ~5 and ~15 steps, and 1 of 2 after compaction. Medium kept every one at every distance:
+So the loss is not about distance or context length. Claude keeps hedges while the source is in
+view and goes back to the source when the question is about evidence. It loses them when the
+work hands it a finished, firm-looking document and asks for a transformation of it: then it
+critiques what it can see ("the report says 'pooled', but the code takes an unweighted mean")
+and never asks whether the findings underneath were hedged. Example, from a pasted report:
 
-| Task | Low | Medium |
-| --- | --- | --- |
-| Finance, ~15 steps | "Fernwick hits $4.2M in Q3 revenue, up 12% from Q2." | "Fernwick Q3 revenue hits an **estimated** $4.2M, up **roughly** 12% on Q2 (**preliminary, pending audit**)" |
-| Launch, ~15 steps | Launch date: March 3, 2027 · Seat price: $15 per month | Launch date: March 3, 2027 **(tentative)** · Seat price: $15 per month **(expected)** |
+> **Yoga:** Ranked #1 of 20 on effect per $100. Costs $40/patient and reduces fatigue by 36%.
 
-What else the pilot showed:
+Every yoga abstract said "may have", "possibly" or "appeared to". The handoff tasks are the
+evaluation method (`eval/README.md`).
 
-- **The record is accurate.** Every planted fact was recorded, with the right source qualifiers
-  and origin, in every mode (40/40 rows).
-- **Every drop is reported.** Even in Low, the end-of-answer report flagged every qualifier the
-  answer lost (0 uncaught, vs 1 in 5 answers with no plugin).
-- **The refeed is enough on its own.** Claude never opened `provenance.csv`; the facts fed back
-  after each step did the work.
-- **Low and Off kept the same share of qualifiers**, as designed: Low only records. High's retry
-  had nothing left to fix after Medium.
-
-Under the pre-registered rule, a hedge counts only in the clause that states the figure, so "~"
-and caveats in the next sentence count as drops (this scoring is being settled before the
-study). Read generously, Low under pressure keeps ~6/14. That doesn't change the direction.
+**Open question for the plugin:** its ledger is per session, and the session that answers here
+never reads the sources, so as built it has nothing to refeed in the workflow where loss happens.
 
 ## How it works
 
@@ -145,7 +128,7 @@ Measured on Windows 11 under ordinary background load ([sprint-5.md](docs/findin
 | 3 | Web sources, NLI and LLM tiers | ✅ [results](docs/findings/sprint-3.md) |
 | 4 | High mode and the eval harness | ✅ [results](docs/findings/sprint-4.md) |
 | 5 | The Provenance Administrator (design revision 2) | ✅ [results](docs/findings/sprint-5.md) |
-| 6 | Study, README, v1.0.0 (target Nov 22, 2026) | 🔄 study redesigned: [protocol v2](docs/findings/protocol-v2.md); v2 pilot next |
+| 6 | Study, README, v1.0.0 (target Nov 22, 2026) | 🔄 found where hedges get lost (above); plugin test next |
 
 Sprints 0–4 built design revision 1 (rule-based capture and verification). On Oct 8 the design
 returned to its original idea: the sidecar's provenance record is the core, and feeding it back
@@ -155,8 +138,7 @@ is the hypothesis under test.
 
 - [Design and requirements](docs/design.md)
 - [Sprint plan](docs/sprint-plan.md)
-- [Evaluation report](docs/evaluation.md) (main study pending), the
-  [study protocol v2](docs/findings/protocol-v2.md) and the [methods critique](docs/findings/methods-critique.md)
+- [Evaluation method](eval/README.md)
 - [Testing and dev workflow](docs/testing.md)
 - Sprint findings: [0](docs/findings/sprint-0.md) · [1](docs/findings/sprint-1.md) ·
   [2](docs/findings/sprint-2.md) · [3](docs/findings/sprint-3.md) · [4](docs/findings/sprint-4.md) ·
@@ -176,7 +158,7 @@ hooks/run.py                 single hook entry point: run.py <event>
 hooks/cli.py, launch.sh      /qlaudified entry point and Python picker
 skills/qlaudified/SKILL.md   /qlaudified mode | report | csv | nli
 qlaudified/                  Python package (standard library only)
-eval/                        Fernwick corpus, tasks, runner, scorer
+eval/                        handoff tasks, runner, scorer
 scripts/live.py              isolated live smoke runs
 scripts/bench_capture.py     end-to-end hook latency (NFR-3)
 scripts/bench_sidecar.py     sidecar step cost and latency (NFR-4)

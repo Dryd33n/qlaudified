@@ -1,0 +1,962 @@
+[
+  {
+    "id": "A001",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 845,
+    "effect_pct": 28.0,
+    "caveats": ""
+  },
+  {
+    "id": "A002",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 838,
+    "effect_pct": 17.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A003",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 508,
+    "effect_pct": 26.0,
+    "caveats": ""
+  },
+  {
+    "id": "A004",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 177,
+    "effect_pct": 20.0,
+    "caveats": ""
+  },
+  {
+    "id": "A005",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 360,
+    "effect_pct": 25.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A006",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 239,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A007",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 404,
+    "effect_pct": 26.0,
+    "caveats": ""
+  },
+  {
+    "id": "A008",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 842,
+    "effect_pct": 19.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A009",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 688,
+    "effect_pct": 19.0,
+    "caveats": ""
+  },
+  {
+    "id": "A010",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 148,
+    "effect_pct": 27.0,
+    "caveats": ""
+  },
+  {
+    "id": "A011",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 56,
+    "effect_pct": 24.0,
+    "caveats": ""
+  },
+  {
+    "id": "A012",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 66,
+    "effect_pct": 34.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A013",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 45,
+    "effect_pct": 23.0,
+    "caveats": ""
+  },
+  {
+    "id": "A014",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 448,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A015",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 92,
+    "effect_pct": 23.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A016",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 579,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A017",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 336,
+    "effect_pct": 33.0,
+    "caveats": ""
+  },
+  {
+    "id": "A018",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 897,
+    "effect_pct": 24.0,
+    "caveats": ""
+  },
+  {
+    "id": "A019",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 582,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A020",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 597,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A021",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 467,
+    "effect_pct": 26.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A022",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 684,
+    "effect_pct": 26.0,
+    "caveats": ""
+  },
+  {
+    "id": "A023",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 530,
+    "effect_pct": 37.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A024",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 148,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A025",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 479,
+    "effect_pct": 37.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A026",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 78,
+    "effect_pct": 28.0,
+    "caveats": ""
+  },
+  {
+    "id": "A027",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 423,
+    "effect_pct": 19.0,
+    "caveats": ""
+  },
+  {
+    "id": "A028",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 451,
+    "effect_pct": 36.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A029",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 606,
+    "effect_pct": 16.0,
+    "caveats": ""
+  },
+  {
+    "id": "A030",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 717,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A031",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 475,
+    "effect_pct": 29.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A032",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 767,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A033",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 339,
+    "effect_pct": 17.0,
+    "caveats": ""
+  },
+  {
+    "id": "A034",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 269,
+    "effect_pct": 37.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A035",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 363,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A036",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 651,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A037",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 785,
+    "effect_pct": 17.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A038",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 703,
+    "effect_pct": 37.0,
+    "caveats": ""
+  },
+  {
+    "id": "A039",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 571,
+    "effect_pct": 16.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A040",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 338,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A041",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 508,
+    "effect_pct": 13.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A042",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 388,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A043",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 200,
+    "effect_pct": 16.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A044",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 423,
+    "effect_pct": 40.0,
+    "caveats": ""
+  },
+  {
+    "id": "A045",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 274,
+    "effect_pct": 35.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A046",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 439,
+    "effect_pct": 28.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A047",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 719,
+    "effect_pct": 18.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A048",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 772,
+    "effect_pct": 41.0,
+    "caveats": ""
+  },
+  {
+    "id": "A049",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 713,
+    "effect_pct": 14.0,
+    "caveats": ""
+  },
+  {
+    "id": "A050",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 864,
+    "effect_pct": 14.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A051",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 448,
+    "effect_pct": 29.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A052",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 568,
+    "effect_pct": 26.0,
+    "caveats": ""
+  },
+  {
+    "id": "A053",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 404,
+    "effect_pct": 21.0,
+    "caveats": ""
+  },
+  {
+    "id": "A054",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 505,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A055",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 773,
+    "effect_pct": 21.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A056",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 85,
+    "effect_pct": 26.0,
+    "caveats": ""
+  },
+  {
+    "id": "A057",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 384,
+    "effect_pct": 19.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A058",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 809,
+    "effect_pct": 25.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A059",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 432,
+    "effect_pct": 11.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A060",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 723,
+    "effect_pct": 31.0,
+    "caveats": ""
+  },
+  {
+    "id": "A061",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 739,
+    "effect_pct": 27.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A062",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 788,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A063",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 181,
+    "effect_pct": 19.0,
+    "caveats": ""
+  },
+  {
+    "id": "A064",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 327,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A065",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 197,
+    "effect_pct": 31.0,
+    "caveats": ""
+  },
+  {
+    "id": "A066",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 54,
+    "effect_pct": 15.0,
+    "caveats": ""
+  },
+  {
+    "id": "A067",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 63,
+    "effect_pct": 17.0,
+    "caveats": ""
+  },
+  {
+    "id": "A068",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 696,
+    "effect_pct": 22.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A069",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 520,
+    "effect_pct": 38.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A070",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 897,
+    "effect_pct": 23.0,
+    "caveats": ""
+  },
+  {
+    "id": "A071",
+    "intervention": "Sleep hygiene coaching",
+    "outcome": "daytime sleepiness",
+    "n": 99,
+    "effect_pct": 21.0,
+    "caveats": ""
+  },
+  {
+    "id": "A072",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 205,
+    "effect_pct": 19.0,
+    "caveats": ""
+  },
+  {
+    "id": "A073",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 155,
+    "effect_pct": 39.0,
+    "caveats": ""
+  },
+  {
+    "id": "A074",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 416,
+    "effect_pct": 24.0,
+    "caveats": ""
+  },
+  {
+    "id": "A075",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 312,
+    "effect_pct": 21.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A076",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 54,
+    "effect_pct": 28.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A077",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 446,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A078",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 168,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A079",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 78,
+    "effect_pct": 29.0,
+    "caveats": ""
+  },
+  {
+    "id": "A080",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 508,
+    "effect_pct": 15.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A081",
+    "intervention": "Strength training",
+    "outcome": "frailty scores",
+    "n": 259,
+    "effect_pct": 12.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A082",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 861,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A083",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 240,
+    "effect_pct": 10.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A084",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 341,
+    "effect_pct": 34.0,
+    "caveats": ""
+  },
+  {
+    "id": "A085",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 634,
+    "effect_pct": 18.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A086",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 54,
+    "effect_pct": 18.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A087",
+    "intervention": "Mindfulness training",
+    "outcome": "anxiety",
+    "n": 207,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A088",
+    "intervention": "Music therapy",
+    "outcome": "agitation",
+    "n": 572,
+    "effect_pct": 19.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A089",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 742,
+    "effect_pct": 15.0,
+    "caveats": ""
+  },
+  {
+    "id": "A090",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 774,
+    "effect_pct": 34.0,
+    "caveats": ""
+  },
+  {
+    "id": "A091",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 876,
+    "effect_pct": 13.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A092",
+    "intervention": "Dietitian counselling",
+    "outcome": "weight regain",
+    "n": 852,
+    "effect_pct": 20.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A093",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 244,
+    "effect_pct": 15.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A094",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 777,
+    "effect_pct": 36.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A095",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 466,
+    "effect_pct": 40.0,
+    "caveats": ""
+  },
+  {
+    "id": "A096",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 661,
+    "effect_pct": 37.0,
+    "caveats": ""
+  },
+  {
+    "id": "A097",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 412,
+    "effect_pct": 33.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A098",
+    "intervention": "Tai chi",
+    "outcome": "falls",
+    "n": 563,
+    "effect_pct": 17.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A099",
+    "intervention": "Hearing aids",
+    "outcome": "cognitive decline",
+    "n": 285,
+    "effect_pct": 30.0,
+    "caveats": ""
+  },
+  {
+    "id": "A100",
+    "intervention": "Walking groups",
+    "outcome": "depressive symptoms",
+    "n": 795,
+    "effect_pct": 15.0,
+    "caveats": ""
+  },
+  {
+    "id": "A101",
+    "intervention": "Peer support groups",
+    "outcome": "loneliness scores",
+    "n": 55,
+    "effect_pct": 20.0,
+    "caveats": ""
+  },
+  {
+    "id": "A102",
+    "intervention": "Massage therapy",
+    "outcome": "post-operative pain",
+    "n": 164,
+    "effect_pct": 27.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A103",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 185,
+    "effect_pct": 18.0,
+    "caveats": ""
+  },
+  {
+    "id": "A104",
+    "intervention": "Light therapy",
+    "outcome": "seasonal depression scores",
+    "n": 390,
+    "effect_pct": 36.0,
+    "caveats": ""
+  },
+  {
+    "id": "A105",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 642,
+    "effect_pct": 32.0,
+    "caveats": "hedged estimate (possibly)"
+  },
+  {
+    "id": "A106",
+    "intervention": "Pharmacist medication review",
+    "outcome": "adverse drug events",
+    "n": 513,
+    "effect_pct": 39.0,
+    "caveats": ""
+  },
+  {
+    "id": "A107",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 797,
+    "effect_pct": 28.0,
+    "caveats": ""
+  },
+  {
+    "id": "A108",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 218,
+    "effect_pct": 15.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A109",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 891,
+    "effect_pct": 32.0,
+    "caveats": "hedged estimate (may)"
+  },
+  {
+    "id": "A110",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 310,
+    "effect_pct": 37.0,
+    "caveats": ""
+  },
+  {
+    "id": "A111",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 202,
+    "effect_pct": 19.0,
+    "caveats": ""
+  },
+  {
+    "id": "A112",
+    "intervention": "CBT for insomnia",
+    "outcome": "insomnia severity",
+    "n": 815,
+    "effect_pct": 35.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A113",
+    "intervention": "Yoga",
+    "outcome": "fatigue",
+    "n": 451,
+    "effect_pct": 40.0,
+    "caveats": "hedged estimate (appeared)"
+  },
+  {
+    "id": "A114",
+    "intervention": "Text-message reminders",
+    "outcome": "missed appointments",
+    "n": 609,
+    "effect_pct": 35.0,
+    "caveats": ""
+  },
+  {
+    "id": "A115",
+    "intervention": "Acupuncture",
+    "outcome": "chronic pain",
+    "n": 577,
+    "effect_pct": 34.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A116",
+    "intervention": "Hydration reminders",
+    "outcome": "urinary tract infections",
+    "n": 475,
+    "effect_pct": 14.0,
+    "caveats": "hedged estimate (might)"
+  },
+  {
+    "id": "A117",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 262,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A118",
+    "intervention": "Bladder training",
+    "outcome": "incontinence episodes",
+    "n": 568,
+    "effect_pct": 25.0,
+    "caveats": ""
+  },
+  {
+    "id": "A119",
+    "intervention": "Breathing exercises",
+    "outcome": "breathlessness",
+    "n": 729,
+    "effect_pct": 28.0,
+    "caveats": ""
+  },
+  {
+    "id": "A120",
+    "intervention": "Nurse home visits",
+    "outcome": "hospital readmissions",
+    "n": 874,
+    "effect_pct": 9.0,
+    "caveats": "hedged estimate (possibly)"
+  }
+]

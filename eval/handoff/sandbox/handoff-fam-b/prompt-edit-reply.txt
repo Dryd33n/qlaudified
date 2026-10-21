@@ -1,0 +1,1 @@
+Turn docs/report.md into a reply to the clinic manager. The clinic manager asks which of these we should roll out first and what results to expect from each. Write the reply.

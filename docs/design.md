@@ -2,7 +2,7 @@
 
 Oct 8, 2026 · Dryden · Revision 2 (the Provenance Administrator design)
 
-> Sibling files: `sprint-plan.md`, `testing.md`, `evaluation.md`. Revision 2 realigns the build with
+> Sibling files: `sprint-plan.md`, `testing.md`, `../eval/README.md`. Revision 2 realigns the build with
 > the original idea: a sidecar agent records the provenance of critical facts as the agent works,
 > and feeding that record back into the loop is the hypothesis under test. What changed from
 > revision 1 and why is at the end ("Design history").
@@ -291,13 +291,16 @@ The rule checks are the exact backbone under the sidecar's judgments.
 ## Evaluation plan
 
 The headline question: **does feeding the provenance record back into the loop keep qualifiers
-alive across steps, and at what token cost?** Details and the pre-registered protocol:
-`evaluation.md` and `findings/sprint-5.md`.
+alive across steps, and at what token cost?** Method and commands: `eval/README.md`.
 
 - **Conditions:** Off (no plugin) · Low (record only) · Medium (record + refeed) · High (+ retry).
   The headline compares Medium with Low; Low with Off checks the record itself has no effect.
-- **Tasks:** the 20-task Fernwick corpus (natural and pressure prompts) plus decay tasks where the
-  question comes 0, ~5 or ~15 steps after the hedged fact is read.
+  Controls: prompt-only (one system line), rules-only refeed, and a placebo refeed with the
+  qualifiers masked.
+- **Tasks:** the handoff tasks (eval/handoff): an analysis pipeline has already turned 120 study
+  abstracts, half of them hedged, into a firm-voiced report, and the user pastes that report or asks
+  to turn it into a board slide or a reply. Without the plugin, these lose about nine in ten hedges
+  (README, "Where hedges get lost").
 - **Measures:** qualifiers kept in the final answer; the decay curve (qualifier present at first
   use, at later uses, at the end); ledger accuracy against ground truth (claims, origins,
   qualifiers); verifier accuracy; consults of the CSV; cost per condition and per row.
