@@ -35,9 +35,9 @@ def test_committed_prompts_match_the_builder(tmp_path, monkeypatch):
         (box / "docs" / "report.md").write_bytes(
             (HANDOFF / "sandbox" / name / "docs" / "report.md").read_bytes())
     monkeypatch.setattr(build, "SANDBOX", tmp_path)
-    build.main()
+    build.main([])
     for name in TASKS:
-        for variant in build.PROMPTS:
+        for variant in [*build.PROMPTS, "prep"]:
             rel = Path(name) / f"prompt-{variant}.txt"
             assert (tmp_path / rel).read_bytes() == (HANDOFF / "sandbox" / rel).read_bytes(), rel
 
@@ -135,8 +135,23 @@ def test_runner_plans_and_sends_a_pasted_report_on_stdin(tmp_path, monkeypatch, 
         return SimpleNamespace(returncode=0, stdout=json.dumps(out).encode(), stderr=b"")
 
     monkeypatch.setattr(run.subprocess, "run", fake)
+    earlier = tmp_path / "store" / "handoff-fam-a" / "sessions" / "s0"
+    earlier.mkdir(parents=True)
+    (earlier / "index.sqlite").write_bytes(b"ledger")
+    monkeypatch.setattr(run, "STORE", tmp_path / "store")
+    seen = []
+    real_copytree = run.shutil.copytree
+
+    def copytree(src, dst, *args, **kw):
+        if Path(dst).name == "sessions" and ".claude" in Path(dst).parts:  # into the sandbox
+            seen.append(Path(src))
+        return real_copytree(src, dst, *args, **kw)
+
+    monkeypatch.setattr(run.shutil, "copytree", copytree)
     run.run_one("handoff-fam-a", "paste-board", "off", "haiku", 15, tmp_path / "a")
     run.run_one("handoff-fam-a", "edit-board", "medium", "haiku", 15, tmp_path / "b")
+    assert seen == [tmp_path / "store" / "handoff-fam-a" / "sessions"]  # medium only, not off
+    assert (tmp_path / "b" / "store" / "sessions" / "s0" / "index.sqlite").exists()  # kept in the run
     (paste, paste_kw), (edit, edit_kw) = calls
     assert not any("\n" in arg for arg in paste) and paste_kw["input"].decode().count("\n") > 10
     assert "--output-format" in paste and paste_kw["stdin"] is None
@@ -144,6 +159,37 @@ def test_runner_plans_and_sends_a_pasted_report_on_stdin(tmp_path, monkeypatch, 
     assert "--plugin-dir" in edit and "--plugin-dir" not in paste
     tools = paste[paste.index("--allowedTools") + 1].split(",")
     assert "PowerShell" in tools and "Bash" in tools  # a denied PowerShell call once lost a step
+
+
+def test_plugin_conditions_refuse_to_start_without_the_earlier_ledger(tmp_path, monkeypatch):
+    run = _run_module()
+    monkeypatch.setattr(run, "STORE", tmp_path / "none")
+    import pytest
+
+    with pytest.raises(SystemExit, match="prep variant"):
+        run.main(["--set", "dry", "--conditions", "off,medium", "--dry-run"])
+    assert run.main(["--set", "dry", "--variants", "prep", "--conditions", "medium",
+                     "--repeats", "1", "--dry-run"]) == 0
+
+
+def test_freeze_store_checkpoints_and_copies_the_prep_ledger(tmp_path, monkeypatch):
+    import sqlite3
+
+    run = tmp_path / "handoff-fam-a__prep__medium__r1__haiku"
+    folder = run / "store" / "sessions" / "s0"
+    folder.mkdir(parents=True)
+    con = sqlite3.connect(folder / "index.sqlite")
+    con.execute("PRAGMA journal_mode = WAL")
+    con.execute("CREATE TABLE spans (text TEXT)")
+    con.execute("INSERT INTO spans VALUES ('Yoga may have reduced fatigue by about 32%.')")
+    con.commit()
+    con.close()
+    monkeypatch.setattr(build, "STORE", tmp_path / "store")
+    build.freeze_store([str(run)])
+    dest = tmp_path / "store" / "handoff-fam-a" / "sessions" / "s0"
+    assert sorted(p.name for p in dest.iterdir()) == ["index.sqlite"]
+    rows = sqlite3.connect(dest / "index.sqlite").execute("SELECT text FROM spans").fetchall()
+    assert rows == [("Yoga may have reduced fatigue by about 32%.",)]
 
 
 def test_eval_imports_nothing_from_the_plugin():
