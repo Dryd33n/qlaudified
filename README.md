@@ -62,10 +62,11 @@ clinic manager. 2 families × 4 prompts × 2 repeats = 16 runs per arm, haiku, h
 - **The carry-over keeps hedges, and the qualifiers are what do it.** Medium beat placebo in every
   paired cell where they differed (8 of 8, sign test p = 0.004). The carry-over fired in all 32
   plugin runs, and only 1 of 16 medium runs opened an abstract. Example, a pasted report turned
-  into a slide:
+  into a slide (Medium; the session read no file):
 
-  > **Acupuncture:** Reduces chronic pain by 33% on average across six studies… All six yoga and
-  > all six acupuncture studies are hedged estimates, so treat both as provisional.
+  > **Acupuncture (rank 2 of 20):** Reduces chronic pain by about 33% at $60 per patient…
+  > *Footnote:* … Source abstracts describe both effects with hedged language ("appeared to,"
+  > "may have"), so treat the percentages as estimates.
 
 - **It also over-hedges, so the pre-registered rule is not met.** The rule allowed firm findings to
   be hedged at most 15 points more often than with the plugin off; Medium did it 50 points more.
