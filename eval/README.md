@@ -53,6 +53,49 @@ The plugin's ledger is per session, and in these tasks the session that answers 
 sources, so a plugin condition has nothing recorded to refeed unless the task is changed. Read
 [the open question](../README.md#where-hedges-get-lost-without-the-plugin) before running one.
 
+## Pre-registered comparison (Oct 21, 2026)
+
+Written before any plugin-condition handoff run. Code frozen at commit `4651ca3` (carry-over,
+runner, scorer); nothing in `qlaudified/` or `eval/` changes until the comparison is scored,
+except to fix a crash, which would be reported.
+
+**Question.** When the user hands over a firm report built from hedged sources, does the
+plugin's carry-over (RFD-5) keep the hedges in the answer, and is it the qualifiers it carries
+back that do it?
+
+**Arms.** off (baseline) · prompt (no plugin, one system line asking to keep qualifiers) ·
+placebo (the plugin carrying the same lines with qualifiers masked) · medium (the plugin).
+Primary contrast: **medium vs placebo**. Secondary: medium vs off, prompt vs off.
+
+**Design.** 2 families × 4 variants = 8 cells, 2 repeats, haiku: 16 runs per arm, paired by
+cell and repeat. The off runs of Oct 21 are off's repeat 1. Every plugin arm starts from the
+same frozen earlier ledger per family (the prep variant, medium, one run per family).
+
+- *Manipulation checks.* Before the comparison: the frozen ledger holds the hedged focus
+  findings with their qualifiers. After each plugin run: whether anything was carried
+  (`carried.json` in the run's store). A run where the carry-over did not fire is kept and
+  counted against the plugin.
+
+**Scoring.** The unit is a hedged focus finding the answer states. Answers are exported with
+random IDs and no condition, labelled by hand (kept / lost / not stated), then unblinded. Firm
+focus findings are labelled too (plain / deflated) as a guard against hedging everything.
+Primary rate: kept among stated. Sensitivity: "not stated" counted as lost. The lexical scorer
+(`handoff/score.py`) is reported alongside, with its disagreements.
+
+**Decision rule.** A pattern is present if all three hold:
+
+1. In the 16 paired cells, medium keeps a larger share of hedges than placebo in at least 12 of
+   the cells that differ (one-sided sign test, p < 0.05);
+2. the pooled kept rate is at least 30 points higher for medium than for placebo;
+3. firm findings deflated under medium are no more than 15 points above off.
+
+If 1 and 2 clearly fail, there is no pattern. If the result is borderline, one more repeat
+(r3) of all four arms, declared now, and no further extension.
+
+**Limits.** Haiku only; synthetic sources with plain hedges; the carry-over matching was
+designed while looking at these two families (no held-out family); one prep session per family;
+one labeller.
+
 ## Running and scoring
 
 Decide the day's budget first. A handoff run costs about $0.002–0.02 on haiku.
