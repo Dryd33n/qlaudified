@@ -45,10 +45,12 @@ evaluation method (`eval/README.md`).
 
 **With the plugin** (pre-registered, 64 runs, Oct 21): the ledger was per session, so it had
 nothing to refeed in this workflow; it now carries qualified facts from earlier sessions (RFD-5).
-In the handoff tasks Medium kept **76%** of hedges against 24% off, 34% with an instruction to keep
-qualifiers, and 29% with a placebo that carries the same facts without their qualifiers. But in
-3 of 16 runs the carried caveats spread to firm findings (30% deflated vs 0% off), so the
-pre-registered rule is not met. [Details](eval/README.md#result-oct-21-2026).
+In the handoff tasks Medium kept **92%** of hedges against 24% off, 45% with an instruction to keep
+qualifiers, and 40% with a placebo that carries the same facts without their qualifiers. But it
+also hedged half the firm findings (50% vs 0% off), always through one blanket caveat in a reply
+("the figures above should be read as estimates"), because the plugin says which sources hedge
+and never which do not. So the pre-registered rule is not met. Numbers use labels corrected
+after unblinding; [details](eval/README.md#result-oct-21-2026).
 
 ## How it works
 

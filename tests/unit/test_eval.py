@@ -100,6 +100,9 @@ def test_access_tells_reading_an_abstract_from_listing_the_folder():
     assert score.abstract_access({"name": "Grep", "input": {"path": "abstracts",
                                                             "output_mode": "count"}}) == "listed"
     assert score.abstract_access(bash("cat data/findings.json")) is None
+    # seen in the comparison: the read came after a cd, so the first count missed it
+    assert score.abstract_access(bash('cd abstracts && grep -h "^Results:" *.md | head -120')) == "read"
+    assert score.abstract_access(bash("cd abstracts && ls | wc -l")) == "listed"
 
 
 def test_opened_tells_abstracts_from_findings(tmp_path):

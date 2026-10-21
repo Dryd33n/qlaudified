@@ -99,8 +99,11 @@ one labeller.
 ### Result (Oct 21, 2026)
 
 64 runs (16 per arm), all valid; blind hand labels. The carry-over fired in every plugin run
-(16/16 medium, 16/16 placebo), and no medium run opened an abstract, so the hedges medium kept
-came from the carried facts.
+(16/16 medium, 16/16 placebo), and only 1 of 16 medium runs read an abstract, so the hedges
+medium kept came from the carried facts. (First reported as "no medium run"; the scorer missed
+reads after `cd abstracts`, fixed since.)
+
+The table below uses the blind labels. They undercount hedges in all arms; see **Correction**.
 
 | Arm | Hedged kept, of stated | Kept, of all 48 hedged (sensitivity) | Firm deflated, of stated |
 | --- | --- | --- | --- |
@@ -128,6 +131,39 @@ placebo vs off: no difference (2–0 and 3–3).
 in every other arm), and it is the qualifiers that do it (placebo carries the same lines without
 them and does no better than off); the instruction alone does not. The cost is over-hedging:
 in 3 of 16 medium runs the carried caveats spread to firm findings.
+
+**Correction (after unblinding, not blind).** The blind export cut each intervention's text at
+330 characters, which hid hedge notes in 26 answers. Reading those hidden lines with the same
+rules changed six labels (`labels/labels-corrected.txt`); four were blanket caveats ("the study
+abstracts use hedged language, so the figures are estimates"):
+
+| Arm | Hedged kept, of stated | Kept, of all 48 | Firm deflated, of stated |
+| --- | --- | --- | --- |
+| off | 24% (7/29) | 15% (7/48) | 0% (0/33) |
+| prompt | 45% (13/29) | 27% (13/48) | 11% (3/28) |
+| placebo | 40% (14/35) | 29% (14/48) | 17% (6/36) |
+| **medium** | **92% (37/40)** | **77% (37/48)** | **50% (15/30)** |
+
+Medium vs placebo in paired cells: still 8 higher, 0 lower (p = 0.004); 10 vs 1 counting unstated
+findings as lost. The verdict does not change: criterion 3 fails by more.
+
+**Why firm findings were hedged.** Every deflated firm finding comes from one blanket sentence
+over all the figures ("The figures above should be read as estimates"); no answer hedged a
+specific firm finding. Of the 27 answers that mention the sources' hedging:
+
+| | Blanket caveat | Itemised (names the unhedged ones) | Flags hedged ones only |
+| --- | --- | --- | --- |
+| Reply to the clinic manager | 8 | 6 | 4 |
+| Board slide | 0 | 2 | 7 |
+| Had evidence that some findings were firm | 4 | 6 | 3 |
+| Had no such evidence | 4 | 2 | 8 |
+
+The reply genre ("what results to expect from each") draws a single caution about the figures;
+a slide line flags its own item or nothing. And Claude itemises when it can see which findings
+are firm (fam-a's full `findings.json`, whose `caveats` field is empty for firm records, or the
+abstracts). The carry-over sends only qualified facts, so it says which sources hedge, never
+which do not: 4 of medium's 5 blanket caveats came with no evidence of firm findings. The next
+change to test: carry the matched firm facts too, marked as stated plainly in the source.
 
 Scorer agreement: poor. The lexical scorer reports 0–58% kept and 33–75% firm deflated across
 arms, mostly from commentary words; only the hand labels are used above. Cost: $0.29 for the 55
