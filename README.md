@@ -10,7 +10,7 @@ its qualifiers survived.**
 
 A source says Q3 revenue was *estimated* at $4.2M, *based on preliminary figures*. Fifteen tool
 calls later, Claude's summary says "Q3 revenue was $4.2M." Nothing in it is invented, yet the claim
-is now wrong. qlaudified is a Claude Code plugin that catches that decay.
+is now wrong. qlaudified is a Claude Code plugin intends to catch and prevent that loss.
 
 As Claude works, a sidecar agent, the **Provenance Administrator**, records each critical fact:
 what it says, where it came from, how the source qualified it, whether that qualifier survived each
