@@ -1,17 +1,22 @@
-"""Carry qualified facts across sessions (RFD-5).
+"""Carry critical facts across sessions (RFD-5).
 
 The ledger is per session, so a new session starts empty. Work is often handed over between
 sessions: one session reads the sources, a later one is given the report built from them and
 asked to turn it into a slide. Without the plugin, that is where hedges are lost (README, "Where
 hedges get lost"). So when the user's prompt or a file Claude reads names something an earlier
-session in this project recorded with a qualifier, those earlier rows go back to Claude as plain
-factual lines, in the RFD-2 line format, within ``carry_budget_chars``, each row at most once per
-session.
+session in this project recorded, those earlier rows go back to Claude as plain factual lines, in
+the RFD-2 line format, within ``carry_budget_chars``, each row at most once per session.
+
+Rows are carried as the ledger holds them, hedged or firm, like every other refeed: a firm row in
+its source's own wording is how Claude can tell which findings the sources stated plainly. (The
+first version carried only rows with qualifiers; Claude then knew which sources hedged but not
+which did not, and covered firm findings with a blanket caveat. eval/README.md, Oct 21 result.)
 
 Matching is lexical: a row matches when it shares at least two distinctive words with the new
-text, a word being distinctive when at most half of the earlier qualified rows contain it.
-Rows are picked greedily by the new text's words they cover that earlier picks did not, so a
-report naming six interventions gets a line per intervention before a second line for any one.
+text, a word being distinctive when at most half of the earlier rows contain it. Rows are picked
+greedily by the new text's words they cover that earlier picks did not, so a report naming six
+interventions gets a line per intervention before a second line for any one; among equal picks,
+rows with qualifiers go first.
 """
 
 import json
@@ -21,12 +26,14 @@ import sqlite3
 from pathlib import Path
 
 from qlaudified import inject, paths
+from qlaudified.records import asdict
 from qlaudified.store import Span, Store
 
 HEADER = "Facts recorded in earlier sessions of this project that this matches (qlaudified):"
 CARRIED = "carried.json"  # per session: span keys already sent, so each goes once
 MAX_SESSIONS = 20  # the most recent earlier sessions, by ledger time
 MIN_SHARED = 2
+SOURCE_CHARS = 48  # longer source labels (whole shell commands) are cut in carried lines
 _WORD = re.compile(r"[A-Za-z][A-Za-z-]{2,}")
 _STOP = frozenset({
     "the", "and", "for", "with", "from", "that", "this", "these", "those", "was", "were", "are",
@@ -58,7 +65,8 @@ def earlier_sessions(session_id: str, payload: dict | None = None) -> list[Path]
 
 
 def earlier_facts(session_id: str, payload: dict | None = None) -> list[Span]:
-    """Qualified facts that earlier sessions read from a source (not Claude's own claims)."""
+    """Critical facts earlier sessions read from a source, hedged or firm (RFD-2's filter; not
+    Claude's own claims or the user's prompts)."""
     facts: list[Span] = []
     seen: set[tuple[str, str, str]] = set()
     for folder in earlier_sessions(session_id, payload):
@@ -71,7 +79,8 @@ def earlier_facts(session_id: str, payload: dict | None = None) -> list[Span]:
             store.close()
         for span in spans:
             key = (span.source, span.locator, span.text)
-            if span.qualifiers and span.origin not in ("claude", "user-prompt") and key not in seen:
+            if (span.origin not in ("claude", "user-prompt") and inject.worth_injecting(span)
+                    and key not in seen):
                 seen.add(key)
                 facts.append(span)
     return facts
@@ -105,13 +114,22 @@ def pick(facts: list[Span], text: str, budget_chars: int) -> list[Span]:
         best = max(candidates, key=lambda c: (weight(c[1] - covered), weight(c[1]),
                                               -order[c[0].span_id + c[0].source]))
         candidates.remove(best)
-        line = len(inject.format_line(best[0])) + 1
+        line = len(line_for(best[0])) + 1
         if used + line > budget_chars:
             continue  # a shorter line may still fit
         picked.append(best[0])
         covered |= best[1]
         used += line
     return picked
+
+
+def line_for(span: Span, placebo: bool = False) -> str:
+    """The RFD-2 line, with a long source label cut: a fact read through a shell command has the
+    whole command as its source, which would use most of the budget. The CSV keeps it in full."""
+    if len(span.source) <= SOURCE_CHARS:
+        return inject.format_line(span, placebo)
+    short = Span(**{**asdict(span), "source": span.source[:SOURCE_CHARS - 1].rstrip() + "…"})
+    return inject.format_line(short, placebo)
 
 
 def _key(span: Span) -> str:
@@ -135,15 +153,16 @@ def carry(session_id: str, text: str, budget_chars: int, payload: dict | None = 
         return ""
     folder.mkdir(parents=True, exist_ok=True)
     sent_path.write_text(json.dumps(sorted(sent | {_key(f) for f in picked})), encoding="utf-8")
-    return "\n".join([HEADER, *(inject.format_line(f, placebo) for f in picked)])
+    return "\n".join([HEADER, *(line_for(f, placebo) for f in picked)])
 
 
 def session_note(session_id: str, payload: dict | None = None) -> str:
-    """The SessionStart fact: earlier ledgers exist, and how many qualified facts they hold."""
+    """The SessionStart fact: earlier ledgers exist, and how many critical facts they hold."""
     facts = earlier_facts(session_id, payload)
     if not facts:
         return ""
     sessions = len(earlier_sessions(session_id, payload))
-    return (f"Earlier sessions in this project ({sessions}) recorded {len(facts)} facts with "
-            "qualifiers; qlaudified returns the ones that the prompt or a file read in this "
-            "session matches.")
+    qualified = sum(1 for f in facts if f.qualifiers)
+    return (f"Earlier sessions in this project ({sessions}) recorded {len(facts)} critical facts "
+            f"from sources ({qualified} with qualifiers); qlaudified returns the ones that the "
+            "prompt or a file read in this session matches.")
