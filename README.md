@@ -26,7 +26,6 @@ Hedges commonly disappear when sources undergo a lossy transformation, a hedged 
 | --- | --- |
 | Rewriting the same findings through a chain of formats, each step a fresh session (CSV, one-liners, slides, FAQ…) | 1 of 12 at 10 steps; 2 of 6 at 20 steps, by drift ("may include symptoms" became "the study found treatment works") |
 | Turning hedged figures into data: parsing to a numeric field, pooling, ranking, code constants, a report filled from a firm template | ingest strips the hedge in 6 of 8 runs; ranking and code lose all of them in 8 of 8; the report keeps them in 1 of 8 |
-| A fresh session answers from those files, sources still on disk, asked **how strong the evidence is** | **0 of 6** (it reopens the sources every time) |
 | The same, asked for a board slide, patient leaflet or a reply to a manager | **5 of 15** (2 of 6 runs) |
 | The user **pastes the report**, or asks to **turn it into** a slide or reply | **13 of 14** (6 of 8 runs never opened a source) |
 
@@ -41,11 +40,9 @@ and never asks whether the findings underneath were hedged. Example, from a past
 Every yoga abstract said "may have", "possibly" or "appeared to". The handoff tasks are the
 evaluation method (`eval/README.md`).
 
-## With the plugin: the handoff comparison
+## With the plugin
 
-The ledger was per session, so in the handoff workflow the plugin had nothing to refeed. It now
-carries qualified facts from earlier sessions in the project (RFD-5). Tested Oct 21, 2026, with a
-pre-registered design ([protocol and full result](eval/README.md#pre-registered-comparison-oct-21-2026)):
+Tested Oct 21, 2026, with a pre-registered design ([protocol and full result](eval/README.md#pre-registered-comparison-oct-21-2026)):
 an earlier session read the abstracts with the plugin on, then a fresh session was handed the
 firm report (pasted, or "turn docs/report.md into…") and asked for a board slide or a reply to the
 clinic manager. 2 families × 4 prompts × 2 repeats = 16 runs per arm, haiku, hand-labelled.
@@ -71,10 +68,6 @@ clinic manager. 2 families × 4 prompts × 2 repeats = 16 runs per arm, haiku, h
   Every case is one blanket sentence over all the figures in a reply to the manager ("The figures
   above should be read as estimates"); no answer hedged a specific firm finding, and no board
   slide did it at all.
-- **Why:** the plugin carries only facts that had qualifiers, so it tells Claude which sources
-  hedge but never which do not. Claude names the firm findings as firm when it can see them (6 of
-  13 answers with that evidence did) and otherwise covers everything (2 of 14 without it named
-  them). Next to test: carry the matched firm facts too, marked as stated plainly in the source.
 
 Limits: haiku only; synthetic studies with plain hedges; the matching was designed on these two
 families (no held-out family yet); one labeller, and six labels were corrected after unblinding
@@ -151,22 +144,6 @@ Measured on Windows 11 under ordinary background load ([sprint-5.md](docs/findin
 | Report at the end of each answer (p95) | ≤ 30 s | 8–25 s |
 | Sidecar cost (haiku) | as low as possible | ~$0.001 per recorded fact, ~$0.02 for a 20-step task |
 | Cost overhead vs no plugin | set from the Sonnet study | on haiku, +58% to +73%, because a haiku run itself costs only ~$0.003 |
-
-## Progress
-
-| Sprint | Goal | Status |
-| --- | --- | --- |
-| 0 | Prove the hooks behave as the design assumes | ✅ [findings](docs/findings/sprint-0.md) |
-| 1 | Plugin skeleton, mode command, capture into the store | ✅ [results](docs/findings/sprint-1.md) |
-| 2 | Medium mode end to end | ✅ [results](docs/findings/sprint-2.md) |
-| 3 | Web sources, NLI and LLM tiers | ✅ [results](docs/findings/sprint-3.md) |
-| 4 | High mode and the eval harness | ✅ [results](docs/findings/sprint-4.md) |
-| 5 | The Provenance Administrator (design revision 2) | ✅ [results](docs/findings/sprint-5.md) |
-| 6 | Study, README, v1.0.0 (target Nov 22, 2026) | 🔄 found where hedges get lost (above); plugin test next |
-
-Sprints 0–4 built design revision 1 (rule-based capture and verification). On Oct 8 the design
-returned to its original idea: the sidecar's provenance record is the core, and feeding it back
-is the hypothesis under test.
 
 ## Documentation
 
