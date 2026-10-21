@@ -1,0 +1,49 @@
+Here's our report:
+
+# Intervention report
+
+Source: `analysis/ranking.csv`, 20 interventions ranked by effect per $100 of cost per patient. Each effect is the unweighted mean of the six studies for that intervention. Rank is out of 20.
+
+## Befriending calls
+
+Befriending calls reduce isolation scores by 18.17% (pooled across 6 studies, 2,016 participants).
+Cost: $210 per patient.
+
+Recommendation: Not recommended on cost-effectiveness. Rank 18 of 20 (8.65 per $100) at $210 per patient.
+
+## Pilates
+
+Pilates reduces morning stiffness by 36.33% (pooled across 6 studies, 3,066 participants).
+Cost: $40 per patient.
+
+Recommendation: Recommended. Rank 1 of 20 (90.83 per $100) at $40 per patient.
+
+## Dry needling
+
+Dry needling reduces back pain by 33.17% (pooled across 6 studies, 2,711 participants).
+Cost: $60 per patient.
+
+Recommendation: Recommended. Rank 2 of 20 (55.28 per $100) at $60 per patient.
+
+## App notifications
+
+App notifications reduce late refills by 34.17% (pooled across 6 studies, 2,596 participants).
+Cost: $210 per patient.
+
+Recommendation: Lower priority. Rank 12 of 20 (16.27 per $100) at $210 per patient.
+
+## Pharmacy phone follow-up
+
+Pharmacy phone follow-up reduce emergency visits by 13.5% (pooled across 6 studies, 3,956 participants).
+Cost: $40 per patient.
+
+Recommendation: Recommended. Rank 4 of 20 (33.75 per $100) at $40 per patient.
+
+## Deprescribing clinics
+
+Deprescribing clinics reduces medication errors by 38.17% (pooled across 6 studies, 3,070 participants).
+Cost: $150 per patient.
+
+Recommendation: Recommended. Rank 7 of 20 (25.44 per $100) at $150 per patient, with the largest mean effect of the six focus interventions.
+
+Draft the board slide recommending which two of these to fund, with one line on each, and reply with the slide text.

@@ -171,6 +171,76 @@ new runs as logged; the plugin's sidecar calls are billed separately and not inc
 pre-registered, plus: answers from plugin arms sometimes cite ledger IDs (`[F12]`), which the
 blinding could not hide.
 
+## Pre-registered comparison 2 (Oct 21, 2026)
+
+Written before any run of it. Code frozen at commit `86e7a59`: the carry-over now carries the
+matched firm facts too and cuts long source labels (`2dfa160`), and a held-out family exists
+(`fam-c`, `86e7a59`). Nothing in `qlaudified/` or `eval/` changes until it is scored, except to
+fix a crash, which would be reported.
+
+**Question.** Does the revised carry-over keep hedges without hedging firm findings, and does
+it hold on a family it was not tuned on?
+
+**Design.** Arms off, prompt, placebo, medium. 3 families × 4 variants × 2 repeats = 24 runs per
+arm, haiku, `--set pilot`. Off and prompt do not involve the plugin, so their fam-a and fam-b
+runs are the 32 from comparison 1, copied in; fam-c's are new. Placebo and medium are all new.
+Plugin arms start from the frozen prep ledgers: fam-a and fam-b's from comparison 1, and one
+new medium prep run for fam-c.
+
+- *Manipulation checks.* Before the comparison: fam-c's prep ledger holds qualified facts for
+  each hedged focus intervention and unqualified facts for each firm one. After each plugin run:
+  whether anything was carried, and whether a firm focus intervention named in the prompt or
+  file got a line.
+
+**Scoring.** As in comparison 1, with one fix: the blind export shows each intervention's whole
+text and every line about hedging, uncut. All 96 answers are labelled in one shuffled, blind set
+(comparison 1's off and prompt answers again, not reused labels).
+
+**Decision rule.** A pattern is present if all three hold, over all three families:
+
+1. Medium keeps a larger share of hedges than placebo in the paired cells where they differ
+   (one-sided sign test, p < 0.05);
+2. the pooled kept rate is at least 30 points higher for medium than for placebo;
+3. firm findings deflated under medium are no more than 15 points above off.
+
+Reported separately: the same three on fam-c alone (8 paired cells), as the held-out check; it
+is not part of the decision, since 8 cells cannot reach p < 0.05 unless every differing cell
+favours one arm. No extension this time.
+
+### Result 2 (Oct 22, 2026)
+
+96 answers (64 new runs, all valid; $0.33 logged), labelled blind from an uncut export
+(`labels/comparison-2/`). One labelling rule was made explicit partway, before unblinding, and
+one earlier label (Y029) relabelled under it: "some/several studies hedge" plus a conclusion for
+the figures in general is a blanket caveat; without one it marks nothing.
+
+| Arm (all 3 families) | Hedged kept, of stated | Kept, of all 72 | Firm deflated, of stated |
+| --- | --- | --- | --- |
+| off | 24% (10/42; 95% CI 13–39) | 14% (10/72) | 6% (3/48) |
+| prompt | 33% (13/39; 21–49) | 18% (13/72) | 8% (3/39) |
+| placebo | 44% (22/50; 31–58) | 31% (22/72) | 24% (12/50) |
+| **medium** | **88% (44/50; 76–94)** | **61% (44/72)** | **29% (15/52; 18–42)** |
+
+**Against the decision rule:** (1) medium vs placebo in paired cells, 11 higher, 1 lower
+(p = 0.003): passes. (2) Kept +44 points: passes. (3) Firm deflation +23 points over off (limit
+15): **fails**. **Verdict: the pre-registered pattern is not established.**
+
+**Held out (fam-c alone, not part of the decision):** medium kept 71% (10/14) against 40%
+placebo and 23% off, and deflated firm findings no more than off (20% vs 20%); medium beat
+placebo 3–1 in the paired cells, too few to test.
+
+**Did carrying firm facts fix the over-hedging?** Not really. In fam-a and fam-b, the medium
+runs that put one blanket caveat over all the figures went from 5 of 16 (comparison 1, corrected
+labels) to 4 of 16, and one of them is now a board slide. The deflation rate fell (50% to 32%)
+mostly because answers stated more firm findings (37 vs 30), not because the blanket caveats
+stopped. Placebo, which now also carries the firm lines, deflated more than in comparison 1
+(24% vs 17%). Off produced one blanket caveat too (fam-c). The blanket caveat looks like a habit of
+reply-style answers once Claude knows that some of the sources hedge, which more facts do not
+undo.
+
+What holds across both comparisons and the held-out family: the carry-over keeps hedges (88%
+and 92% kept, against 24–45% in every other arm), and it is the qualifiers that do it.
+
 ## Running and scoring
 
 Decide the day's budget first. A handoff run costs about $0.002–0.02 on haiku.

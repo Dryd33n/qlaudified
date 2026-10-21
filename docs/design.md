@@ -126,13 +126,15 @@ eval's **record-only** condition. Medium is record + refeed, the hypothesis. Hig
   per-call budget (default 600 characters); overflow is a count plus the CSV path.
 - RFD-3: After compaction, re-send a digest of the qualified rows and the CSV's location.
 - RFD-4: Log every time Claude reads the CSV (a consult), with its step and size.
-- RFD-5: Carry qualified facts across sessions. When the user's prompt or a file Claude reads
-  names something an earlier session in the project recorded with a qualifier, return those rows
-  as factual lines with their source and qualifiers, within a budget (default 1200 characters),
+- RFD-5: Carry critical facts across sessions. When the user's prompt or a file Claude reads
+  names something an earlier session in the project recorded, return those rows as RFD-2 lines,
+  hedged or firm, with their source and qualifiers, within a budget (default 1200 characters),
   each row once per session. At session start, say that earlier ledgers hold such facts. Added
   Oct 21, 2026: without the plugin, hedges are lost mostly when a later session is handed a firm
   report built from the sources (README, "Where hedges get lost"), and the per-session ledger
-  had nothing to refeed there.
+  had nothing to refeed there. Revised the same day: the first version carried only rows with
+  qualifiers, so Claude knew which sources hedged but not which did not, and covered firm
+  findings with a blanket caveat (eval/README.md, Oct 21 result).
 
 **Verification and report (VER, REP)**
 

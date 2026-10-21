@@ -107,6 +107,11 @@ def read_tool_result(
 # re-fetching; command output and MCP results are gone once the tool returns.
 REREADABLE = {"local-doc": "file", "code": "file", "web-summary": "web", "web-raw": "web"}
 _LEADING_MARKUP = re.compile(r"^(?:[\s#>*+\-|]|//|/\*|\"\"\"|''')+")
+# Lines with digits that state no fact: `ls -l` entries ("drwxr-xr-x 1 user 197609 0 Oct 20 17:48
+# docs"), its "total 48" header, and a bare path ("./sessions/220d8471-.../claims.csv"). Matched on
+# the raw line: the markup cleaner would strip the leading "-" of "-rw-r--r--" as a bullet.
+_NOT_A_FACT = re.compile(r"\s*(?:[-dlcbps][rwxsStT-]{9}[.+@]?\s+\d+\s|total\s+\d+\s*$|"
+                         r"\S*[/\\]\S*\s*$)")
 _TRAILING_MARKUP = re.compile(r"(?:\"\"\"|'''|\*/)\s*$")
 
 
@@ -136,7 +141,7 @@ def facts_from_passage(origin: str, source: str, locator: str, text: str, agent:
     out = []
     for i, line in enumerate(text.splitlines()):
         stripped = _TRAILING_MARKUP.sub("", _LEADING_MARKUP.sub("", line)).strip()
-        if not stripped:
+        if not stripped or _NOT_A_FACT.match(line):
             continue
         for sentence in textlib.sentences(stripped):
             cleaned = textlib.clean(sentence)

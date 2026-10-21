@@ -1,0 +1,109 @@
+# Comparison 2: blind hand labels, written before opening key.json. Uncut export.
+# Per answer: hedged findings kept / lost / not stated; firm findings plain / deflated / not stated.
+# Rules (as comparison 1): kept = the answer marks that finding as uncertain (may, possibly,
+# appeared, tentative, hedged, less certain, a quoted source hedge such as "about 37%" from the
+# abstract), on the slide or in a note to the user; "about N%" alone is rounding = lost; a
+# caveat that the source studies hedge, applied to every figure = kept for hedged and deflated
+# for firm; a statement that "several/some" studies hedge, naming none, marks nothing; caveats
+# about variation or transfer ("studies varied", "not a guarantee for our clinic", "our results
+# may be smaller") are not source hedges. Not stated = named or ranked only, no effect claim.
+# Refined at Y049, before unblinding: "some/several/many studies hedge" plus a conclusion for the
+# figures in general ("so treat these as estimates", "so results may be smaller") is a blanket
+# caveat; without such a conclusion it marks nothing. Y029 relabelled under it.
+# id hk hl hn fp fd fn
+Y001 0 1 2 1 0 2
+Y002 0 3 0 3 0 0
+Y003 0 0 3 2 0 1
+Y004 3 0 0 3 0 0
+Y005 1 2 0 3 0 0
+Y006 0 1 2 2 0 1
+Y007 0 3 0 3 0 0
+Y008 3 0 0 0 3 0
+Y009 0 1 2 3 0 0
+Y010 0 1 2 2 0 1
+Y011 0 3 0 3 0 0
+Y012 0 0 3 2 0 1
+Y013 3 0 0 3 0 0
+Y014 0 3 0 3 0 0
+Y015 0 1 2 1 0 2
+Y016 1 2 0 3 0 0
+Y017 3 0 0 3 0 0
+Y018 3 0 0 0 3 0
+Y019 1 1 1 2 0 1
+Y020 0 0 3 2 0 1
+Y021 2 0 1 0 0 3
+Y022 2 0 1 2 0 1
+Y023 0 1 2 1 0 2
+Y024 2 0 1 1 0 2
+Y025 0 1 2 2 0 1
+Y026 3 0 0 3 0 0
+Y027 0 3 0 3 0 0
+Y028 0 1 2 1 0 2
+Y029 3 0 0 0 3 0
+Y030 0 1 2 3 0 0
+Y031 0 0 3 2 0 1
+Y032 0 1 2 1 0 2
+Y033 3 0 0 0 3 0
+Y034 0 1 2 3 0 0
+Y035 0 2 1 2 0 1
+Y036 0 1 2 2 0 1
+Y037 0 2 1 0 0 3
+Y038 0 1 2 1 0 2
+Y039 0 2 1 0 0 3
+Y040 0 0 3 0 0 3
+Y041 1 0 2 2 0 1
+Y042 0 3 0 3 0 0
+Y043 3 0 0 3 0 0
+Y044 0 2 1 0 0 3
+Y045 0 3 0 3 0 0
+Y046 0 0 3 3 0 0
+Y047 0 2 1 1 0 2
+Y048 0 3 0 3 0 0
+Y049 0 0 3 0 3 0
+Y050 1 0 2 1 0 2
+Y051 0 0 3 0 0 3
+Y052 3 0 0 3 0 0
+Y053 0 3 0 3 0 0
+Y054 2 0 1 2 0 1
+Y055 0 1 2 2 0 1
+Y056 0 0 3 2 0 1
+Y057 0 1 2 2 0 1
+Y058 3 0 0 0 3 0
+Y059 0 3 0 3 0 0
+Y060 0 3 0 3 0 0
+Y061 0 2 1 0 0 3
+Y062 2 1 0 3 0 0
+Y063 3 0 0 3 0 0
+Y064 0 1 2 2 0 1
+Y065 0 0 3 0 0 3
+Y066 0 1 2 2 0 1
+Y067 3 0 0 3 0 0
+Y068 0 3 0 3 0 0
+Y069 0 2 1 0 0 3
+Y070 0 0 3 1 0 2
+Y071 3 0 0 0 3 0
+Y072 0 1 2 1 0 2
+Y073 3 0 0 0 3 0
+Y074 3 0 0 3 0 0
+Y075 1 0 2 0 0 3
+Y076 0 1 2 2 0 1
+Y077 0 3 0 0 0 3
+Y078 3 0 0 3 0 0
+Y079 0 3 0 0 0 3
+Y080 0 0 3 0 0 3
+Y081 0 0 3 2 0 1
+Y082 3 0 0 3 0 0
+Y083 3 0 0 0 3 0
+Y084 0 2 1 0 0 3
+Y085 2 0 1 1 0 2
+Y086 0 1 2 2 0 1
+Y087 2 0 1 0 0 3
+Y088 3 0 0 0 3 0
+Y089 3 0 0 3 0 0
+Y090 3 0 0 3 0 0
+Y091 0 2 1 0 0 3
+Y092 0 2 1 0 0 3
+Y093 0 0 3 2 0 1
+Y094 3 0 0 0 3 0
+Y095 0 3 0 3 0 0
+Y096 0 1 2 1 0 2

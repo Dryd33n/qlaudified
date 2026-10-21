@@ -1,0 +1,21 @@
+rank,intervention,outcome,studies,total_n,mean_effect_pct,cost_per_patient,effect_per_100_usd
+1,Pilates,morning stiffness,6,3066,36.33,40.0,90.833
+2,Dry needling,back pain,6,2711,33.17,60.0,55.278
+3,Art therapy,restlessness,6,3256,18.33,40.0,45.833
+4,Pharmacy phone follow-up,emergency visits,6,3956,13.5,40.0,33.75
+5,Cold therapy,wound pain,6,1554,27.83,85.0,32.745
+6,Meal planning sessions,snacking,6,2876,17.67,60.0,29.444
+7,Deprescribing clinics,medication errors,6,3070,38.17,150.0,25.444
+8,Resistance bands,grip weakness,6,2956,14.5,60.0,24.167
+9,Sleep restriction therapy,night waking,6,3870,29.83,150.0,19.889
+10,Breathwork coaching,panic attacks,6,2588,26.67,150.0,17.778
+11,Pelvic floor coaching,leakage episodes,6,2685,24.5,150.0,16.333
+12,App notifications,late refills,6,2596,34.17,210.0,16.27
+13,Singing groups,wheezing,6,1985,23.83,150.0,15.889
+14,Nap scheduling,afternoon drowsiness,6,2735,19.0,150.0,12.667
+15,Dawn simulators,winter blues scores,6,2128,35.67,300.0,11.889
+16,Gardening programmes,low mood,6,2967,20.83,210.0,9.921
+17,Cataract surgery,memory lapses,6,2532,29.67,300.0,9.889
+18,Befriending calls,isolation scores,6,2016,18.17,210.0,8.651
+19,Balance classes,hip fractures,6,3458,17.67,450.0,3.926
+20,Water bottle prompts,kidney infections,6,3262,14.83,450.0,3.296
