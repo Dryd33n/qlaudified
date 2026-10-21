@@ -1,0 +1,842 @@
+[
+  {
+    "id": "A001",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 703,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A002",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 788,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A003",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 717,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A004",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 185,
+    "effect_pct": 18.0
+  },
+  {
+    "id": "A005",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 897,
+    "effect_pct": 23.0
+  },
+  {
+    "id": "A006",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 45,
+    "effect_pct": 23.0
+  },
+  {
+    "id": "A007",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 388,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A008",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 181,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A009",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 448,
+    "effect_pct": 29.0
+  },
+  {
+    "id": "A010",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 772,
+    "effect_pct": 41.0
+  },
+  {
+    "id": "A011",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 739,
+    "effect_pct": 27.0
+  },
+  {
+    "id": "A012",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 200,
+    "effect_pct": 16.0
+  },
+  {
+    "id": "A013",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 78,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A014",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 327,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A015",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 729,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A016",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 285,
+    "effect_pct": 30.0
+  },
+  {
+    "id": "A017",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 475,
+    "effect_pct": 14.0
+  },
+  {
+    "id": "A018",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 874,
+    "effect_pct": 9.0
+  },
+  {
+    "id": "A019",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 164,
+    "effect_pct": 27.0
+  },
+  {
+    "id": "A020",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 439,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A021",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 239,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A022",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 568,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A023",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 54,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A024",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 85,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A025",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 244,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A026",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 579,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A027",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 404,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A028",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 651,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A029",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 312,
+    "effect_pct": 21.0
+  },
+  {
+    "id": "A030",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 876,
+    "effect_pct": 13.0
+  },
+  {
+    "id": "A031",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 360,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A032",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 795,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A033",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 852,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A034",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 773,
+    "effect_pct": 21.0
+  },
+  {
+    "id": "A035",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 78,
+    "effect_pct": 29.0
+  },
+  {
+    "id": "A036",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 451,
+    "effect_pct": 40.0
+  },
+  {
+    "id": "A037",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 262,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A038",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 240,
+    "effect_pct": 10.0
+  },
+  {
+    "id": "A039",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 661,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A040",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 207,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A041",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 696,
+    "effect_pct": 22.0
+  },
+  {
+    "id": "A042",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 688,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A043",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 466,
+    "effect_pct": 40.0
+  },
+  {
+    "id": "A044",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 148,
+    "effect_pct": 27.0
+  },
+  {
+    "id": "A045",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 390,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A046",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 684,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A047",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 218,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A048",
+    "intervention": "Pelvic floor coaching",
+    "outcome": "leakage episodes",
+    "n": 797,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A049",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 404,
+    "effect_pct": 21.0
+  },
+  {
+    "id": "A050",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 838,
+    "effect_pct": 17.0
+  },
+  {
+    "id": "A051",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 310,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A052",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 582,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A053",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 363,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A054",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 815,
+    "effect_pct": 35.0
+  },
+  {
+    "id": "A055",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 572,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A056",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 719,
+    "effect_pct": 18.0
+  },
+  {
+    "id": "A057",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 55,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A058",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 197,
+    "effect_pct": 31.0
+  },
+  {
+    "id": "A059",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 742,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A060",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 634,
+    "effect_pct": 18.0
+  },
+  {
+    "id": "A061",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 259,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A062",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 785,
+    "effect_pct": 17.0
+  },
+  {
+    "id": "A063",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 423,
+    "effect_pct": 40.0
+  },
+  {
+    "id": "A064",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 336,
+    "effect_pct": 33.0
+  },
+  {
+    "id": "A065",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 384,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A066",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 99,
+    "effect_pct": 21.0
+  },
+  {
+    "id": "A067",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 423,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A068",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 56,
+    "effect_pct": 24.0
+  },
+  {
+    "id": "A069",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 642,
+    "effect_pct": 32.0
+  },
+  {
+    "id": "A070",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 412,
+    "effect_pct": 33.0
+  },
+  {
+    "id": "A071",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 571,
+    "effect_pct": 16.0
+  },
+  {
+    "id": "A072",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 563,
+    "effect_pct": 17.0
+  },
+  {
+    "id": "A073",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 479,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A074",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 508,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A075",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 723,
+    "effect_pct": 31.0
+  },
+  {
+    "id": "A076",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 597,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A077",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 446,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A078",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 809,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A079",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 842,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A080",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 513,
+    "effect_pct": 39.0
+  },
+  {
+    "id": "A081",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 508,
+    "effect_pct": 13.0
+  },
+  {
+    "id": "A082",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 467,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A083",
+    "intervention": "Dawn simulators",
+    "outcome": "winter blues scores",
+    "n": 155,
+    "effect_pct": 39.0
+  },
+  {
+    "id": "A084",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 205,
+    "effect_pct": 19.0
+  },
+  {
+    "id": "A085",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 891,
+    "effect_pct": 32.0
+  },
+  {
+    "id": "A086",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 416,
+    "effect_pct": 24.0
+  },
+  {
+    "id": "A087",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 92,
+    "effect_pct": 23.0
+  },
+  {
+    "id": "A088",
+    "intervention": "Sleep restriction therapy",
+    "outcome": "night waking",
+    "n": 777,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A089",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 148,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A090",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 713,
+    "effect_pct": 14.0
+  },
+  {
+    "id": "A091",
+    "intervention": "Befriending calls",
+    "outcome": "isolation scores",
+    "n": 63,
+    "effect_pct": 17.0
+  },
+  {
+    "id": "A092",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 609,
+    "effect_pct": 35.0
+  },
+  {
+    "id": "A093",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 568,
+    "effect_pct": 26.0
+  },
+  {
+    "id": "A094",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 774,
+    "effect_pct": 34.0
+  },
+  {
+    "id": "A095",
+    "intervention": "Balance classes",
+    "outcome": "hip fractures",
+    "n": 508,
+    "effect_pct": 15.0
+  },
+  {
+    "id": "A096",
+    "intervention": "Resistance bands",
+    "outcome": "grip weakness",
+    "n": 505,
+    "effect_pct": 12.0
+  },
+  {
+    "id": "A097",
+    "intervention": "Art therapy",
+    "outcome": "restlessness",
+    "n": 767,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A098",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 269,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A099",
+    "intervention": "Meal planning sessions",
+    "outcome": "snacking",
+    "n": 54,
+    "effect_pct": 18.0
+  },
+  {
+    "id": "A100",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 448,
+    "effect_pct": 25.0
+  },
+  {
+    "id": "A101",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 520,
+    "effect_pct": 38.0
+  },
+  {
+    "id": "A102",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 845,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A103",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 341,
+    "effect_pct": 34.0
+  },
+  {
+    "id": "A104",
+    "intervention": "Pharmacy phone follow-up",
+    "outcome": "emergency visits",
+    "n": 864,
+    "effect_pct": 14.0
+  },
+  {
+    "id": "A105",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 530,
+    "effect_pct": 37.0
+  },
+  {
+    "id": "A106",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 577,
+    "effect_pct": 34.0
+  },
+  {
+    "id": "A107",
+    "intervention": "App notifications",
+    "outcome": "late refills",
+    "n": 861,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A108",
+    "intervention": "Breathwork coaching",
+    "outcome": "panic attacks",
+    "n": 897,
+    "effect_pct": 24.0
+  },
+  {
+    "id": "A109",
+    "intervention": "Dry needling",
+    "outcome": "back pain",
+    "n": 475,
+    "effect_pct": 29.0
+  },
+  {
+    "id": "A110",
+    "intervention": "Water bottle prompts",
+    "outcome": "kidney infections",
+    "n": 432,
+    "effect_pct": 11.0
+  },
+  {
+    "id": "A111",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 177,
+    "effect_pct": 20.0
+  },
+  {
+    "id": "A112",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 274,
+    "effect_pct": 35.0
+  },
+  {
+    "id": "A113",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 66,
+    "effect_pct": 34.0
+  },
+  {
+    "id": "A114",
+    "intervention": "Pilates",
+    "outcome": "morning stiffness",
+    "n": 451,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A115",
+    "intervention": "Nap scheduling",
+    "outcome": "afternoon drowsiness",
+    "n": 606,
+    "effect_pct": 16.0
+  },
+  {
+    "id": "A116",
+    "intervention": "Deprescribing clinics",
+    "outcome": "medication errors",
+    "n": 338,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A117",
+    "intervention": "Cold therapy",
+    "outcome": "wound pain",
+    "n": 54,
+    "effect_pct": 28.0
+  },
+  {
+    "id": "A118",
+    "intervention": "Cataract surgery",
+    "outcome": "memory lapses",
+    "n": 168,
+    "effect_pct": 36.0
+  },
+  {
+    "id": "A119",
+    "intervention": "Gardening programmes",
+    "outcome": "low mood",
+    "n": 339,
+    "effect_pct": 17.0
+  },
+  {
+    "id": "A120",
+    "intervention": "Singing groups",
+    "outcome": "wheezing",
+    "n": 202,
+    "effect_pct": 19.0
+  }
+]

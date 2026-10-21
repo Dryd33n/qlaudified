@@ -43,7 +43,7 @@ def test_committed_prompts_match_the_builder(tmp_path, monkeypatch):
 
 
 def test_sandbox_keeps_the_sources_and_the_labels_match_them():
-    assert TASKS == ["handoff-fam-a", "handoff-fam-b"]
+    assert TASKS == ["handoff-fam-a", "handoff-fam-b", "handoff-fam-c"]
     kinds = {}
     for name in TASKS:
         box = HANDOFF / "sandbox" / name
@@ -56,8 +56,33 @@ def test_sandbox_keeps_the_sources_and_the_labels_match_them():
             results = next(line for line in text.splitlines() if line.startswith("Results:"))
             assert bool(cues.find(results)) == (study["kind"] == "hedged"), study["id"]
         kinds[name] = {i["name"]: i["kind"] for i in task["interventions"]}
-    a, b = kinds.values()
+    a, b = kinds["handoff-fam-a"], kinds["handoff-fam-b"]
     assert all(a[n] != b[n] for n in a)  # the families swap hedged and firm
+    c = [i["kind"] for i in _task("handoff-fam-c")["interventions"]]
+    same_b = sum(x == y for x, y in zip(c, [i["kind"] for i in _task("handoff-fam-b")["interventions"]],
+                                        strict=True))
+    assert 5 <= same_b <= 15  # held out: neither fam-b's split nor its swap
+
+
+def test_held_out_family_is_rebuilt_exactly_and_shares_no_names(tmp_path, monkeypatch):
+    import shutil
+
+    heldout = importlib.import_module("heldout")
+    (tmp_path / "tasks").mkdir()
+    shutil.copy(HANDOFF / "tasks" / "handoff-fam-b.json", tmp_path / "tasks")
+    shutil.copytree(HANDOFF / "sandbox" / "handoff-fam-b", tmp_path / "sandbox" / "handoff-fam-b")
+    monkeypatch.setattr(heldout, "HERE", tmp_path)
+    heldout.main()
+    built, committed = tmp_path / "sandbox" / "handoff-fam-c", HANDOFF / "sandbox" / "handoff-fam-c"
+    files = sorted(p.relative_to(built) for p in built.rglob("*") if p.is_file())
+    assert files == sorted(p.relative_to(committed) for p in committed.rglob("*")
+                           if p.is_file() and not p.name.startswith("prompt-"))
+    for rel in files:
+        assert (built / rel).read_bytes() == (committed / rel).read_bytes(), rel
+    assert (tmp_path / "tasks" / "handoff-fam-c.json").read_bytes() ==         (HANDOFF / "tasks" / "handoff-fam-c.json").read_bytes()
+    names_b = {i["name"].lower() for i in _task("handoff-fam-b")["interventions"]}
+    text_c = (committed / "docs" / "report.md").read_text(encoding="utf-8").lower()
+    assert not any(n in text_c for n in names_b)
 
 
 def test_prompts_are_one_step_and_say_nothing_about_certainty():
@@ -128,7 +153,7 @@ def test_runner_plans_and_sends_a_pasted_report_on_stdin(tmp_path, monkeypatch, 
     """cmd.exe (shell=True on Windows) ends a command at a newline: pasted reports go on stdin."""
     run = _run_module()
     assert run.main(["--set", "dry", "--repeats", "1", "--dry-run"]) == 0
-    assert capsys.readouterr().out.startswith("8 runs planned")
+    assert capsys.readouterr().out.startswith("12 runs planned")
     monkeypatch.setitem(run.TEST_ENV, "CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
     calls = []
 
